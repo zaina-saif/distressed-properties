@@ -11,13 +11,17 @@ The system must not fabricate values merely to eliminate pending records.
 
 ## Valuation Source Hierarchy
 
+For the MVP baseline, use only public historical property and county records.
+Paid external AVMs are explicitly deferred until after the local model has been
+trained, validated, and used to measure baseline coverage.
+
 Use the strongest available source for each property in this order:
 
-1. A verified third-party AVM, such as RentCast.
-2. A county- or state-specific XGBoost model with sufficient property features.
-3. A comparable-sales estimate using nearby, recent, similar properties.
-4. An assessment-based estimate adjusted using an official county equalization ratio.
-5. Manual review when the property identity or characteristics remain ambiguous.
+1. A county- or state-specific XGBoost model using public historical records.
+2. A comparable-sales estimate using nearby, recent, similar properties.
+3. An assessment-based estimate adjusted using an official county equalization ratio.
+4. Manual review when the property identity or characteristics remain ambiguous.
+5. A verified third-party AVM only in a later, explicitly authorized phase.
 
 Every saved valuation should retain:
 
@@ -32,7 +36,22 @@ Every saved valuation should retain:
 
 ## Current Coverage Baseline
 
-Among the 235 future scheduled properties measured during the audit:
+The original audit measured 235 future scheduled properties. The live database
+was re-audited on August 17, 2026 after multi-state ingestion expanded coverage.
+
+Current future-sale coverage:
+
+- 351 future sheriff-sale records.
+- 57 of 58 Monmouth records now have a current residential-model valuation.
+- All 58 Monmouth records have resolved canonical parcel identity.
+- The remaining record is an explicitly unsupported four-parcel commercial and
+  redevelopment assemblage, not a generic pending or parcel-match failure.
+- Camden has 166 unresolved records.
+- Cape May has 28 unresolved records.
+- New York has 3 unresolved records.
+- Pennsylvania has 96 unresolved records across six counties.
+
+The original baseline was:
 
 - 5 have current Monmouth XGBoost estimates and complete ranges.
 - 230 have no current valuation.
@@ -44,7 +63,15 @@ The pending population consists of:
 - Monmouth: 33
 - New York: 3
 
-Within the 38 future Monmouth properties:
+Before the current implementation pass, the Monmouth pending population
+consisted of:
+
+- 29 high-confidence parcel matches missing living-area data.
+- 17 records with no linked parcel/AVM feature record.
+- 0 model-ready records waiting for prediction.
+- 0 linked records rejected only because match confidence is below 90%.
+
+The earlier 38-record Monmouth baseline was:
 
 - 5 are valued.
 - 21 have parcel matches with confidence of at least 90%, but lack living-area data.
@@ -299,16 +326,53 @@ Add a valuation coverage report showing:
 
 ## Immediate Execution Sequence
 
-1. Enrich living area for the 21 matched Monmouth properties.
-2. Resolve the 12 unmatched Monmouth properties.
+1. Enrich living area for the 29 matched Monmouth properties.
+2. Resolve the 17 unmatched Monmouth properties.
 3. Rerun and validate the Monmouth XGBoost model.
 4. Add valuation-status and pending-reason fields to the API and frontend.
-5. Use RentCast for remaining future properties with reliable addresses.
+5. Expand the public-record training and parcel-feature pipeline by county.
 6. Prepare Camden training and assessment datasets.
 7. Prepare Cape May training and assessment datasets.
 8. Add assessment-ratio fallback estimates.
 9. Add comparable-sales fallback estimates.
 10. Automate the valuation queue and coverage report.
+
+### Implementation progress
+
+- Migration 012 adds source, confidence, and retrieval-date provenance for
+  living-area enrichment.
+- The property API now returns an actionable valuation status and pending reason.
+- The frontend displays the cause instead of a generic `Pending` market value.
+- Paid API enrichment is not part of the current MVP baseline.
+- The local model now accepts missing subject living area through its fitted
+  median imputer, assigns those predictions 40% confidence, and widens their
+  value ranges by 75%.
+- 29 previously blocked matched properties received local baseline valuations.
+- The parcel matcher is now restricted to Monmouth records when using the
+  Monmouth MOD-IV index, preventing cross-county false matches.
+- Three unique exact parcel matches were accepted; two future properties became
+  model-eligible and received valuations.
+- Migration 013 introduces canonical jurisdictions, aliases, parcels, annual
+  snapshots, identity evidence, explainable candidates, and multi-parcel sale links.
+- The generic NJ loader accepts any county and year; its bulk staging path loaded
+  257,267 unique Monmouth parcels and 258,163 source snapshots for 2026.
+- Eighty-one verified legacy sheriff-sale parcel matches were bridged into the
+  canonical identity layer without rematching.
+- The first canonical resolver pass accepted two additional unique,
+  municipality-restricted exact-address matches and rejected an ambiguous
+  two-parcel collision for review.
+- The description parser now extracts single, condominium, repeated, renumbered,
+  and multi-parcel legal block/lot clauses without matching boilerplate text.
+- Eleven additional residential sales were resolved from notice evidence and
+  valued through the local model; two multi-parcel records use aggregated numeric
+  AVM features while retaining the primary residential parcel characteristics.
+- The Union Beach `7.01` notice lot is mapped to current lot `7` only after the
+  first parcel corroborates the municipality and six annual MOD-IV snapshots
+  consistently show the base lot.
+- The Oceanport commercial assemblage resolves to four canonical parcels but is
+  excluded from residential XGBoost scoring and shown as `Commercial model unavailable`.
+- Monmouth future-sale valuation coverage increased from 12/58 to 57/58, with
+  the final record carrying a specific unsupported-model status.
 
 ## Definition of Done
 

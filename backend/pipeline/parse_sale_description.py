@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from decimal import Decimal, InvalidOperation
 from typing import Optional
 
@@ -26,12 +26,13 @@ class ParsedSaleDescription:
     block: Optional[str] = None
     lot: Optional[str] = None
     qualifier: Optional[str] = None
+    parcel_identifiers: list[dict[str, Optional[str]]] = field(default_factory=list)
 
     deposit_percent: Optional[Decimal] = None
     balance_due_days: Optional[int] = None
     owner_occupied: Optional[bool] = None
 
-    parser_version: str = "monmouth-description-v1"
+    parser_version: str = "monmouth-description-v2"
     upset_price_conflict: bool = False
 
 
@@ -126,6 +127,56 @@ def determine_owner_occupied(text: str) -> Optional[bool]:
     return None
 
 
+def extract_parcel_identifiers(text: str) -> list[dict[str, Optional[str]]]:
+    """Extract one or more legal parcel identifiers from the notice parcel clause."""
+    renumbered = list(re.finditer(
+        r"tax\s+block\s+[A-Z0-9.\-]+\s+n/k/a\s+tax\s+block\s+"
+        r"([A-Z0-9.\-]+)\s*,?\s*tax\s+lot\s+([A-Z0-9.\-]+)",
+        text,
+        flags=re.IGNORECASE,
+    ))
+    if renumbered:
+        return [{"block":match.group(1),"lot":match.group(2),"qualifier":None}
+                for match in renumbered]
+    clause = search_group(
+        r"lot\s+block\s+number\s+if\s+available\s*:\s*"
+        r"(.{0,500}?)(?:tax\s+map|commonly\s+known\s+as|approximate\s+dimensions)",
+        text,
+    )
+    if not clause:
+        return []
+    clause = re.sub(r"^lot\s+and\s+block\s*:\s*", "", clause, flags=re.IGNORECASE)
+    identifiers: list[dict[str, Optional[str]]] = []
+
+    repeated = list(re.finditer(
+        r"\blot\s+([A-Z0-9.\-]+)\s+in\s+block\s+([A-Z0-9.\-]+)",
+        clause,
+        flags=re.IGNORECASE,
+    ))
+    if repeated:
+        for match in repeated:
+            identifiers.append({"lot": match.group(1), "block": match.group(2), "qualifier": None})
+        return identifiers
+
+    match = re.search(
+        r"\blot(?:\(s\))?\s*:?[ ]*(.+?)\s*,?\s+block\s*:?[ ]*([A-Z0-9.\-]+)",
+        clause,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return []
+    lots_text, block = match.groups()
+    for token in re.split(r"\s*(?:,|&|\band\b)\s*", lots_text, flags=re.IGNORECASE):
+        parts = token.strip().split()
+        if not parts:
+            continue
+        lot = parts[0]
+        qualifier = parts[1] if len(parts) > 1 else None
+        if re.fullmatch(r"[A-Z0-9.\-]+", lot, flags=re.IGNORECASE):
+            identifiers.append({"lot": lot, "block": block, "qualifier": qualifier})
+    return identifiers
+
+
 def parse_sale_description(
     description: str,
 ) -> ParsedSaleDescription:
@@ -193,19 +244,24 @@ def parse_sale_description(
         text,
     )
 
-    block = search_group(
-        r"\bblock\s*(?:number|no\.?|#)?\s*[:#]?\s*"
-        r"([A-Z0-9](?:[A-Z0-9.\-]*[A-Z0-9])?)",
-        text,
-    )
+    parcel_identifiers = extract_parcel_identifiers(text)
+    if not parcel_identifiers:
+        generic = re.search(
+            r"\bblock\s*:?[ ]*([A-Z0-9.\-]+)\s*,?\s+lot\s*:?[ ]*([A-Z0-9.\-]+)",
+            text,
+            flags=re.IGNORECASE,
+        )
+        if generic:
+            parcel_identifiers = [{
+                "block": generic.group(1).rstrip(".-,"),
+                "lot": generic.group(2).rstrip(".-,"),
+                "qualifier": None,
+            }]
+    primary_parcel = parcel_identifiers[0] if len(parcel_identifiers) == 1 else {}
+    block = primary_parcel.get("block")
+    lot = primary_parcel.get("lot")
 
-    lot = search_group(
-        r"\blot\s*(?:number|no\.?|#)?\s*[:#]?\s*"
-        r"([A-Z0-9](?:[A-Z0-9.\-]*[A-Z0-9])?)",
-        text,
-    )
-
-    qualifier = search_group(
+    qualifier = primary_parcel.get("qualifier") or search_group(
         r"\bqualifier\s*(?:number|no\.?|#)?\s*[:#]?\s*"
         r"([A-Z0-9](?:[A-Z0-9.\-]*[A-Z0-9])?)",
         text,
@@ -245,6 +301,7 @@ def parse_sale_description(
         block=block,
         lot=lot,
         qualifier=qualifier,
+        parcel_identifiers=parcel_identifiers,
         deposit_percent=money_to_decimal(deposit),
         balance_due_days=(
             int(balance_days)

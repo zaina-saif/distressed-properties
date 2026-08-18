@@ -53,6 +53,17 @@ function valuationProviderLabel(value: string | null | undefined): string {
   return value ?? "Pending";
 }
 
+function valuationStatusLabel(value: Property["valuation_status"]): string {
+  if (value === "COUNTY_MODEL_UNAVAILABLE") return "County model unavailable";
+  if (value === "PARCEL_MATCH_UNDER_REVIEW") return "Parcel match under review";
+  if (value === "PARCEL_MATCH_REQUIRED") return "Parcel match required";
+  if (value === "MANUAL_REVIEW_REQUIRED") return "Manual review required";
+  if (value === "PROPERTY_TYPE_MODEL_UNAVAILABLE") return "Commercial model unavailable";
+  if (value === "LIVING_AREA_MISSING") return "Living area missing";
+  if (value === "MODEL_SCORING_REQUIRED") return "Ready for model scoring";
+  return "Valuation pending";
+}
+
 
 function formatConfidence(value: number | null | undefined): string {
   if (value == null) return "Pending";
@@ -894,15 +905,26 @@ export default function PropertyDashboard() {
                         ) : null}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatCurrency(property.market_value)}
+                      <td className="px-4 py-3 text-slate-700">
+                        {property.market_value != null ? formatCurrency(property.market_value) : (
+                          <div className="min-w-44">
+                            <p className="font-medium text-amber-700">
+                              {valuationStatusLabel(property.valuation_status)}
+                            </p>
+                            {property.valuation_pending_reason ? (
+                              <p className="mt-1 text-xs text-slate-500">
+                                {property.valuation_pending_reason}
+                              </p>
+                            ) : null}
+                          </div>
+                        )}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+                      <td className="px-4 py-3 text-slate-700">
                         {property.market_value_low != null &&
                         property.market_value_high != null
                           ? `${formatCurrency(property.market_value_low)}–${formatCurrency(property.market_value_high)}`
-                          : "Pending"}
+                          : "Not available until valuation is resolved"}
                       </td>
 
                       <td className="whitespace-nowrap px-4 py-3 text-slate-700">

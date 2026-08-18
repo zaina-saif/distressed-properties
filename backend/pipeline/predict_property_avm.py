@@ -17,16 +17,21 @@ PROVIDER="monmouth_xgboost_avm_v2"
 MODEL=MODEL_DIR/"monmouth_avm_xgboost.joblib"
 METRICS=MODEL_DIR/"monmouth_avm_metrics.json"
 
-def subjects():
+def subjects(pending_only=False):
     query=text("""
     SELECT p.id property_id,p.square_feet,f.*,h.living_space,h.latitude,h.longitude
     FROM property_avm_features f JOIN properties p ON p.id=f.property_id
     LEFT JOIN LATERAL (SELECT living_space,latitude,longitude FROM nj_avm_training_sales s
       WHERE s.municipality_code=f.municipality_code AND s.block=f.block AND s.lot=f.lot
       ORDER BY deed_date DESC LIMIT 1) h ON TRUE
-    WHERE f.match_confidence>=90 AND COALESCE(p.square_feet,h.living_space) IS NOT NULL
+    WHERE f.match_confidence>=90 AND trim(f.property_class)='2'
+      AND EXISTS (SELECT 1 FROM sheriff_sales ss WHERE ss.property_id=p.id
+        AND ss.current_sale_date>=CURRENT_DATE)
+      AND (:pending_only=FALSE OR NOT EXISTS (SELECT 1 FROM property_valuations pv
+        WHERE pv.property_id=p.id AND pv.is_current=TRUE))
     """)
-    with engine.connect() as c: return [dict(r) for r in c.execute(query).mappings()]
+    with engine.connect() as c:
+        return [dict(r) for r in c.execute(query,{"pending_only":pending_only}).mappings()]
 
 def history():
     with engine.connect() as c:
@@ -54,9 +59,11 @@ def local_features(subject_rows, sales):
 def feature_frame(rows):
     today=date.today(); prepared=[]
     for row in rows:
-        sqft=row["square_feet"] or row["living_space"]
+        sqft=row["square_feet"] or row["living_space"] or np.nan
+        row["living_area_imputed"]=bool(np.isnan(sqft))
         prepared.append({**row,"living_space":sqft,"sale_month":today.month,
-            "property_age":today.year-row["year_built"] if row["year_built"] else np.nan})
+            "property_age":today.year-row["year_built"] if row["year_built"] else np.nan,
+            "living_area_imputed":row["living_area_imputed"]})
     return pd.DataFrame(prepared)
 
 def save(rows,predictions,interval):
@@ -68,9 +75,11 @@ def save(rows,predictions,interval):
     saved=0
     with engine.begin() as c:
         for row,pred in zip(rows,predictions):
-            confidence=.62 if row["local_comp_count"]>=5 else .50
+            imputed=bool(row.get("living_area_imputed")); adjusted_interval=interval*(1.75 if imputed else 1)
+            confidence=.40 if imputed else (.62 if row["local_comp_count"]>=5 else .50)
             payload={"model_version":"v2-distance-comps","identity_match_method":row["match_method"],
                 "identity_confidence":float(row["match_confidence"]),"local_comp_count":int(row["local_comp_count"]),
+                "living_area_imputed":imputed,
                 "coordinate_source":"NJGIN" if row["latitude"] is not None else None,
                 "warning":"Statistical estimate; not an appraisal."}
             stronger=c.execute(text("""SELECT EXISTS(SELECT 1 FROM property_valuations
@@ -79,14 +88,19 @@ def save(rows,predictions,interval):
             c.execute(text("UPDATE property_valuations SET is_current=FALSE WHERE property_id=:p AND provider=:provider AND is_current"),
                       {"p":row["property_id"],"provider":PROVIDER})
             c.execute(statement,{"id":str(uuid.uuid4()),"property_id":row["property_id"],"provider":PROVIDER,
-                "estimate":round(max(float(pred),25000),2),"low":round(max(float(pred)-interval,25000),2),
-                "high":round(float(pred)+interval,2),"confidence":confidence,"response":json.dumps(payload),
+                "estimate":round(max(float(pred),25000),2),"low":round(max(float(pred)-adjusted_interval,25000),2),
+                "high":round(float(pred)+adjusted_interval,2),"confidence":confidence,"response":json.dumps(payload),
                 "expires":datetime.now(timezone.utc)+timedelta(days=90),"is_current":not stronger}); saved+=1
     return saved
 
 def main():
-    parser=argparse.ArgumentParser(); parser.add_argument("--save",action="store_true"); args=parser.parse_args()
-    rows=subjects(); local_features(rows,history()); frame=feature_frame(rows)
+    parser=argparse.ArgumentParser(); parser.add_argument("--save",action="store_true")
+    parser.add_argument("--pending-only",action="store_true"); args=parser.parse_args()
+    rows=subjects(args.pending_only)
+    if not rows:
+        print("Scoreable properties: 0")
+        return
+    local_features(rows,history()); frame=feature_frame(rows)
     model=joblib.load(MODEL); predictions=model.predict(frame[NUMERIC_FEATURES+CATEGORICAL_FEATURES])
     interval=json.loads(METRICS.read_text())["metrics"]["test"]["xgboost"]["mae"]
     print(f"Scoreable properties: {len(rows)}; median estimate: ${np.median(predictions):,.0f}")

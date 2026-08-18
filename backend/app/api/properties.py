@@ -28,6 +28,9 @@ def list_parcel_review_candidates():
       JOIN sheriff_sales ss ON ss.property_id=p.id
       LEFT JOIN LATERAL(SELECT id FROM property_valuations WHERE property_id=p.id AND is_current LIMIT 1)pv ON TRUE
       WHERE c.review_status='PENDING'
+        AND NOT EXISTS (SELECT 1 FROM sheriff_sale_parcels ssp
+          WHERE ssp.sheriff_sale_id=ss.id
+            AND ssp.match_status IN ('VERIFIED','MANUALLY_VERIFIED'))
       GROUP BY p.id,p.normalized_address,p.city,p.zip_code
       ORDER BY bool_or(lower(ss.current_status)='scheduled') DESC,
        bool_or(pv.id IS NULL) DESC,p.normalized_address""")
@@ -164,6 +167,41 @@ def list_properties(
             pv.provider AS valuation_provider,
             pv.confidence_score AS valuation_confidence,
             pv.retrieved_at AS valuation_retrieved_at,
+            f.match_confidence AS parcel_match_confidence,
+            CASE
+                WHEN pv.id IS NOT NULL THEN 'VALUED'
+                WHEN p.state <> 'NJ' OR p.county <> 'Monmouth'
+                    THEN 'COUNTY_MODEL_UNAVAILABLE'
+                WHEN f.property_id IS NULL AND EXISTS (
+                    SELECT 1 FROM property_parcel_candidates ppc
+                    WHERE ppc.property_id = p.id
+                      AND ppc.review_status = 'PENDING'
+                ) THEN 'PARCEL_MATCH_UNDER_REVIEW'
+                WHEN f.property_id IS NULL THEN 'PARCEL_MATCH_REQUIRED'
+                WHEN f.match_confidence < 90 THEN 'MANUAL_REVIEW_REQUIRED'
+                WHEN TRIM(COALESCE(f.property_class,'')) <> '2'
+                    THEN 'PROPERTY_TYPE_MODEL_UNAVAILABLE'
+                ELSE 'MODEL_SCORING_REQUIRED'
+            END AS valuation_status,
+            CASE
+                WHEN pv.id IS NOT NULL THEN NULL
+                WHEN p.state <> 'NJ' OR p.county <> 'Monmouth'
+                    THEN 'A validated valuation model is not available for this county.'
+                WHEN f.property_id IS NULL AND EXISTS (
+                    SELECT 1 FROM property_parcel_candidates ppc
+                    WHERE ppc.property_id = p.id
+                      AND ppc.review_status = 'PENDING'
+                ) THEN 'Parcel candidates require identity review.'
+                WHEN f.property_id IS NULL
+                    THEN 'A reliable parcel match has not been identified.'
+                WHEN f.match_confidence < 90
+                    THEN 'The parcel match requires manual review.'
+                WHEN TRIM(COALESCE(f.property_class,'')) <> '2'
+                    THEN 'The current local model is validated only for residential class-2 property.'
+                WHEN COALESCE(p.square_feet, avm_subject.living_space) IS NULL
+                    THEN 'Ready for lower-confidence model scoring with imputed living area.'
+                ELSE 'Property is ready for local model scoring.'
+            END AS valuation_pending_reason,
             CASE
                 WHEN pv.estimated_value IS NOT NULL
                  AND COALESCE(
@@ -218,6 +256,17 @@ def list_properties(
             ORDER BY retrieved_at DESC
             LIMIT 1
         ) AS pv ON TRUE
+        LEFT JOIN property_avm_features AS f
+            ON f.property_id = p.id
+        LEFT JOIN LATERAL (
+            SELECT living_space
+            FROM nj_avm_training_sales
+            WHERE municipality_code = f.municipality_code
+              AND block = f.block
+              AND lot = f.lot
+            ORDER BY deed_date DESC
+            LIMIT 1
+        ) AS avm_subject ON TRUE
         LEFT JOIN LATERAL (
             SELECT *
             FROM property_analyses

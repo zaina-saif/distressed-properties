@@ -23,6 +23,17 @@ export interface Property {
   valuation_provider?: string | null;
   valuation_confidence?: number | null;
   valuation_retrieved_at?: string | null;
+  valuation_status?:
+    | "VALUED"
+    | "COUNTY_MODEL_UNAVAILABLE"
+    | "PARCEL_MATCH_UNDER_REVIEW"
+    | "PARCEL_MATCH_REQUIRED"
+    | "MANUAL_REVIEW_REQUIRED"
+    | "PROPERTY_TYPE_MODEL_UNAVAILABLE"
+    | "LIVING_AREA_MISSING"
+    | "MODEL_SCORING_REQUIRED";
+  valuation_pending_reason?: string | null;
+  parcel_match_confidence?: number | null;
   judgment_amount?: number | null;
   upset_price?: number | null;
   estimated_upset_price?: number | null;

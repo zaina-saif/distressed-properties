@@ -50,7 +50,8 @@ def candidates():
             SELECT DISTINCT p.id AS property_id,p.normalized_address,p.street_address,p.unit_number,
               p.city,p.zip_code,p.data_quality_score
             FROM properties p JOIN sheriff_sales s ON s.property_id=p.id
-            WHERE p.block IS NULL OR p.lot IS NULL
+            WHERE p.state='NJ' AND p.county='Monmouth'
+              AND (p.block IS NULL OR p.lot IS NULL)
         """)).mappings()]
 
 def verified_city_codes():
