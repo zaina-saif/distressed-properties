@@ -1,0 +1,229 @@
+{
+  "Adams": {
+    "status": "research_required"
+  },
+  "Allegheny": {
+    "status": "research_required"
+  },
+  "Armstrong": {
+    "status": "research_required"
+  },
+  "Beaver": {
+    "status": "research_required"
+  },
+  "Bedford": {
+    "status": "research_required"
+  },
+  "Berks": {
+    "status": "research_required"
+  },
+  "Blair": {
+    "status": "research_required"
+  },
+  "Bradford": {
+    "status": "research_required"
+  },
+  "Bucks": {
+    "status": "research_required"
+  },
+  "Butler": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://civil.co.butler.pa.us/Sheriff.SaleListing/"
+  },
+  "Cambria": {
+    "status": "research_required"
+  },
+  "Cameron": {
+    "status": "research_required"
+  },
+  "Carbon": {
+    "status": "research_required"
+  },
+  "Centre": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://civil.centrecountypa.gov/Sheriff.SaleListing/"
+  },
+  "Chester": {
+    "status": "verified_source",
+    "source_type": "county_pdf_image_ocr_required",
+    "url": "https://www.chesco.org/3262/Sheriff-Sales",
+    "live_status_url": "https://www.bid4assets.com/chestercopasheriffsales",
+    "notes": "Official county handbills are image-only PDFs; OCR and validation are required."
+  },
+  "Clarion": {
+    "status": "research_required"
+  },
+  "Clearfield": {
+    "status": "research_required"
+  },
+  "Clinton": {
+    "status": "research_required"
+  },
+  "Columbia": {
+    "status": "research_required"
+  },
+  "Crawford": {
+    "status": "research_required"
+  },
+  "Cumberland": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://sheriff.cumberlandcountypa.gov/Sheriff.SaleListing/"
+  },
+  "Dauphin": {
+    "status": "research_required"
+  },
+  "Delaware": {
+    "status": "research_required"
+  },
+  "Elk": {
+    "status": "research_required"
+  },
+  "Erie": {
+    "status": "research_required"
+  },
+  "Fayette": {
+    "status": "research_required"
+  },
+  "Forest": {
+    "status": "research_required"
+  },
+  "Franklin": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://sheriffportal.franklincountypa.gov/Sheriff.SaleListing/"
+  },
+  "Fulton": {
+    "status": "research_required"
+  },
+  "Greene": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://www.greenecountypa.gov/salelisting/"
+  },
+  "Huntingdon": {
+    "status": "research_required"
+  },
+  "Indiana": {
+    "status": "research_required"
+  },
+  "Jefferson": {
+    "status": "research_required"
+  },
+  "Juniata": {
+    "status": "research_required"
+  },
+  "Lackawanna": {
+    "status": "research_required"
+  },
+  "Lancaster": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://portal.lancaster.pa.countysuite-azuregov.us/Sheriff.SaleListing/"
+  },
+  "Lawrence": {
+    "status": "research_required"
+  },
+  "Lebanon": {
+    "status": "research_required"
+  },
+  "Lehigh": {
+    "status": "research_required"
+  },
+  "Luzerne": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://sheriffsale.luzernecounty.org/Sheriff.SaleListing/"
+  },
+  "Lycoming": {
+    "status": "research_required"
+  },
+  "McKean": {
+    "status": "research_required"
+  },
+  "Mercer": {
+    "status": "research_required"
+  },
+  "Mifflin": {
+    "status": "research_required"
+  },
+  "Monroe": {
+    "status": "research_required"
+  },
+  "Montgomery": {
+    "status": "verified_source",
+    "source_type": "bid4assets",
+    "url": "https://www.bid4assets.com/MontcoPASheriff"
+  },
+  "Montour": {
+    "status": "research_required"
+  },
+  "Northampton": {
+    "status": "research_required"
+  },
+  "Northumberland": {
+    "status": "research_required"
+  },
+  "Perry": {
+    "status": "research_required"
+  },
+  "Philadelphia": {
+    "status": "verified_source",
+    "source_type": "bid4assets",
+    "url": "https://www.bid4assets.com/philaforeclosures"
+  },
+  "Pike": {
+    "status": "research_required"
+  },
+  "Potter": {
+    "status": "research_required"
+  },
+  "Schuylkill": {
+    "status": "verified_source",
+    "source_type": "bid4assets",
+    "url": "https://www.bid4assets.com/schuylkillsheriffsales"
+  },
+  "Snyder": {
+    "status": "research_required"
+  },
+  "Somerset": {
+    "status": "research_required"
+  },
+  "Sullivan": {
+    "status": "research_required"
+  },
+  "Susquehanna": {
+    "status": "verified_source",
+    "source_type": "sheriff_sale_listing",
+    "url": "https://sheriff.susqco.com/Sheriff.SaleListing/"
+  },
+  "Tioga": {
+    "status": "research_required"
+  },
+  "Union": {
+    "status": "research_required"
+  },
+  "Venango": {
+    "status": "research_required"
+  },
+  "Warren": {
+    "status": "research_required"
+  },
+  "Washington": {
+    "status": "research_required"
+  },
+  "Wayne": {
+    "status": "research_required"
+  },
+  "Westmoreland": {
+    "status": "research_required"
+  },
+  "Wyoming": {
+    "status": "research_required"
+  },
+  "York": {
+    "status": "research_required"
+  }
+}

@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+monmouth_*_sheriff_sales.json
+property_address_manual_review.json
+property_analysis_import_failures.json
+property_parcel_manual_review.json
+civilview_*.html

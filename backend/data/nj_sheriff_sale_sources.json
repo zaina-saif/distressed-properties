@@ -1,0 +1,23 @@
+{
+  "Atlantic": {"status": "research_required", "source_type": "county_notices_and_civilview"},
+  "Bergen": {"status": "research_required"},
+  "Burlington": {"status": "adapter_required", "source_type": "county_legal_notices"},
+  "Camden": {"status": "supported", "source_type": "civilview", "county_id": 1},
+  "Cape May": {"status": "supported", "source_type": "civilview", "county_id": 52},
+  "Cumberland": {"status": "research_required"},
+  "Essex": {"status": "research_required"},
+  "Gloucester": {"status": "research_required"},
+  "Hudson": {"status": "research_required"},
+  "Hunterdon": {"status": "research_required"},
+  "Mercer": {"status": "research_required"},
+  "Middlesex": {"status": "adapter_required", "source_type": "county_website"},
+  "Monmouth": {"status": "supported", "source_type": "civilview", "county_id": 8},
+  "Morris": {"status": "research_required"},
+  "Ocean": {"status": "research_required"},
+  "Passaic": {"status": "research_required"},
+  "Salem": {"status": "adapter_required", "source_type": "pdf_and_external_listing"},
+  "Somerset": {"status": "research_required"},
+  "Sussex": {"status": "research_required"},
+  "Union": {"status": "research_required"},
+  "Warren": {"status": "research_required"}
+}

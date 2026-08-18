@@ -1,0 +1,8 @@
+.DS_Store
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+backend/data/nj_property/raw/
+backend/data/nj_property/models/

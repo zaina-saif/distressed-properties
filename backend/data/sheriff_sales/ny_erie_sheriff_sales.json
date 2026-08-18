@@ -1,0 +1,122 @@
+[
+  {
+    "county": "Erie",
+    "sheriff_number": "ERIE-B4A3BBEEBC92",
+    "address": "6000 Pinehurst Court, Lake View, NY 14057",
+    "sale_date": "2026-07-21T00:00:00",
+    "status": "cancelled",
+    "upset_price": null,
+    "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-05/468875-witman.pdf",
+    "raw_payload": {
+      "listing_text": "July 21, 2026 - Sale of 6000 Pinehurst Court, Lake View, NY 14057 - Cancelled",
+      "identifier_is_synthetic": true,
+      "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": null,
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  },
+  {
+    "county": "Erie",
+    "sheriff_number": "ERIE-A123C5728C98",
+    "address": "Heward avenue, Buffalo, NY 14207",
+    "sale_date": "2026-08-12T00:00:00",
+    "status": "cancelled",
+    "upset_price": null,
+    "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-05/34-heward.pdf",
+    "raw_payload": {
+      "listing_text": "August 12, 2026 - Sale of Heward avenue, Buffalo, NY 14207 - Canceled",
+      "identifier_is_synthetic": true,
+      "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": null,
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  },
+  {
+    "county": "Erie",
+    "sheriff_number": "ERIE-BE095A180C03",
+    "address": "93 Blaine Ave, Buffalo, NY 14208",
+    "sale_date": "2026-06-23T00:00:00",
+    "status": "cancelled",
+    "upset_price": null,
+    "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-06/real-property-sale-notice-93-blaine-ave-buffalo.pdf",
+    "raw_payload": {
+      "listing_text": "June 23, 2026 - Sale of 93 Blaine Ave, Buffalo, NY 14208 - Cancelled",
+      "identifier_is_synthetic": true,
+      "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": null,
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  },
+  {
+    "county": "Erie",
+    "sheriff_number": "ERIE-607847630241",
+    "address": "1279 East Park Road, Grand Island, NY 14072",
+    "sale_date": "2026-09-10T00:00:00",
+    "status": "scheduled",
+    "upset_price": null,
+    "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-06/real-property-e-park.pdf",
+    "raw_payload": {
+      "listing_text": "September 10, 2026 - Sale of 1279 East Park Road, Grand Island, NY 14072",
+      "identifier_is_synthetic": true,
+      "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": null,
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  },
+  {
+    "county": "Erie",
+    "sheriff_number": "ERIE-1920D7EC47A8",
+    "address": "206 Locust Street, Buffalo, NY 14204",
+    "sale_date": "2026-10-06T00:00:00",
+    "status": "scheduled",
+    "upset_price": null,
+    "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-07/471147-ballard.pdf",
+    "raw_payload": {
+      "listing_text": "October 6, 2026 - Sale of 206 Locust Street, Buffalo, NY 14204",
+      "identifier_is_synthetic": true,
+      "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": null,
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  }
+]

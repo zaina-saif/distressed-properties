@@ -1,0 +1,28 @@
+[
+  {
+    "county": "Orange",
+    "sheriff_number": "26000763",
+    "address": "921 Hawthorn Way, New Windsor NY 12553",
+    "sale_date": "2026-09-15T00:00:00",
+    "status": "scheduled",
+    "upset_price": null,
+    "source_url": "https://www.orangecountyny.gov/DocumentCenter/View/37373/26000763---Delacruz",
+    "raw_payload": {
+      "listing_text": "Sheriff's Sales | Orange County, NY Skip to Main Content Create a Website Account - Manage notification subscriptions, save form progress and more. Website Sign In Search Divisions Pistol Permit Application Process Help After Hours Follow us on: Top Searches: Home Accessibility Privacy /QuickLinks.aspx Home Departments Departments Q - Z Sheriff's Office Divisions Civil Unit Sheriff's Sales Sheriff's Sales Sheriff\u2019s Notice of Sale Listing As sales of property arise, the Notice of Sale will be listed on this page. All sales will be held at the Orange County Sheriff\u2019s Office unless otherwise noted. Real Property Sale Civil Docket 26000763 921 Hawthorn Way, New Windsor NY 12553, / Section 97 Block 1 Lot 1.44 Sale to take place September 15, 2026, at 11:00 am at the Orange County Sheriff's Office, located at 110 Wells Farm Road, Goshen NY 10924. FAQs What is a sheriff's sale? When are sheriff's sales conducted? Where are sheriff's sales conducted? Who can bid at a sheriff's sale? What is the sale format? What are the terms of sale? What exactly is the high bidder purchasing? What documents will the purchaser receive from the sheriff? How does one find out if and when a sale is scheduled? View All FAQs /FAQ.aspx Civil Unit Mailing Address Civil Unit 110 Wells Farm Road Goshen , NY 10924 Phone: 845-862-6399 Hours Monday - Friday 9 a.m. - 5 p.m. Closed weekends and all federal holidays Email Physical Address View Map 110 Wells Farm Road Goshen , NY 10924 110 Wells Farm Road  Goshen NY 10924 Directions About the Civil Unit Service of Civil Evictions Fees for Service (PDF) Income Execution / Property Execution Payments Sheriff's Sales Contact Us Orange County Sheriff\u2019s Office 110 Wells Farm Road Goshen, New York 10924 Phone: 845-862-6399 Helpful Links Sheriff's Office Facebook Page New York Sheriff\u2019s Victim Hotline VINELink New York State Missing Persons Clearinghouse Sheriff's Office Twitter Sheriff's Office Instagram /QuickLinks.aspx Language & Accessibility Option / Opciones de idioma y accesibilidad Government Websites by CivicPlus\u00ae Enable Recite Loading Loading Do Not Show Again Close Arrow Left Arrow Right [] Slideshow Left Arrow Slideshow Right Arrow",
+      "section": "97",
+      "block": "1",
+      "lot": "1.44",
+      "official_listing_url": "https://www.orangecountyny.gov/1010/Sheriffs-Sales"
+    },
+    "plaintiff": null,
+    "defendant": null,
+    "judgment_amount": null,
+    "plaintiff_attorney": null,
+    "court_case_number": "26000763",
+    "block": "1",
+    "lot": "1.44",
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "NY"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "county": "Susquehanna",
+    "sheriff_number": "2025-0258 CP",
+    "address": "200 Mountain Laurel Drive Clifford Township, PA 18421 Clifford Township UPI#: 248.00-1,052.00,000.",
+    "sale_date": "2026-06-30T00:00:00",
+    "status": "cancelled",
+    "upset_price": null,
+    "source_url": "https://sheriff.susqco.com/sheriff.salelisting/PropertySales/Poster/178207",
+    "raw_payload": {
+      "case_participants": "Pennymac Loan Services, LLC vs. Lahr Jr., Warren G.",
+      "attorney": "KML Law Group, P.C. (215) 627-1322",
+      "address": "200 Mountain Laurel Drive Clifford Township, PA 18421 Clifford Township UPI#: 248.00-1,052.00,000.",
+      "judgment": "$247,509.93",
+      "raw_status": "Cancelled ( 6/30/2026 )"
+    },
+    "plaintiff": "Pennymac Loan Services, LLC",
+    "defendant": "Lahr Jr., Warren G.",
+    "judgment_amount": "247509.93",
+    "plaintiff_attorney": null,
+    "court_case_number": "2025-0258 CP",
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "PA"
+  },
+  {
+    "county": "Susquehanna",
+    "sheriff_number": "2020-00840",
+    "address": "32 North Street A/K/A 32-34 North Street Forest City, PA 18421 Forest City Borough UPI#: 268.07-3,003.00,000",
+    "sale_date": null,
+    "status": "scheduled",
+    "upset_price": null,
+    "source_url": "https://sheriff.susqco.com/sheriff.salelisting/PropertySales/Poster/181895",
+    "raw_payload": {
+      "case_participants": "WELLS FARGO BANK NATIONAL ASSOCIATION, NOT ON ITS INDIVIDUAL OR BANKING CAPACITY, BUT SOLELY AS TRUSTEE ON BEHALF OF THE LAKE COUNTRY MORTGAGE LOAN TRUST 2005-HE1 vs. TINA BENNET; JERRY TUTTLE C/O ERNEST A. SPOSTO, JR.; CRYSTAL TUTTLE C/O ERNEST A. SPOSTO, JR.",
+      "attorney": "Robertson, Anschutz, Schneid, Crane & Partners, PLLC (855) 225-6906",
+      "address": "32 North Street A/K/A 32-34 North Street Forest City, PA 18421 Forest City Borough UPI#: 268.07-3,003.00,000",
+      "judgment": "$180,855.60",
+      "raw_status": "Active (P)"
+    },
+    "plaintiff": "WELLS FARGO BANK NATIONAL ASSOCIATION, NOT ON ITS INDIVIDUAL OR BANKING CAPACITY, BUT SOLELY AS TRUSTEE ON BEHALF OF THE LAKE COUNTRY MORTGAGE LOAN TRUST 2005-HE1",
+    "defendant": "TINA BENNET; JERRY TUTTLE C/O ERNEST A. SPOSTO, JR.; CRYSTAL TUTTLE C/O ERNEST A. SPOSTO, JR.",
+    "judgment_amount": "180855.60",
+    "plaintiff_attorney": null,
+    "court_case_number": "2020-00840",
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "PA"
+  },
+  {
+    "county": "Susquehanna",
+    "sheriff_number": "2022-553 CP",
+    "address": "74 Porter Drive AKA 10 Porter Drive Clifford Township, PA 18421 Clifford Township UPI#: 266.00-1,004.03,000.",
+    "sale_date": null,
+    "status": "scheduled",
+    "upset_price": null,
+    "source_url": "https://sheriff.susqco.com/sheriff.salelisting/PropertySales/Poster/177564",
+    "raw_payload": {
+      "case_participants": "U.S. Bank National Association vs. Williams, Jean M.",
+      "attorney": "Manley Deas Kochalski LLC (614) 220-5611",
+      "address": "74 Porter Drive AKA 10 Porter Drive Clifford Township, PA 18421 Clifford Township UPI#: 266.00-1,004.03,000.",
+      "judgment": "$140,362.11",
+      "raw_status": "Active (P)"
+    },
+    "plaintiff": "U.S. Bank National Association",
+    "defendant": "Williams, Jean M.",
+    "judgment_amount": "140362.11",
+    "plaintiff_attorney": null,
+    "court_case_number": "2022-553 CP",
+    "block": null,
+    "lot": null,
+    "qualifier": null,
+    "detail_fields": {},
+    "state": "PA"
+  }
+]
