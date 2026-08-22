@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.properties import router as properties_router
 from app.api.liens import router as liens_router
+from app.api.pa_data import router as pa_data_router
 
 
 app = FastAPI(
@@ -23,6 +24,7 @@ app.add_middleware(
 
 app.include_router(properties_router)
 app.include_router(liens_router)
+app.include_router(pa_data_router)
 
 
 @app.get("/health")
