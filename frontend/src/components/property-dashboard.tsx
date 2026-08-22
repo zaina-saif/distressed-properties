@@ -48,6 +48,7 @@ function formatDate(value: string | null | undefined): string {
 
 function valuationProviderLabel(value: string | null | undefined): string {
   if (value === "monmouth_xgboost_avm_v2") return "Monmouth AVM";
+  if (value === "monroe_kiz_xgboost_avm_v1") return "Monroe experimental AVM";
   if (value === "rentcast") return "RentCast";
   if (value === "manual_csv" || value === "manual") return "Manual review";
   return value ?? "Pending";
@@ -909,9 +910,12 @@ export default function PropertyDashboard() {
                         <span className="font-medium text-slate-900">
                           {valuationProviderLabel(property.valuation_provider)}
                         </span>
-                        {property.valuation_provider === "monmouth_xgboost_avm_v2" ? (
+                        {property.valuation_provider === "monmouth_xgboost_avm_v2" ||
+                        property.valuation_provider === "monroe_kiz_xgboost_avm_v1" ? (
                           <p className="mt-1 text-xs text-slate-500">
-                            Statistical estimate—not an appraisal
+                            {property.valuation_provider === "monroe_kiz_xgboost_avm_v1"
+                              ? "Experimental KIZ-subset estimate—not an appraisal"
+                              : "Statistical estimate—not an appraisal"}
                           </p>
                         ) : null}
                       </td>

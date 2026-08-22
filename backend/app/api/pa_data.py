@@ -53,7 +53,8 @@ def list_pa_sheriff_sales(
       p.normalized_address,p.municipality,p.city,p.zip_code,
       (m.id IS NOT NULL) AS parcel_matched,m.match_method,m.match_status,
       parcel.map_number AS gis_map_number,parcel.latitude,parcel.longitude,
-      d.owner_name,d.assessed_value,d.land_value,d.improvement_value,d.acreage,
+      d.owner_name,d.assessed_value,d.land_value,d.improvement_value,d.property_type,
+      d.land_use_code,d.acreage,
       d.property_location,d.last_sale_date,d.last_sale_price,d.assessment_year,
       COUNT(*) OVER() AS total_count
       FROM sheriff_sales s JOIN properties p ON p.id=s.property_id
@@ -74,7 +75,7 @@ def get_pa_sheriff_sale(sale_id: str):
       (m.id IS NOT NULL) AS parcel_matched,m.match_method,m.match_status,
       parcel.map_number AS gis_map_number,parcel.geometry,parcel.latitude,parcel.longitude,
       d.owner_name,d.assessed_value,d.land_value,d.improvement_value,d.preferential_value,
-      d.property_type,d.acreage,d.property_location,d.last_sale_date,d.last_sale_price,
+      d.property_type,d.land_use_code,d.acreage,d.property_location,d.last_sale_date,d.last_sale_price,
       d.assessment_year,d.enrichment_source
       FROM sheriff_sales s JOIN properties p ON p.id=s.property_id
       LEFT JOIN pa_sheriff_sale_parcel_matches m ON m.sheriff_sale_id=s.id
@@ -92,7 +93,7 @@ def get_pa_sheriff_sale(sale_id: str):
 def get_pa_parcel(map_number: str, county: str = "Monroe"):
     normalized = normalize_map_number(map_number)
     query = text("""SELECT parcel.*,d.tax_parcel_id,d.owner_name,d.assessed_value,
-      d.land_value,d.improvement_value,d.preferential_value,d.property_type,d.acreage,
+      d.land_value,d.improvement_value,d.preferential_value,d.property_type,d.land_use_code,d.acreage,
       d.property_location,d.last_sale_date,d.last_sale_price,d.assessment_year,
       d.enrichment_source
       FROM pa_parcels parcel LEFT JOIN pa_property_details d ON d.parcel_id=parcel.id

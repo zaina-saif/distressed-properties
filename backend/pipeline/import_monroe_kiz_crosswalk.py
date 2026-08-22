@@ -20,7 +20,7 @@ QUERY_URL = f"{LAYER_URL}/query"
 MIGRATION = Path(__file__).resolve().parents[1] / "migrations" / "016_monroe_property_details.sql"
 FIELDS = (
     "FID,MAPNUMBER,PARID,OWNER,IAS_TAXYEA,BLDGVALUE,PREFVALUE,LANDVALUE,CLASS,"
-    "ACREAGE,LOCATION,SALEDATE,SALEAMT"
+    "LANDUSE,ACREAGE,LOCATION,SALEDATE,SALEAMT"
 )
 
 
@@ -53,6 +53,7 @@ def assessment_row(attributes: dict) -> dict | None:
         "improvement_value": improvement,
         "preferential_value": preferential,
         "property_type": str(attributes.get("CLASS") or "").strip() or None,
+        "land_use_code": str(attributes.get("LANDUSE") or "").strip() or None,
         "acreage": attributes.get("ACREAGE"),
         "property_location": str(attributes.get("LOCATION") or "").strip() or None,
         "last_sale_date": parse_sale_date(attributes.get("SALEDATE")),
@@ -121,17 +122,18 @@ def import_crosswalk() -> dict[str, int]:
               WHERE id=:parcel_id"""), matched_rows)
             connection.execute(text("""INSERT INTO pa_property_details(parcel_id,map_number,
               tax_parcel_id,normalized_tax_parcel_id,owner_name,assessed_value,land_value,
-              improvement_value,preferential_value,property_type,acreage,property_location,
+              improvement_value,preferential_value,property_type,land_use_code,acreage,property_location,
               last_sale_date,last_sale_price,assessment_year,enrichment_source,source_object_id,raw_payload)
               VALUES(:parcel_id,:map_number,:tax_parcel_id,:normalized_tax_parcel_id,:owner_name,
               :assessed_value,:land_value,:improvement_value,:preferential_value,:property_type,
-              :acreage,:property_location,:last_sale_date,:last_sale_price,:assessment_year,
+              :land_use_code,:acreage,:property_location,:last_sale_date,:last_sale_price,:assessment_year,
               :source,:source_object_id,CAST(:raw_payload AS JSONB))
               ON CONFLICT(parcel_id) DO UPDATE SET tax_parcel_id=EXCLUDED.tax_parcel_id,
               normalized_tax_parcel_id=EXCLUDED.normalized_tax_parcel_id,
               owner_name=EXCLUDED.owner_name,assessed_value=EXCLUDED.assessed_value,
               land_value=EXCLUDED.land_value,improvement_value=EXCLUDED.improvement_value,
               preferential_value=EXCLUDED.preferential_value,property_type=EXCLUDED.property_type,
+              land_use_code=EXCLUDED.land_use_code,
               acreage=EXCLUDED.acreage,property_location=EXCLUDED.property_location,
               last_sale_date=EXCLUDED.last_sale_date,last_sale_price=EXCLUDED.last_sale_price,
               assessment_year=EXCLUDED.assessment_year,enrichment_source=EXCLUDED.enrichment_source,

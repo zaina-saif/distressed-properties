@@ -167,6 +167,12 @@ def list_properties(
             f.match_confidence AS parcel_match_confidence,
             CASE
                 WHEN pv.id IS NOT NULL THEN 'VALUED'
+                WHEN p.state = 'PA' AND p.county = 'Monroe' AND EXISTS (
+                    SELECT 1 FROM pa_sheriff_sale_parcel_matches pm
+                    WHERE pm.sheriff_sale_id = ss.id
+                ) THEN 'MODEL_SCORING_REQUIRED'
+                WHEN p.state = 'PA' AND p.county = 'Monroe'
+                    THEN 'PARCEL_MATCH_REQUIRED'
                 WHEN p.state <> 'NJ' OR p.county <> 'Monmouth'
                     THEN 'COUNTY_MODEL_UNAVAILABLE'
                 WHEN f.property_id IS NULL AND EXISTS (
@@ -182,6 +188,12 @@ def list_properties(
             END AS valuation_status,
             CASE
                 WHEN pv.id IS NOT NULL THEN NULL
+                WHEN p.state = 'PA' AND p.county = 'Monroe' AND EXISTS (
+                    SELECT 1 FROM pa_sheriff_sale_parcel_matches pm
+                    WHERE pm.sheriff_sale_id = ss.id
+                ) THEN 'Property has official KIZ details and is ready for experimental Monroe scoring.'
+                WHEN p.state = 'PA' AND p.county = 'Monroe'
+                    THEN 'The official KIZ crosswalk does not cover this parcel; no AVM estimate was fabricated.'
                 WHEN p.state <> 'NJ' OR p.county <> 'Monmouth'
                     THEN 'A validated valuation model is not available for this county.'
                 WHEN f.property_id IS NULL AND EXISTS (

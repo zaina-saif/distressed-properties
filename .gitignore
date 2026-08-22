@@ -6,3 +6,4 @@ __pycache__/
 .pytest_cache/
 backend/data/nj_property/raw/
 backend/data/nj_property/models/
+backend/data/pa_property/models/
