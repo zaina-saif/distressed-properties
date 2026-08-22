@@ -36,9 +36,6 @@ export interface Property {
   parcel_match_confidence?: number | null;
   judgment_amount?: number | null;
   upset_price?: number | null;
-  estimated_upset_price?: number | null;
-  alternate_upset_price?: number | null;
-  upset_price_conflict?: boolean | null;
   gross_equity?: number | null;
   gross_equity_percent?: number | null;
 
@@ -57,6 +54,7 @@ export interface Property {
   lien_risk_level?: string | null;
   lien_risk_confidence?: number | null;
   known_lien_exposure?: number | null;
+  total_lien_amount?: number | null;
   lien_risk_calculated_at?: string | null;
   lien_record_count?: number;
   open_lien_count?: number;

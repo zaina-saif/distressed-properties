@@ -98,6 +98,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
         for record in records:
             try:
                 sheriff_number = record["sheriff_number"]
+                state = str(record.get("state") or "NJ").strip().upper()
                 status = record.get("status", "unknown")
                 sale_date = parse_sale_date(record.get("sale_date"))
                 source_url = record.get(
@@ -131,6 +132,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                 description_source_url = raw_payload.get(
                     "description_source_url"
                 )
+                status_history = raw_payload.get("status_history", [])
 
                 content_hash = calculate_hash(record)
                 scraped_at = datetime.now(timezone.utc)
@@ -140,11 +142,13 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                         """
                         SELECT id, current_status, current_sale_date
                         FROM sheriff_sales
-                        WHERE county = :county
+                        WHERE state = :state
+                          AND county = :county
                           AND sheriff_number = :sheriff_number
                         """
                     ),
                     {
+                        "state": state,
                         "county": county,
                         "sheriff_number": sheriff_number,
                     },
@@ -156,6 +160,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                         INSERT INTO raw_scrape_records (
                             id,
                             scrape_run_id,
+                            state,
                             county,
                             source_record_id,
                             source_url,
@@ -167,6 +172,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                         VALUES (
                             :id,
                             :scrape_run_id,
+                            :state,
                             :county,
                             :source_record_id,
                             :source_url,
@@ -186,6 +192,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                     {
                         "id": str(uuid.uuid4()),
                         "scrape_run_id": scrape_run_id,
+                        "state": state,
                         "county": county,
                         "source_record_id": sheriff_number,
                         "source_url": source_url,
@@ -204,6 +211,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                             """
                             INSERT INTO sheriff_sales (
                                 id,
+                                state,
                                 county,
                                 sheriff_number,
                                 plaintiff,
@@ -235,6 +243,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                             )
                             VALUES (
                                 :id,
+                                :state,
                                 :county,
                                 :sheriff_number,
                                 :plaintiff,
@@ -268,6 +277,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                         ),
                         {
                             "id": sheriff_sale_id,
+                            "state": state,
                             "county": county,
                             "sheriff_number": sheriff_number,
                             "plaintiff": plaintiff,
@@ -370,9 +380,11 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                                     judgment_amount,
                                     :judgment_amount
                                 ),
-                                upset_price = COALESCE(
+                                upset_price = GREATEST(
                                     upset_price,
-                                    :upset_price
+                                    :upset_price,
+                                    :estimated_upset_price,
+                                    :alternate_upset_price
                                 ),
                                 docket_number = COALESCE(
                                     docket_number,
@@ -514,6 +526,43 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                         )
 
                     updated_count += 1
+
+                for history_event in status_history:
+                    history_date = parse_sale_date(history_event.get("sale_date"))
+                    history_status = str(history_event.get("status") or "unknown")
+                    history_raw_status = str(
+                        history_event.get("raw_status") or history_status
+                    )
+                    connection.execute(
+                        text(
+                            """
+                            INSERT INTO sheriff_sale_status_history (
+                                id, sheriff_sale_id, status, sale_date,
+                                observed_at, source_url, raw_status
+                            )
+                            SELECT
+                                :id, :sheriff_sale_id, :status, :sale_date,
+                                :observed_at, :source_url, :raw_status
+                            WHERE NOT EXISTS (
+                                SELECT 1
+                                FROM sheriff_sale_status_history
+                                WHERE sheriff_sale_id = :sheriff_sale_id
+                                  AND status = :status
+                                  AND raw_status = :raw_status
+                                  AND sale_date IS NOT DISTINCT FROM :sale_date
+                            )
+                            """
+                        ),
+                        {
+                            "id": str(uuid.uuid4()),
+                            "sheriff_sale_id": sheriff_sale_id,
+                            "status": history_status,
+                            "sale_date": history_date,
+                            "observed_at": scraped_at,
+                            "source_url": source_url,
+                            "raw_status": history_raw_status,
+                        },
+                    )
 
                 print(
                     f"Saved {sheriff_number} | "

@@ -32,7 +32,7 @@ class ParsedSaleDescription:
     balance_due_days: Optional[int] = None
     owner_occupied: Optional[bool] = None
 
-    parser_version: str = "monmouth-description-v2"
+    parser_version: str = "monmouth-description-v3"
     upset_price_conflict: bool = False
 
 
@@ -187,6 +187,10 @@ def parse_sale_description(
         [
             r"estimated\s+upset\s+(?:price|amount)",
             r"estimated\s+upset\s+bid\s+amount",
+            r"estimated\s+upset\s+sheriff(?:['’]s?)?\s+(?:sale\s+)?bid\s+amount",
+            r"good\s+faith\s+estimated\s+upset",
+            r"plaintiff(?:['’]s?)?\s+upset\s+bid(?:\s+amount)?\s+"
+            r"(?:presently\s+)?approximates?",
             r"estimated\s+amount\s+required\s+to\s+satisfy",
             r"estimated\s+amount\s+due",
             r"anticipated\s+upset\s+(?:price|amount)",
@@ -198,9 +202,14 @@ def parse_sale_description(
         [
             r"approximate\s+upset\s+(?:price|amount)",
             r"approximate\s+anticipated\s+upset",
+            r"approximate\s+upset\s+sum",
+            r"approximate\s+sheriff\s+upset",
+            r"upset\s+sheriff(?:['’]s?)?\s+(?:sale\s+)?bid\s+amount",
+            r"plaintiff(?:['’]s?)?\s+upset\s+bid\s+is",
+            r"upset\s+bid\s+amount",
             r"upset\s+(?:price|amount)",
         ],
-        max_distance=20,
+        max_distance=60,
     )
 
     # A generic upset label can overlap a more specific estimated

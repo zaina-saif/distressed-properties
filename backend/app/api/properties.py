@@ -116,7 +116,7 @@ def list_properties(
 
     if min_equity is not None:
         conditions.append(
-            "pv.estimated_value - COALESCE("
+            "pv.estimated_value - GREATEST("
             "ss.estimated_upset_price, "
             "ss.alternate_upset_price, ss.upset_price"
             ") >= :min_equity"
@@ -153,14 +153,11 @@ def list_properties(
             ss.current_status,
             ss.current_sale_date,
             ss.judgment_amount,
-            COALESCE(
+            GREATEST(
                 ss.estimated_upset_price,
                 ss.alternate_upset_price,
                 ss.upset_price
             ) AS upset_price,
-            ss.estimated_upset_price,
-            ss.alternate_upset_price,
-            ss.upset_price_conflict,
             pv.estimated_value AS market_value,
             pv.low_value AS market_value_low,
             pv.high_value AS market_value_high,
@@ -204,12 +201,12 @@ def list_properties(
             END AS valuation_pending_reason,
             CASE
                 WHEN pv.estimated_value IS NOT NULL
-                 AND COALESCE(
+                 AND GREATEST(
                     ss.estimated_upset_price,
                     ss.alternate_upset_price,
                     ss.upset_price
                  ) IS NOT NULL
-                THEN pv.estimated_value - COALESCE(
+                THEN pv.estimated_value - GREATEST(
                     ss.estimated_upset_price,
                     ss.alternate_upset_price,
                     ss.upset_price
@@ -217,13 +214,13 @@ def list_properties(
             END AS gross_equity,
             CASE
                 WHEN pv.estimated_value > 0
-                 AND COALESCE(
+                 AND GREATEST(
                     ss.estimated_upset_price,
                     ss.alternate_upset_price,
                     ss.upset_price
                  ) IS NOT NULL
                 THEN (
-                    pv.estimated_value - COALESCE(
+                    pv.estimated_value - GREATEST(
                         ss.estimated_upset_price,
                         ss.alternate_upset_price,
                         ss.upset_price
@@ -239,6 +236,7 @@ def list_properties(
             lrr.confidence_score AS lien_risk_confidence,
             lrr.known_exposure AS known_lien_exposure,
             lrr.calculated_at AS lien_risk_calculated_at,
+            lc.total_lien_amount,
             COALESCE(lc.lien_record_count, 0) AS lien_record_count,
             COALESCE(lc.open_lien_count, 0) AS open_lien_count,
             COALESCE(lc.potentially_surviving_count, 0)
@@ -298,6 +296,9 @@ def list_properties(
         ) AS lrr ON TRUE
         LEFT JOIN LATERAL (
             SELECT
+                SUM(COALESCE(current_amount, original_amount)) FILTER (
+                    WHERE status IN ('ACTIVE', 'POSSIBLY_ACTIVE', 'UNKNOWN')
+                ) AS total_lien_amount,
                 COUNT(*) AS lien_record_count,
                 COUNT(*) FILTER (
                     WHERE status IN ('ACTIVE', 'POSSIBLY_ACTIVE', 'UNKNOWN')
@@ -422,14 +423,11 @@ def get_property(property_id: str):
             ss.current_status,
             ss.current_sale_date,
             ss.judgment_amount,
-            COALESCE(
+            GREATEST(
                 ss.estimated_upset_price,
                 ss.alternate_upset_price,
                 ss.upset_price
             ) AS upset_price,
-            ss.estimated_upset_price,
-            ss.alternate_upset_price,
-            ss.upset_price_conflict,
             ss.plaintiff,
             ss.defendant,
             ss.source_url

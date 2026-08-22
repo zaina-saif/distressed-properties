@@ -48,6 +48,34 @@ def test_estimated_upset_bid_does_not_capture_square_footage() -> None:
     assert result.alternate_upset_price is None
 
 
+def test_extracts_estimated_upset_sheriffs_bid_amount() -> None:
+    result = parse_sale_description(
+        "Estimated Upset Sheriff’s Bid Amount: $490,000.00, "
+        "subject to any additional sums ordered by the court."
+    )
+
+    assert result.estimated_upset_price == Decimal("490000.00")
+    assert result.alternate_upset_price is None
+
+
+def test_extracts_common_civilview_upset_wording_variants() -> None:
+    samples = {
+        "The Plaintiff's Upset Bid Amount Presently Approximates $185,000.00": "185000.00",
+        "Estimated upset Sheriff's Sale Bid Amount $2,322,000.00": "2322000.00",
+        "Good Faith Estimated Upset: $88,996.77": "88996.77",
+        "The approximate upset sum is $485,621.62": "485621.62",
+        "The approximate sheriff upset is $68,000.00": "68000.00",
+        "Plaintiff's upset bid is $381,935.09": "381935.09",
+        "Upset Bid Amount: $423,625.45": "423625.45",
+        "Upset price: Approximately any: $502,000.00": "502000.00",
+    }
+
+    for description, expected in samples.items():
+        result = parse_sale_description(description)
+        amount = result.estimated_upset_price or result.alternate_upset_price
+        assert amount == Decimal(expected)
+
+
 def test_money_parser_accepts_spacing_after_comma() -> None:
     result = parse_sale_description(
         "Upset Amount: $15, 501.09. Status: Owner occupied."

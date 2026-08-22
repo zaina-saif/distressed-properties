@@ -130,7 +130,15 @@ def main() -> None:
               model_version,feature_values,feature_explanations,predicted_at)
               VALUES(:id,:sale_id,'reaches_auction',:probability,:predicted_class,
               'status_history_heuristic',:version,CAST(:features AS JSONB),
-              CAST(:explanations AS JSONB),:now)"""),
+              CAST(:explanations AS JSONB),:now)
+              ON CONFLICT (sheriff_sale_id, prediction_target, model_version)
+              DO UPDATE SET
+                probability = EXCLUDED.probability,
+                predicted_class = EXCLUDED.predicted_class,
+                model_name = EXCLUDED.model_name,
+                feature_values = EXCLUDED.feature_values,
+                feature_explanations = EXCLUDED.feature_explanations,
+                predicted_at = EXCLUDED.predicted_at"""),
               {"id": str(uuid.uuid4()), "sale_id": sale["id"], "probability": probability,
                "predicted_class": probability >= 0.65, "version": MODEL_VERSION,
                "features": json.dumps(features),

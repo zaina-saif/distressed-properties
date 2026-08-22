@@ -238,6 +238,7 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
         structured_fields = self._extract_detail_fields(
             soup
         )
+        status_history = self._extract_status_history(soup)
 
         for element in soup(
             ["script", "style", "noscript", "svg"]
@@ -254,26 +255,24 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
         )
         parsed_dict = parsed_to_json_dict(parsed)
 
-        upset_price = (
-            getattr(
-                parsed,
-                "estimated_upset_price",
-                None,
-            )
-            or getattr(
-                parsed,
-                "alternate_upset_price",
-                None,
-            )
-            or self._find_money_field(
+        upset_candidates = [
+            getattr(parsed, "estimated_upset_price", None),
+            getattr(parsed, "alternate_upset_price", None),
+            self._find_money_field(
                 structured_fields,
                 [
                     "estimated upset",
                     "approximate upset",
+                    "upset sheriff",
                     "upset price",
                     "upset amount",
                 ],
-            )
+            ),
+            record.upset_price,
+        ]
+        upset_price = max(
+            (value for value in upset_candidates if value is not None),
+            default=None,
         )
 
         judgment_amount = (
@@ -356,6 +355,7 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
             "description_source_url": final_url,
             "parsed_description": parsed_dict,
             "detail_fields": structured_fields,
+            "status_history": status_history,
         }
 
         return replace(
@@ -837,6 +837,31 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
                 fields[label] = str(value).strip()
 
         return fields
+
+    def _extract_status_history(
+        self,
+        soup: BeautifulSoup,
+    ) -> list[dict[str, str]]:
+        """Preserve every CivilView status row, including repeated event types."""
+        table = soup.find("table", id="longTable")
+        if table is None:
+            return []
+
+        history: list[dict[str, str]] = []
+        for row in table.find_all("tr"):
+            cells = row.find_all("td")
+            if len(cells) < 2:
+                continue
+            raw_status = cells[0].get_text(" ", strip=True)
+            event_date = self._parse_date(cells[1].get_text(" ", strip=True))
+            if not raw_status or event_date is None:
+                continue
+            history.append({
+                "status": self._normalize_status(raw_status),
+                "raw_status": raw_status,
+                "sale_date": event_date.isoformat(),
+            })
+        return history
 
     @staticmethod
     def _browser_headers() -> Dict[str, str]:

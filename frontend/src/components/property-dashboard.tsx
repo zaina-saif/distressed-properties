@@ -101,15 +101,6 @@ function lienPositionColor(position: string): string {
 }
 
 
-function aggregateLienAmounts(property: Property): number | null {
-  const amounts = (property.lien_items ?? [])
-    .map((lien) => lien.amount)
-    .filter((amount): amount is number => amount != null);
-
-  if (amounts.length === 0) return null;
-  return amounts.reduce((total, amount) => total + amount, 0);
-}
-
 type SortDirection = "asc" | "desc";
 type SortKey =
   | "address"
@@ -124,16 +115,11 @@ type SortKey =
   | "avmConfidence"
   | "valuationDate"
   | "judgment"
-  | "preferredUpset"
-  | "estimatedUpset"
-  | "alternateUpset"
+  | "upsetPrice"
   | "grossEquity"
   | "equityPercent"
   | "lienRisk"
-  | "lienRecords"
-  | "maySurvive"
-  | "otherClaims"
-  | "knownExposure";
+  | "totalLienAmount";
 
 function sortValue(property: Property, key: SortKey): string | number | null | undefined {
   const values: Record<SortKey, string | number | null | undefined> = {
@@ -149,16 +135,11 @@ function sortValue(property: Property, key: SortKey): string | number | null | u
     avmConfidence: property.valuation_confidence,
     valuationDate: property.valuation_retrieved_at,
     judgment: property.judgment_amount,
-    preferredUpset: property.upset_price,
-    estimatedUpset: property.estimated_upset_price,
-    alternateUpset: property.alternate_upset_price,
+    upsetPrice: property.upset_price,
     grossEquity: property.gross_equity,
     equityPercent: property.gross_equity_percent,
     lienRisk: property.lien_risk_score,
-    lienRecords: property.lien_record_count,
-    maySurvive: property.potentially_surviving_lien_count,
-    otherClaims: aggregateLienAmounts(property),
-    knownExposure: property.known_lien_exposure,
+    totalLienAmount: property.total_lien_amount,
   };
   return values[key];
 }
@@ -734,7 +715,9 @@ export default function PropertyDashboard() {
                           Aggregated quantified claims
                         </td>
                         <td className="whitespace-nowrap border-l border-slate-300 px-4 py-3 font-bold text-slate-900">
-                          {formatCurrency(aggregateLienAmounts(selectedProperty))}
+                          {selectedProperty.total_lien_amount == null
+                            ? "No quantified outstanding amount"
+                            : formatCurrency(selectedProperty.total_lien_amount)}
                         </td>
                         <td className="border-l border-slate-300 px-4 py-3 text-xs text-slate-500">
                           Excludes unknown amounts
@@ -816,7 +799,7 @@ export default function PropertyDashboard() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="min-w-[2720px] table-fixed text-left text-sm [&_td]:!whitespace-normal [&_td]:break-words [&_th]:whitespace-normal [&_th]:break-words">
+                <table className="min-w-[2020px] table-fixed text-left text-sm [&_td]:!whitespace-normal [&_td]:break-words [&_th]:whitespace-normal [&_th]:break-words">
                 <thead className="bg-slate-100 text-xs uppercase text-slate-600">
                   <tr>
                     <SortableHeader label="Address" sortKey="address" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="w-64" />
@@ -831,16 +814,11 @@ export default function PropertyDashboard() {
                     <SortableHeader label="AVM confidence" sortKey="avmConfidence" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
                     <SortableHeader label="Valuation date" sortKey="valuationDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
                     <SortableHeader label="Judgment" sortKey="judgment" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="Preferred upset" sortKey="preferredUpset" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="Estimated upset" sortKey="estimatedUpset" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="Alternate upset" sortKey="alternateUpset" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
+                    <SortableHeader label="Upset price" sortKey="upsetPrice" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
                     <SortableHeader label="Gross equity" sortKey="grossEquity" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
                     <SortableHeader label="Equity %" sortKey="equityPercent" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
                     <SortableHeader label="Lien risk" sortKey="lienRisk" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="Lien records" sortKey="lienRecords" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="May survive" sortKey="maySurvive" activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-                    <SortableHeader label="Other disclosed claims" sortKey="otherClaims" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="border-l border-slate-300" />
-                    <SortableHeader label="Known exposure" sortKey="knownExposure" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="border-l border-slate-300" />
+                    <SortableHeader label="Total lien amount" sortKey="totalLienAmount" activeKey={sortKey} direction={sortDirection} onSort={handleSort} className="border-l border-slate-300" />
                   </tr>
                 </thead>
 
@@ -954,19 +932,6 @@ export default function PropertyDashboard() {
                         {formatCurrency(property.upset_price)}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatCurrency(property.estimated_upset_price)}
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        {formatCurrency(property.alternate_upset_price)}
-                        {property.upset_price_conflict ? (
-                          <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
-                            Review
-                          </span>
-                        ) : null}
-                      </td>
-
                       <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
                         {formatCurrency(property.gross_equity)}
                       </td>
@@ -992,44 +957,23 @@ export default function PropertyDashboard() {
                         )}
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        <span className="font-medium text-slate-900">
-                          {property.lien_record_count ?? 0}
-                        </span>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {property.open_lien_count ?? 0} open/unknown
-                        </p>
-                      </td>
-
-                      <td className="whitespace-nowrap px-4 py-3 text-slate-700">
-                        <span className="font-medium text-slate-900">
-                          {property.potentially_surviving_lien_count ?? 0}
-                        </span>
-                        {(property.lien_manual_review_count ?? 0) > 0 ? (
-                          <p className="mt-1 text-xs text-amber-700">
-                            {property.lien_manual_review_count} need review
-                          </p>
-                        ) : null}
-                      </td>
-
                       <td className="min-w-44 border-l border-slate-300 px-4 py-3 align-top text-slate-700">
                         <p className="font-semibold text-slate-900">
-                          {aggregateLienAmounts(property) == null
-                            ? "No additional claim amount identified"
-                            : formatCurrency(aggregateLienAmounts(property))}
+                          {property.total_lien_amount == null
+                            ? "No quantified outstanding amount"
+                            : formatCurrency(property.total_lien_amount)}
                         </p>
                         <p className="mt-1 text-xs text-slate-500">
-                          Excludes foreclosure judgment
+                          Quantified open/unknown liens
                         </p>
-                        {(property.lien_items ?? []).some((lien) => lien.amount == null) && (
+                        {(property.lien_items ?? []).some((lien) =>
+                          ["ACTIVE", "POSSIBLY_ACTIVE", "UNKNOWN"].includes(lien.status) &&
+                          lien.amount == null
+                        ) && (
                           <p className="mt-1 text-xs text-amber-700">
                             Plus unknown amounts
                           </p>
                         )}
-                      </td>
-
-                      <td className="whitespace-nowrap border-l border-slate-300 px-4 py-3 align-top text-slate-700">
-                        {formatCurrency(property.known_lien_exposure)}
                       </td>
                     </tr>
                     );
