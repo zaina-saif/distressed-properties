@@ -32,6 +32,9 @@ Set `DATABASE_URL` in `.env`, then initialize a new PostgreSQL database:
 psql "$DATABASE_URL" -f migrations/001_initial_schema.sql
 ```
 
+Apply the remaining numbered migrations in order for multistate data, parcel
+coordinates, valuation features, and indexed dashboard search.
+
 Start the API:
 
 ```bash

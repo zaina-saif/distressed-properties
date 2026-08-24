@@ -79,6 +79,7 @@ def approve_parcel_candidate(property_id: str,approval: ParcelApproval):
 def list_properties(
     state: list[str] = Query(default=[]),
     county: list[str] = Query(default=[]),
+    q: Optional[str] = Query(default=None, max_length=200),
     zip_code: Optional[str] = None,
     status: Optional[str] = None,
     future_only: bool = False,
@@ -100,16 +101,30 @@ def list_properties(
         parameters["states"] = [value.upper() for value in state]
 
     if county:
-        conditions.append("p.county = ANY(:counties)")
-        parameters["counties"] = county
+        conditions.append("LOWER(p.county) = ANY(:counties)")
+        parameters["counties"] = [value.lower() for value in county]
+
+    if q and q.strip():
+        conditions.append(
+            "(p.normalized_address ILIKE :search OR "
+            "p.street_address ILIKE :search OR "
+            "p.city ILIKE :search OR "
+            "p.county ILIKE :search OR "
+            "p.zip_code ILIKE :search OR "
+            "ss.sheriff_number ILIKE :search OR "
+            "COALESCE(ss.docket_number, ss.court_case_number) ILIKE :search OR "
+            "ss.plaintiff ILIKE :search OR "
+            "ss.defendant ILIKE :search)"
+        )
+        parameters["search"] = f"%{q.strip()}%"
 
     if zip_code:
         conditions.append("p.zip_code = :zip_code")
         parameters["zip_code"] = zip_code
 
     if status:
-        conditions.append("ss.current_status = :status")
-        parameters["status"] = status
+        conditions.append("LOWER(ss.current_status) = :status")
+        parameters["status"] = status.lower()
 
     if future_only:
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
@@ -144,6 +159,25 @@ def list_properties(
             p.bedrooms,
             p.bathrooms,
             p.square_feet,
+            COALESCE(canonical_parcel.acreage, f.acreage) AS acreage,
+            COALESCE(canonical_parcel.year_built, f.year_built) AS year_built,
+            canonical_parcel.pams_pin,
+            canonical_parcel.block,
+            canonical_parcel.lot,
+            canonical_parcel.qualifier,
+            COALESCE(canonical_parcel.latitude, avm_subject.latitude)
+                AS latitude,
+            COALESCE(canonical_parcel.longitude, avm_subject.longitude)
+                AS longitude,
+            CASE
+                WHEN canonical_parcel.latitude IS NOT NULL
+                 AND canonical_parcel.longitude IS NOT NULL
+                    THEN 'canonical_parcel'
+                WHEN avm_subject.latitude IS NOT NULL
+                 AND avm_subject.longitude IS NOT NULL
+                    THEN 'nj_avm_parcel'
+                ELSE NULL
+            END AS coordinate_source,
             ss.sheriff_number,
             COALESCE(ss.docket_number, ss.court_case_number)
                 AS court_case_number,
@@ -269,11 +303,39 @@ def list_properties(
         LEFT JOIN property_avm_features AS f
             ON f.property_id = p.id
         LEFT JOIN LATERAL (
-            SELECT living_space
+            SELECT
+                cp.latitude,
+                cp.longitude,
+                cp.pams_pin,
+                cp.block,
+                cp.lot,
+                cp.qualifier,
+                snapshot.acreage,
+                snapshot.year_built
+            FROM sheriff_sale_parcels AS ssp
+            JOIN parcels AS cp
+                ON cp.id = ssp.parcel_id
+            LEFT JOIN LATERAL (
+                SELECT ps.acreage, ps.year_built
+                FROM parcel_snapshots AS ps
+                WHERE ps.parcel_id = cp.id
+                ORDER BY ps.source_year DESC, ps.id DESC
+                LIMIT 1
+            ) AS snapshot ON TRUE
+            WHERE ssp.sheriff_sale_id = ss.id
+              AND ssp.match_status IN ('VERIFIED', 'MANUALLY_VERIFIED')
+            ORDER BY
+                CASE WHEN ssp.relationship = 'PRIMARY' THEN 0 ELSE 1 END,
+                ssp.match_score DESC NULLS LAST
+            LIMIT 1
+        ) AS canonical_parcel ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT living_space, latitude, longitude
             FROM nj_avm_training_sales
             WHERE municipality_code = f.municipality_code
               AND block = f.block
               AND lot = f.lot
+              AND COALESCE(qualifier, '') = COALESCE(f.qualifier, '')
             ORDER BY deed_date DESC
             LIMIT 1
         ) AS avm_subject ON TRUE
@@ -422,6 +484,32 @@ def list_properties(
         "page_size": page_size,
         "total": total,
     }
+
+
+@router.get("/facets/coverage")
+def list_property_coverage():
+    query = text(
+        """
+        SELECT
+            p.state,
+            p.county,
+            COUNT(DISTINCT p.id) AS property_count
+        FROM sheriff_sales AS ss
+        JOIN properties AS p
+            ON p.id = ss.property_id
+        WHERE ss.property_id IS NOT NULL
+        GROUP BY p.state, p.county
+        ORDER BY p.state, p.county
+        """
+    )
+
+    with engine.connect() as connection:
+        items = [
+            dict(row)
+            for row in connection.execute(query).mappings()
+        ]
+
+    return {"items": items}
 
 
 @router.get("/{property_id}")

@@ -7,3 +7,7 @@ __pycache__/
 backend/data/nj_property/raw/
 backend/data/nj_property/models/
 backend/data/pa_property/models/
+
+# Temporary Figma Make handoff artifacts (the integrated source lives in frontend/).
+figma_export/
+Real Estate Dashboard Interface.zip

@@ -13,6 +13,19 @@ export interface Property {
   county: string;
   state: string;
   zip_code: string | null;
+  property_type?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  square_feet?: number | null;
+  acreage?: number | null;
+  year_built?: number | null;
+  pams_pin?: string | null;
+  block?: string | null;
+  lot?: string | null;
+  qualifier?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  coordinate_source?: "canonical_parcel" | "nj_avm_parcel" | null;
 
   current_status: string;
   current_sale_date: string | null;
@@ -104,23 +117,8 @@ export interface PropertyResponse {
   total: number;
 }
 
-export interface ParcelCandidate {
-  candidate_id: number;
-  rank: number;
-  score: number;
-  municipality_code: string;
-  block: string;
-  lot: string;
-  qualifier: string;
-  property_location: string;
-}
-
-export interface ParcelReviewItem {
-  property_id: string;
-  normalized_address: string;
-  city: string;
-  zip_code: string | null;
-  is_scheduled: boolean;
-  missing_valuation: boolean;
-  candidates: ParcelCandidate[];
+export interface PropertyCoverageItem {
+  state: string;
+  county: string;
+  property_count: number;
 }

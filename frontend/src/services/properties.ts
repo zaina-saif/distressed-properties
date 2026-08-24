@@ -1,6 +1,6 @@
 import type {
   LienCoverageItem,
-  ParcelReviewItem,
+  PropertyCoverageItem,
   PropertyResponse,
 } from "@/types/property";
 
@@ -11,29 +11,12 @@ export interface PropertyFilters {
   states?: string[];
   counties?: string[];
   zipCode?: string;
+  query?: string;
   status?: string;
   futureOnly?: boolean;
   minEquity?: number;
   page?: number;
   pageSize?: number;
-}
-
-export async function getParcelReviewCandidates(): Promise<ParcelReviewItem[]> {
-  const response = await fetch(`${API_URL}/api/v1/properties/parcel-review/candidates`, {
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error(`Failed to load parcel candidates: ${response.status}`);
-  const result = (await response.json()) as { items: ParcelReviewItem[] };
-  return result.items;
-}
-
-export async function approveParcelCandidate(propertyId: string, candidateId: number): Promise<void> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/parcel-review/approve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ candidate_id: candidateId }),
-  });
-  if (!response.ok) throw new Error(`Failed to approve parcel candidate: ${response.status}`);
 }
 
 export async function getProperties(
@@ -49,6 +32,10 @@ export async function getProperties(
 
   if (filters.zipCode) {
     params.set("zip_code", filters.zipCode);
+  }
+
+  if (filters.query) {
+    params.set("q", filters.query);
   }
 
   if (filters.status) {
@@ -80,6 +67,19 @@ export async function getProperties(
   }
 
   return response.json();
+}
+
+export async function getPropertyCoverage(): Promise<PropertyCoverageItem[]> {
+  const response = await fetch(`${API_URL}/api/v1/properties/facets/coverage`, {
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to load property coverage: ${response.status}`);
+  }
+
+  const result = (await response.json()) as { items: PropertyCoverageItem[] };
+  return result.items;
 }
 
 export async function getLienCoverage(
