@@ -9,7 +9,7 @@ from pipeline.load_to_supabase import load_into_supabase
 from pipeline.scrape_civilview import json_serializer
 
 # IDs verified against live official county listing links.
-CIVILVIEW_COUNTIES={"Camden":1,"Monmouth":8,"Cape May":52}
+CIVILVIEW_COUNTIES={"Camden":1,"Essex":2,"Bergen":7,"Monmouth":8,"Cape May":52,"Middlesex":73}
 
 async def scrape(county: str,county_id: int,output_dir: Path) -> Path:
     adapter=CountyCivilViewAdapter(county,county_id); ids=await adapter.fetch_sale_index()
