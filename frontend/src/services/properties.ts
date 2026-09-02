@@ -15,6 +15,8 @@ export interface PropertyFilters {
   status?: string;
   futureOnly?: boolean;
   minEquity?: number;
+  sort?: string;
+  sortDirection?: "asc" | "desc";
   page?: number;
   pageSize?: number;
 }
@@ -48,6 +50,14 @@ export async function getProperties(
 
   if (filters.minEquity !== undefined) {
     params.set("min_equity", String(filters.minEquity));
+  }
+
+  if (filters.sort) {
+    params.set("sort", filters.sort);
+  }
+
+  if (filters.sortDirection) {
+    params.set("sort_direction", filters.sortDirection);
   }
 
   params.set("page", String(filters.page ?? 1));

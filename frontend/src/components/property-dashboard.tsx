@@ -17,12 +17,13 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
 import { PropertyMap } from "@/components/property-map";
+import { PropertyTable } from "@/components/property-table";
 import { getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem } from "@/types/property";
 
 const PAGE_SIZE = 24;
 
-type SortOption = "sale-date" | "value-desc" | "equity-desc" | "address";
+type SortDirection = "asc" | "desc";
 
 export default function PropertyDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -36,11 +37,13 @@ export default function PropertyDashboard() {
   const [selectedCounty, setSelectedCounty] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [upcomingOnly, setUpcomingOnly] = useState(true);
+  const [upcomingOnly, setUpcomingOnly] = useState(false);
   const [highEquityOnly, setHighEquityOnly] = useState(false);
-  const [sort, setSort] = useState<SortOption>("sale-date");
+  const [sort, setSort] = useState("gross-equity");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
+  const [desktopView, setDesktopView] = useState<"dashboard" | "list">("dashboard");
 
   useEffect(() => {
     getPropertyCoverage().then(setCoverage).catch(() => setCoverage([]));
@@ -55,6 +58,8 @@ export default function PropertyDashboard() {
       status: upcomingOnly ? "scheduled" : undefined,
       futureOnly: upcomingOnly,
       minEquity: highEquityOnly ? 150000 : undefined,
+      sort,
+      sortDirection,
       page,
       pageSize: PAGE_SIZE,
     })
@@ -71,7 +76,7 @@ export default function PropertyDashboard() {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [highEquityOnly, page, refreshKey, searchQuery, selectedCounty, selectedState, upcomingOnly]);
+  }, [highEquityOnly, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, upcomingOnly]);
 
   const states = useMemo(() => {
     const values = new Set(coverage.map((item) => item.state));
@@ -83,14 +88,7 @@ export default function PropertyDashboard() {
     .filter((item) => !selectedState || item.state === selectedState)
     .sort((left, right) => left.county.localeCompare(right.county)), [coverage, selectedState]);
 
-  const sortedProperties = useMemo(() => [...properties].sort((left, right) => {
-    if (sort === "value-desc") return (right.market_value ?? -Infinity) - (left.market_value ?? -Infinity);
-    if (sort === "equity-desc") return (right.gross_equity ?? -Infinity) - (left.gross_equity ?? -Infinity);
-    if (sort === "address") return left.normalized_address.localeCompare(right.normalized_address);
-    const leftDate = left.current_sale_date ? new Date(left.current_sale_date).getTime() : Infinity;
-    const rightDate = right.current_sale_date ? new Date(right.current_sale_date).getTime() : Infinity;
-    return leftDate - rightDate;
-  }), [properties, sort]);
+  const sortedProperties = properties;
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const averageEquity = useMemo(() => {
@@ -117,8 +115,10 @@ export default function PropertyDashboard() {
     setSelectedCounty("");
     setSearchInput("");
     setSearchQuery("");
-    setUpcomingOnly(true);
+    setUpcomingOnly(false);
     setHighEquityOnly(false);
+    setSort("gross-equity");
+    setSortDirection("desc");
     setPage(1);
   }
 
@@ -132,8 +132,23 @@ export default function PropertyDashboard() {
             <p className="hidden text-xs text-slate-500 sm:block">Distressed property intelligence</p>
           </div>
         </div>
-        <nav className="flex items-center gap-2">
-          <span className="hidden rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 sm:inline">Dashboard</span>
+        <nav className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
+          <button
+            type="button"
+            onClick={() => setDesktopView("dashboard")}
+            className={`hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            aria-current={desktopView === "dashboard" ? "page" : undefined}
+          >
+            <MapIcon className="h-4 w-4" />Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            aria-current={desktopView === "list" ? "page" : undefined}
+          >
+            <ListFilter className="h-4 w-4" />List View
+          </button>
           <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
         </nav>
       </header>
@@ -178,19 +193,21 @@ export default function PropertyDashboard() {
         </div>
       </section>
 
-      <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-2 lg:hidden">
+      <div className={`shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
         <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
           <button onClick={() => setMobileView("map")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "map" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><MapIcon className="h-4 w-4" />Map</button>
           <button onClick={() => setMobileView("list")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><ListFilter className="h-4 w-4" />List</button>
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 overflow-hidden lg:grid-cols-2">
-        <div className={`${mobileView === "map" ? "block h-full" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:block lg:h-auto`}>
-          <PropertyMap properties={properties} selectedPropertyId={selectedProperty?.property_id} onPropertyClick={chooseProperty} onCountySelect={chooseCounty} />
+      <div className={`grid min-h-0 flex-1 overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+        <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-full" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
+          {desktopView === "dashboard" && (
+            <PropertyMap properties={properties} selectedPropertyId={selectedProperty?.property_id} onPropertyClick={chooseProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} />
+          )}
         </div>
 
-        <section className={`${mobileView === "list" ? "flex" : "hidden"} min-h-0 flex-col overflow-hidden bg-slate-50 lg:flex`}>
+        <section className={`${desktopView === "list" || mobileView === "list" ? "flex" : "hidden"} min-h-0 flex-col overflow-hidden bg-slate-50 lg:flex`}>
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
             <div>
               <h2 className="font-bold text-slate-950">{loading ? "Loading properties…" : `${total.toLocaleString()} properties found`}</h2>
@@ -198,10 +215,11 @@ export default function PropertyDashboard() {
             </div>
             <label className="flex items-center gap-2 text-xs text-slate-500">
               <SlidersHorizontal className="h-4 w-4" />
-              <select value={sort} onChange={(event) => setSort(event.target.value as SortOption)} className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700">
+              <select value={["sale-date", "estimated-market-value", "gross-equity", "address"].includes(sort) ? sort : ""} onChange={(event) => { const next = event.target.value; setSort(next); setSortDirection(next === "sale-date" || next === "address" ? "asc" : "desc"); setPage(1); }} className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm text-slate-700">
+                {!(["sale-date", "estimated-market-value", "gross-equity", "address"].includes(sort)) && <option value="">Custom column</option>}
                 <option value="sale-date">Sale date</option>
-                <option value="value-desc">Highest value</option>
-                <option value="equity-desc">Highest equity</option>
+                <option value="estimated-market-value">Highest value</option>
+                <option value="gross-equity">Highest equity</option>
                 <option value="address">Address</option>
               </select>
             </label>
@@ -217,6 +235,8 @@ export default function PropertyDashboard() {
             <div className="flex flex-1 items-center justify-center p-8 text-center">
               <div><ListFilter className="mx-auto h-10 w-10 text-slate-300" /><h3 className="mt-3 font-semibold text-slate-900">No matching properties</h3><p className="mt-1 text-sm text-slate-500">Try clearing a filter or searching a broader location.</p></div>
             </div>
+          ) : desktopView === "list" ? (
+            <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
               {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => chooseProperty(property)} />)}

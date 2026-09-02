@@ -22,11 +22,13 @@ export function PropertyMap({
   selectedPropertyId,
   onPropertyClick,
   onCountySelect,
+  visibilityKey,
 }: {
   properties: Property[];
   selectedPropertyId?: string;
   onPropertyClick: (property: Property) => void;
   onCountySelect: (state: string, county: string) => void;
+  visibilityKey: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -64,7 +66,7 @@ export function PropertyMap({
         ).addTo(map);
         tiles.on("tileerror", (event) => {
           console.error("Leaflet tile error", event);
-          setMapError("The base-map tiles could not load. Check Geoapify access settings.");
+          setMapError("The base-map tiles could not load. Check the map service or network connection.");
         });
         tiles.once("load", () => setMapError(null));
 
@@ -125,6 +127,12 @@ export function PropertyMap({
       mapRef.current = null;
     };
   }, [onCountySelect]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const frame = window.requestAnimationFrame(() => mapRef.current?.invalidateSize());
+    return () => window.cancelAnimationFrame(frame);
+  }, [visibilityKey]);
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return;

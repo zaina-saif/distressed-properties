@@ -345,6 +345,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                                 :source_url,
                                 :raw_status
                             )
+                            ON CONFLICT DO NOTHING
                             """
                         ),
                         {
@@ -512,6 +513,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                                     :source_url,
                                     :raw_status
                                 )
+                                ON CONFLICT DO NOTHING
                                 """
                             ),
                             {
@@ -551,6 +553,7 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                                   AND raw_status = :raw_status
                                   AND sale_date IS NOT DISTINCT FROM :sale_date
                             )
+                            ON CONFLICT DO NOTHING
                             """
                         ),
                         {

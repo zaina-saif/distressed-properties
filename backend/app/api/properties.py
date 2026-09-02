@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -85,6 +85,8 @@ def list_properties(
     future_only: bool = False,
     min_equity: Optional[float] = None,
     max_risk: Optional[int] = None,
+    sort: str = "sale-date",
+    sort_direction: Literal["asc", "desc"] = "asc",
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
 ):
@@ -143,6 +145,38 @@ def list_properties(
         parameters["max_risk"] = max_risk
 
     where_clause = " AND ".join(conditions)
+    sort_columns = {
+        "sheriff-number": "ss.sheriff_number",
+        "address": "p.normalized_address", "street-address": "p.street_address",
+        "city": "p.city", "county": "p.county", "state": "p.state", "zip": "p.zip_code",
+        "lakefront": "CASE WHEN p.normalized_address ~* '\\m(LAKEFRONT|LAKE[[:space:]]+FRONT|LAKESHORE|LAKE[[:space:]]+SHORE|LAKESIDE)\\M' THEN 1 ELSE 0 END",
+        "court-case": "court_case_number", "status": "ss.current_status",
+        "sale-date": "ss.current_sale_date", "plaintiff": "ss.plaintiff", "defendant": "ss.defendant",
+        "estimated-market-value": "market_value", "value-range-low": "market_value_low",
+        "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
+        "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
+        "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
+        "judgment-amount": "ss.judgment_amount", "gross-equity": "gross_equity",
+        "gross-equity-percent": "gross_equity_percent", "probability-to-auction": "sale_probability",
+        "overall-risk-score": "ra.risk_score", "overall-risk-level": "ra.risk_level",
+        "lien-risk-score": "lrr.risk_score", "lien-risk-level": "lrr.risk_level",
+        "lien-risk-confidence": "lrr.confidence_score", "total-lien-amount": "lc.total_lien_amount",
+        "known-lien-exposure": "lrr.known_exposure", "lien-records": "lc.lien_record_count",
+        "open-liens": "lc.open_lien_count", "potentially-surviving-liens": "lc.potentially_surviving_count",
+        "lien-manual-review": "lc.manual_review_count", "lienholders-and-claims": "lc.lien_items::text",
+        "property-type": "p.property_type", "bedrooms": "p.bedrooms", "bathrooms": "p.bathrooms",
+        "square-feet": "p.square_feet", "acreage": "acreage", "year-built": "year_built",
+        "pams-pin": "pams_pin", "block": "block", "lot": "lot", "qualifier": "qualifier",
+        "parcel-match-confidence": "f.match_confidence", "latitude": "latitude", "longitude": "longitude",
+        "coordinate-source": "coordinate_source", "valuation-retrieved": "valuation_retrieved_at",
+        "lien-risk-calculated": "lien_risk_calculated_at", "foreclosure-source": "ss.source_url",
+        # Backward-compatible values used by the existing sort menu.
+        "value-desc": "market_value", "equity-desc": "gross_equity",
+    }
+    if sort not in sort_columns:
+        raise HTTPException(status_code=422, detail=f"Unsupported sort column: {sort}")
+    direction = sort_direction.upper()
+    order_by = f"{sort_columns[sort]} {direction} NULLS LAST, p.normalized_address ASC"
 
     query = text(
         f"""
@@ -426,7 +460,7 @@ def list_properties(
             WHERE property_id = p.id
         ) AS lc ON TRUE
         WHERE {where_clause}
-        ORDER BY ss.current_sale_date, p.normalized_address
+        ORDER BY {order_by}
         LIMIT :limit
         OFFSET :offset
         """
