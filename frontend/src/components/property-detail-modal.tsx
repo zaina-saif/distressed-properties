@@ -41,6 +41,7 @@ function date(value: string | null | undefined): string {
 }
 
 function valuationProviderLabel(value: string | null | undefined): string {
+  if (value === "realie") return "Realie AVM";
   if (value === "monmouth_xgboost_avm_v2") return "Monmouth AVM";
   if (value === "monroe_kiz_xgboost_avm_v1") return "Monroe experimental AVM";
   if (value === "rentcast") return "RentCast";

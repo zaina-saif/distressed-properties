@@ -1,0 +1,362 @@
+{
+  "valuations": [],
+  "failures": [
+    {
+      "property_id": "00b4f3f7-d8f1-41b3-9073-88eb1e4495b4",
+      "address": "38 Summitt Avenue",
+      "city": "Fords (Woodbridge Twp.)",
+      "zip_code": "08863",
+      "error": "not_found"
+    },
+    {
+      "property_id": "102d3497-1813-491f-a30d-fb2c5811b64a",
+      "address": "168-N Portland Lane",
+      "city": "Monroe",
+      "zip_code": "08831",
+      "error": "not_found"
+    },
+    {
+      "property_id": "1daee3b0-3b88-47db-91a6-fe8382a42046",
+      "address": "128B Remsen Avenue",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "not_found"
+    },
+    {
+      "property_id": "1de84e3a-9a3a-4b4c-9a82-fcdf637d7614",
+      "address": "33 Elm Terrace",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "1e9f90cd-7de4-4f13-971f-de4cad634a97",
+      "address": "110 South Fulton Street",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "20629db3-0bcf-461f-9319-7f93dc6e1b3e",
+      "address": "88 West Willow Street",
+      "city": "Colonia",
+      "zip_code": "07067",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "21cfe278-1ee4-4ee7-93eb-212a02f03726",
+      "address": "23 Columbus Avenue",
+      "city": "Cliffwood Beach",
+      "zip_code": "07735",
+      "error": "not_found"
+    },
+    {
+      "property_id": "253b02f7-ef5a-40c0-92fd-9364cb17a2cb",
+      "address": "323 Regency Place",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "280a62bc-317c-4429-89ab-086f431fdcde",
+      "address": "46 Bramble Lane Mailing Address: 46 Bramble Lane Matawan, New Jersey",
+      "city": "Old Bridge",
+      "zip_code": "07747",
+      "error": "not_found"
+    },
+    {
+      "property_id": "33f5ab50-eeed-4b10-9d1a-f79030a43bfd",
+      "address": "172 Avenue",
+      "city": "Jamesburg",
+      "zip_code": "08831",
+      "error": "not_found"
+    },
+    {
+      "property_id": "3c93eecf-cec5-4497-bf6c-cb154ee7e148",
+      "address": "528 Sharon Court",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "47a31d2e-db00-43a8-9bcd-86a4da82d0c0",
+      "address": "44 Road",
+      "city": "Piscataway",
+      "zip_code": "08854",
+      "error": "not_found"
+    },
+    {
+      "property_id": "4bdd1b55-7c06-4c6d-83cb-304769f73dba",
+      "address": "3319 Falston Circle",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "4d973d54-de4b-4fbe-9edc-0bed8ea04ec7",
+      "address": "105 North Talmadge Street",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "57994430-4f6e-415d-a64e-65c277d59ffd",
+      "address": "202 Bently Drive",
+      "city": "Princeton",
+      "zip_code": "08540",
+      "error": "not_found"
+    },
+    {
+      "property_id": "5bcbb7cf-ada5-422c-a822-861b02ce03b8",
+      "address": "432 North Lincoln Avenue",
+      "city": "Middlesex",
+      "zip_code": "08846",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "5c83d6d7-cdc7-45f2-b5ec-9ae741f75ab5",
+      "address": "744 Second Street",
+      "city": "Dunellen",
+      "zip_code": "08812",
+      "error": "not_found"
+    },
+    {
+      "property_id": "5d05eba1-1049-4640-87cb-7271328eb65e",
+      "address": "196 William Street",
+      "city": "South River",
+      "zip_code": "08882",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "6d257841-ae60-41af-a74d-4462116ce35f",
+      "address": "72 Heather Court",
+      "city": "Monmouth Junction",
+      "zip_code": "08852",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "7446f54b-7e38-47a3-b098-dd8872964764",
+      "address": "122 Kenwood Avenue",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "76cfe2a6-d35f-4d86-bdda-e9c7175fb05f",
+      "address": "134 North Bergen Mills Road",
+      "city": "Monroe",
+      "zip_code": "08831",
+      "error": "not_found"
+    },
+    {
+      "property_id": "7880b394-898e-4227-844b-49353f1cd875",
+      "address": "1301 Harbour Club Drive",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "78bf6def-cca3-4b77-95e8-a8e1cd1a42e6",
+      "address": "809 North Oaks Boulevard",
+      "city": "North Brunswick",
+      "zip_code": "08902",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "7a5815cc-7496-455c-a498-b775432eb3fa",
+      "address": "91 Giera Court",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "84ba2baf-9966-4023-b154-a8b7d0befd77",
+      "address": "107 Lloyd Court Building 15",
+      "city": "East Brunswick",
+      "zip_code": "08816",
+      "error": "not_found"
+    },
+    {
+      "property_id": "86a96769-e06c-4a74-99ec-327aaf046669",
+      "address": "460-468 Mitchell Place",
+      "city": "Perth Amboy",
+      "zip_code": "08861",
+      "error": "not_found"
+    },
+    {
+      "property_id": "89d17a50-1369-49f6-8a3e-d578324312be",
+      "address": "1001 Green Hollow Drive",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "912d206b-511d-43cb-8a9a-17f635b1d202",
+      "address": "108 South Pennington Road",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "920e2aee-0fd0-4520-b6e3-09711d28d1ff",
+      "address": "72 Letts Court",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "not_found"
+    },
+    {
+      "property_id": "96ce07aa-bf86-4f55-8ce1-bcabb26de750",
+      "address": "25 Roll Avenue",
+      "city": "South Amboy",
+      "zip_code": "08879",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "99fbcc30-2b5b-4742-b9f5-9adc4b4c112b",
+      "address": "Mailing Address: 12 Denhard Court Parlin, NJ12 Denhard Court",
+      "city": "Sayreville",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "a2792c6d-51c3-4053-bfc7-ed36076c232c",
+      "address": "124 Norman Street",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "af955ac1-d472-4aab-83bc-e9415c4e03b2",
+      "address": "123 Frank Court",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "b19dd984-01d8-487c-bfd4-f0d3d921dd14",
+      "address": "7 Sherbone Place",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "b1a1cd8b-08c1-4850-92f6-b16503a147af",
+      "address": "1611 Green Hollow Drive",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "bc84091b-294c-439d-a69a-025f54d338af",
+      "address": "Mailing Address 20 Thomas Road South Amboy NJ 0887920 Thomas Road",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c16386d1-3c24-4f42-8e18-43b5b98774fc",
+      "address": "1207 Harbour Club Drive",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c5556a32-9afc-49ab-963e-f90a8d923c8d",
+      "address": "32 Meinzer Street Mailing Address 32 Meinzer St Avenel, NJ",
+      "city": "Woodbridge",
+      "zip_code": "07001",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c6a52ec8-77ee-476f-932c-b83b23e220ab",
+      "address": "370 East Greystone Road",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "d41fcba6-4ed5-486c-b2f3-561470e25bd8",
+      "address": "201 East George Place",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e376912c-ef97-4ab7-9f7e-3bb417dc9160",
+      "address": "109 West Arthur Place",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e3da8e20-0ffe-46e1-ab9c-28ad05689835",
+      "address": "3165 Clark Lane",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "e54047ea-0ffd-484a-91b3-293d83f6338c",
+      "address": "274 Granview Avenue",
+      "city": "Edison",
+      "zip_code": "08837",
+      "error": "not_found"
+    },
+    {
+      "property_id": "e62dd54e-df08-4c5d-9866-26237a1fa433",
+      "address": "6 Cozy Corner",
+      "city": "Avenel",
+      "zip_code": "07001",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e75d9dfb-23e6-4872-a12c-f9b7f90e9d7a",
+      "address": "107 East Cliff Road",
+      "city": "Colonia",
+      "zip_code": "07067",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "ed4d1cc8-a788-4b03-893e-5dbe5f8ea18b",
+      "address": "219 Johnson Lane",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "matched property has no Realie valuation"
+    },
+    {
+      "property_id": "edfadf1b-b719-4bfc-8db9-50e0a09aa6f1",
+      "address": "89-B Golden Square",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "f5c15df1-bc01-486a-a56f-1f612b9fe081",
+      "address": "186-B Sierra Court",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "f9b2b2e3-790f-4be8-bcd5-a6f03d699f89",
+      "address": "1654 W Third Street",
+      "city": "Piscataway",
+      "zip_code": "08854",
+      "error": "not_found"
+    },
+    {
+      "property_id": "fa0b3500-9f82-4e01-a894-faafc3108098",
+      "address": "3 East Faith Drive",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "fe48f1e9-dfcb-4632-9ec9-1cdadf7ee23d",
+      "address": "25 Shelly Road",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "not_found"
+    }
+  ]
+}

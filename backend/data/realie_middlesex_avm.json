@@ -1,0 +1,1677 @@
+{
+  "valuations": [
+    {
+      "property_id": "008e0f32-b281-4883-b91d-51fc000a4a57",
+      "requested_address": "264 Barclay Street",
+      "matched_address": "264 BARCLAY ST, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-16-00217-0000-00008",
+      "estimated_value": 469934.125,
+      "low_value": 425149.40625,
+      "high_value": 525198.375,
+      "comparable_value": 471002
+    },
+    {
+      "property_id": "02020862-f1cd-4642-b100-1636502c52e3",
+      "requested_address": "406 Bruck Avenue",
+      "matched_address": "406 BRUCK AVE, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-16-00443-0000-00010",
+      "estimated_value": 531593.4375,
+      "low_value": 480932.59375,
+      "high_value": 594108.875,
+      "comparable_value": 303975
+    },
+    {
+      "property_id": "023a62be-fb58-4792-b6a1-823dc03dc388",
+      "requested_address": "13 Rolling Road",
+      "matched_address": "13 ROLLING RD, MIDDLESEX, NJ 08846",
+      "provider_property_id": "34023-10-00002-0000-00005",
+      "estimated_value": 458866.84375,
+      "low_value": 415136.84375,
+      "high_value": 512829.59375,
+      "comparable_value": 546299
+    },
+    {
+      "property_id": "0292cf30-f9fb-4a40-af64-fed5f5999828",
+      "requested_address": "28 Fillmore Avenue",
+      "matched_address": "28 FILLMORE AVE, CARTERET, NJ 07008",
+      "provider_property_id": "34023-01-04805-0000-00004",
+      "estimated_value": 486080.21875,
+      "low_value": 439756.75,
+      "high_value": 543243.25,
+      "comparable_value": 512636
+    },
+    {
+      "property_id": "034c9ef0-7530-4189-953f-ced64f445125",
+      "requested_address": "328 College Drive",
+      "matched_address": "328 COLLEGE DR, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00375-32-00025-0000-C0328",
+      "estimated_value": 337956.6875,
+      "low_value": 305749.4375,
+      "high_value": 377700.40625,
+      "comparable_value": 304722
+    },
+    {
+      "property_id": "05cd05d1-87a7-449a-abcd-509e85d1d2c1",
+      "requested_address": "20 Wick Drive",
+      "matched_address": "20 WICK DR, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00309-13-00005",
+      "estimated_value": 609320.5,
+      "low_value": 551252.25,
+      "high_value": 680976.5625,
+      "comparable_value": 514623
+    },
+    {
+      "property_id": "0acc35c0-ca39-4372-a9cd-8b4ba0537acc",
+      "requested_address": "14 Dogwood Court",
+      "matched_address": "14 DOGWOOD CT, JAMESBURG, NJ 08831",
+      "provider_property_id": "34023-08-00075-01-00338-0000-C-131",
+      "estimated_value": 444471.6875,
+      "low_value": 402113.53125,
+      "high_value": 496741.53125,
+      "comparable_value": 477862
+    },
+    {
+      "property_id": "0d3a54c4-5aa1-4ea2-b346-e0238c96a4ae",
+      "requested_address": "6 North Court",
+      "matched_address": "6 NORTH CT, SPOTSWOOD, NJ 08884",
+      "provider_property_id": "34023-24-00087-10-00012",
+      "estimated_value": 503212.78125,
+      "low_value": 455256.59375,
+      "high_value": 562390.625,
+      "comparable_value": 431072
+    },
+    {
+      "property_id": "0ec94887-3963-495a-91d6-d83ae159f2cc",
+      "requested_address": "5 Monica Drive",
+      "matched_address": "5 MONICA DR, EDISON, NJ 08820",
+      "provider_property_id": "34023-05-00643-24-00006",
+      "estimated_value": 840742.4375,
+      "low_value": 760619.6875,
+      "high_value": 939613.75,
+      "comparable_value": 766239
+    },
+    {
+      "property_id": "0f53c3df-944e-44ef-bbec-235b3ed0bfd7",
+      "requested_address": "220 Sheridan Street",
+      "matched_address": "220 SHERIDAN ST, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-16-00078-0000-00018",
+      "estimated_value": 475545.1875,
+      "low_value": 430225.75,
+      "high_value": 531469.3125,
+      "comparable_value": 529768
+    },
+    {
+      "property_id": "1529f04c-702a-40e3-a801-8563902d5f07",
+      "requested_address": "321 Penfield Place",
+      "matched_address": "321 PENFIELD PL, DUNELLEN, NJ 08812",
+      "provider_property_id": "34023-03-00074-0000-00004-03",
+      "estimated_value": 537312.1875,
+      "low_value": 486106.3125,
+      "high_value": 600500.0625,
+      "comparable_value": 506477
+    },
+    {
+      "property_id": "155ca1d9-44b7-4f5e-a397-4daeabe32c62",
+      "requested_address": "280 Matchaponix Avenue",
+      "matched_address": "280 MATCHAPONIX AVE, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00148-0000-00011-1",
+      "estimated_value": 690594.9375,
+      "low_value": 624781.25,
+      "high_value": 771808.875,
+      "comparable_value": 749664
+    },
+    {
+      "property_id": "15efcab0-d3cf-4445-89cb-0d484f9416b3",
+      "requested_address": "46 Foyer Street",
+      "matched_address": "46 FOYER ST, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00294-0000-00011-01",
+      "estimated_value": 586019.6875,
+      "low_value": 530172.0,
+      "high_value": 654935.5625,
+      "comparable_value": 545580
+    },
+    {
+      "property_id": "17d30ae6-47ba-4ff3-b2cf-d8893c84e08d",
+      "requested_address": "111 Doyle Street",
+      "matched_address": "111 DOYLE ST, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-02905-0000-00025",
+      "estimated_value": 694573.8125,
+      "low_value": 628380.875,
+      "high_value": 776255.6875,
+      "comparable_value": 797399
+    },
+    {
+      "property_id": "1bf4fc2d-efe3-4636-88d2-603f0915c431",
+      "requested_address": "2112 Aspen Drive",
+      "matched_address": "2112 ASPEN DR, PLAINSBORO, NJ 08536",
+      "provider_property_id": "34023-18-02702-0000-02112-0000-C2112",
+      "estimated_value": 302191.46875,
+      "low_value": 273392.625,
+      "high_value": 337729.1875,
+      "comparable_value": 292289
+    },
+    {
+      "property_id": "1db02dc0-6c3f-4925-9fec-ceb005b26d7e",
+      "requested_address": "129 Grant Avenue",
+      "matched_address": "129 GRANT AVE, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00139-09-00118-01",
+      "estimated_value": 484795.9375,
+      "low_value": 438594.90625,
+      "high_value": 541807.9375,
+      "comparable_value": 467599
+    },
+    {
+      "property_id": "1f3bb99b-e70d-4ae7-931e-306dbdb2ff37",
+      "requested_address": "14 Cotter Drive",
+      "matched_address": "14 COTTER DR, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00725-0000-00011-01",
+      "estimated_value": 730601.375,
+      "low_value": 660975.0625,
+      "high_value": 816520.0625,
+      "comparable_value": 684574
+    },
+    {
+      "property_id": "28e40994-6f98-48ec-8ff9-00849575932b",
+      "requested_address": "5 Chandler Road",
+      "matched_address": "5 CHANDLER RD, EDISON, NJ 08820",
+      "provider_property_id": "34023-05-00557-14-00025",
+      "estimated_value": 969314.3125,
+      "low_value": 876938.6875,
+      "high_value": 1083305.75,
+      "comparable_value": 945583
+    },
+    {
+      "property_id": "2944773f-c823-44a1-ab0f-98925f5777b2",
+      "requested_address": "1 Juliet Street",
+      "matched_address": "1 JULIET ST, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00318-0000-00009",
+      "estimated_value": 424317.625,
+      "low_value": 383880.15625,
+      "high_value": 474217.375,
+      "comparable_value": 414712
+    },
+    {
+      "property_id": "2f6c3868-5e5f-4093-9edf-a45c5a221328",
+      "requested_address": "20 Amagansett Lane",
+      "matched_address": "20 AMAGANSETT LN, MATAWAN, NJ 07747",
+      "provider_property_id": "34023-15-03236-29-00027",
+      "estimated_value": 1141614.375,
+      "low_value": 1032818.5,
+      "high_value": 1275868.25,
+      "comparable_value": 1073560
+    },
+    {
+      "property_id": "30475c73-3383-4e72-b019-f37fd35051c4",
+      "requested_address": "3 Winchester Court",
+      "matched_address": "3 WINCHESTER CT, MATAWAN, NJ 07747",
+      "provider_property_id": "34023-15-12360-0000-00022",
+      "estimated_value": 865102.4375,
+      "low_value": 782658.1875,
+      "high_value": 966838.5,
+      "comparable_value": 829056
+    },
+    {
+      "property_id": "31710b39-9fa3-4fe9-b0f2-79202c56a9b1",
+      "requested_address": "7 Meeker Avenue",
+      "matched_address": "7 MEEKER AVE, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00337-11-00001-27",
+      "estimated_value": 534618.5,
+      "low_value": 483669.34375,
+      "high_value": 597489.625,
+      "comparable_value": 538488
+    },
+    {
+      "property_id": "4227fa8d-7b1a-49a2-be0a-d883cd66c7d7",
+      "requested_address": "97 Devoe Avenue",
+      "matched_address": "97 DEVOE AVE, SPOTSWOOD, NJ 08884",
+      "provider_property_id": "34023-24-00109-1-00007",
+      "estimated_value": 641534.5,
+      "low_value": 580396.25,
+      "high_value": 716978.9375,
+      "comparable_value": 651949
+    },
+    {
+      "property_id": "42bcb690-0872-49c0-9c20-2d5f2718c01c",
+      "requested_address": "92 Hornsby Street",
+      "matched_address": "92 HORNSBY ST, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00017-16-00009",
+      "estimated_value": 548034.125,
+      "low_value": 495806.46875,
+      "high_value": 612482.9375,
+      "comparable_value": 613909
+    },
+    {
+      "property_id": "48f90ff9-54b9-4c2d-b2a6-c8c681c3d19f",
+      "requested_address": "287 Bromley Place",
+      "matched_address": "287 BROMLEY PL, EAST BRUNSWICK, NJ 08816",
+      "provider_property_id": "34023-04-00322-62-00001-0000-C0287",
+      "estimated_value": 398420.1875,
+      "low_value": 360450.75,
+      "high_value": 445274.40625,
+      "comparable_value": 384355
+    },
+    {
+      "property_id": "49e7ec4a-7ffe-4556-abae-a59fd6c243a8",
+      "requested_address": "455 Main Street",
+      "matched_address": "455 MAIN ST, SAYREVILLE, NJ 08872",
+      "provider_property_id": "34023-19-00176-0000-00001",
+      "estimated_value": 488823.875,
+      "low_value": 442238.9375,
+      "high_value": 546309.5625,
+      "comparable_value": 548165
+    },
+    {
+      "property_id": "4f155d59-c500-4545-8089-6bd3ee9c16c0",
+      "requested_address": "12 Excalibur Court",
+      "matched_address": "12 EXCALIBUR CT, OLD BRIDGE, NJ 08857",
+      "provider_property_id": "34023-15-14262-11-00014",
+      "estimated_value": 529287.1875,
+      "low_value": 478846.15625,
+      "high_value": 591531.375,
+      "comparable_value": 523893
+    },
+    {
+      "property_id": "51309253-80b2-41c5-a6b9-21ee203c4262",
+      "requested_address": "1414 Redwood Drive",
+      "matched_address": "1414 REDWOOD DR, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-00507-0000-00030-02",
+      "estimated_value": 952718.875,
+      "low_value": 861924.75,
+      "high_value": 1064758.625,
+      "comparable_value": 793653
+    },
+    {
+      "property_id": "52a754a6-3378-4315-a3c0-461e23108b91",
+      "requested_address": "30 Drummond Avenue",
+      "matched_address": "30 DRUMMOND AVE, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00349-02-00348",
+      "estimated_value": 631960.125,
+      "low_value": 571734.3125,
+      "high_value": 706278.625,
+      "comparable_value": 611332
+    },
+    {
+      "property_id": "5453bb13-a569-4d2d-aa52-12e49f65bb55",
+      "requested_address": "96 Dupont Avenue",
+      "matched_address": "96 DUPONT AVE, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-02303-0000-00010-01",
+      "estimated_value": 517221.53125,
+      "low_value": 467930.3125,
+      "high_value": 578046.8125,
+      "comparable_value": 617495
+    },
+    {
+      "property_id": "5609c501-7e70-40d8-912c-42a2758fb523",
+      "requested_address": "131 Hilltop Boulevard",
+      "matched_address": "131 HILLTOP BLVD, KEYPORT, NJ 07735",
+      "provider_property_id": "34023-15-01080-0000-00131-11",
+      "estimated_value": 356817.34375,
+      "low_value": 322812.65625,
+      "high_value": 398779.0625,
+      "comparable_value": 343006
+    },
+    {
+      "property_id": "56d8c365-1d6e-4c69-a5f2-86d42d533e2b",
+      "requested_address": "90 Desna Street",
+      "matched_address": "90 DESNA ST, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-02011-0000-00025-01",
+      "estimated_value": 596098.0,
+      "low_value": 539289.8125,
+      "high_value": 666199.0625,
+      "comparable_value": 606782
+    },
+    {
+      "property_id": "588a321a-e65c-4a24-bf4d-74f90c55b1ca",
+      "requested_address": "153 Whitman Avenue",
+      "matched_address": "153 WHITMAN AVE, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00198-02-00013",
+      "estimated_value": 552706.5,
+      "low_value": 500033.59375,
+      "high_value": 617704.8125,
+      "comparable_value": 686952
+    },
+    {
+      "property_id": "5b8e9222-3b83-4e43-831f-5ea9df973d1d",
+      "requested_address": "812 Sharon Garden Court",
+      "matched_address": "812 SHARON GARDEN CT, WOODBRIDGE, NJ 07095",
+      "provider_property_id": "34023-25-00301-0000-00100-0000-C0812",
+      "estimated_value": 371254.34375,
+      "low_value": 335873.8125,
+      "high_value": 414913.875,
+      "comparable_value": 322500
+    },
+    {
+      "property_id": "5ce958a9-5d4f-4c7e-908e-6d53021cabd7",
+      "requested_address": "334 Fairview Avenue",
+      "matched_address": "334 FAIRVIEW AVE, MIDDLESEX, NJ 08846",
+      "provider_property_id": "34023-10-00165-0000-00018",
+      "estimated_value": 555065.0625,
+      "low_value": 502167.34375,
+      "high_value": 620340.6875,
+      "comparable_value": 608640
+    },
+    {
+      "property_id": "5daea994-7855-4b44-a561-7965aaf7ea98",
+      "requested_address": "646 Johnstone Street",
+      "matched_address": "646 JOHNSTONE ST, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-16-00333-0000-00029",
+      "estimated_value": 535247.5,
+      "low_value": 484238.4375,
+      "high_value": 598192.625,
+      "comparable_value": 477296
+    },
+    {
+      "property_id": "600262f1-1fcd-4494-988d-3fe4298ad1ac",
+      "requested_address": "516 Fairview Avenue",
+      "matched_address": "516 FAIRVIEW AVE, MIDDLESEX, NJ 08846",
+      "provider_property_id": "34023-10-00322-0000-00017",
+      "estimated_value": 491512.71875,
+      "low_value": 444671.5625,
+      "high_value": 549314.625,
+      "comparable_value": 479782
+    },
+    {
+      "property_id": "6151b01e-9e83-4869-8ae5-5d40e913f6f5",
+      "requested_address": "38 5Th Street",
+      "matched_address": "38 5TH ST, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00140-0000-00101-02",
+      "estimated_value": 533948.4375,
+      "low_value": 483063.1875,
+      "high_value": 596740.8125,
+      "comparable_value": 545652
+    },
+    {
+      "property_id": "6214fd86-74ba-4e06-907b-cfad7f844711",
+      "requested_address": "7481 Elm Court",
+      "matched_address": "7481 ELM CT, MONMOUTH JUNCTION, NJ 08852",
+      "provider_property_id": "34023-21-00084-03-07371",
+      "estimated_value": 346353.75,
+      "low_value": 313346.25,
+      "high_value": 387084.96875,
+      "comparable_value": 333066
+    },
+    {
+      "property_id": "64d0af02-d169-479c-b0bc-05236da8e561",
+      "requested_address": "207 Cedarbrook Avenue",
+      "matched_address": "207 CEDARBROOK AVE, SOUTH PLAINFIELD, NJ 07080",
+      "provider_property_id": "34023-22-00190-0000-00001",
+      "estimated_value": 699556.25,
+      "low_value": 632888.5625,
+      "high_value": 781824.0625,
+      "comparable_value": 642418
+    },
+    {
+      "property_id": "65d00776-4e10-4a98-96a1-3b3b3d7f05d3",
+      "requested_address": "427 Madison Avenue",
+      "matched_address": "427 MADISON AVE, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00169-10-00030",
+      "estimated_value": 617925.6875,
+      "low_value": 559037.375,
+      "high_value": 690593.75,
+      "comparable_value": 609658
+    },
+    {
+      "property_id": "6859bff9-9a0e-4bac-a814-96d5b86d340a",
+      "requested_address": "242 Old Bridge Turnpike",
+      "matched_address": "242 OLD BRIDGE TPKE, SOUTH RIVER, NJ 08882",
+      "provider_property_id": "34023-23-00176-0000-00007",
+      "estimated_value": 608461.625,
+      "low_value": 550475.25,
+      "high_value": 680016.75,
+      "comparable_value": 621627
+    },
+    {
+      "property_id": "6b9f7c50-2ed4-4de2-bf89-f5ea8c35e42f",
+      "requested_address": "25 Stockton Road",
+      "matched_address": "25 STOCKTON RD, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00745-0000-00008",
+      "estimated_value": 474846.40625,
+      "low_value": 429593.53125,
+      "high_value": 530688.3125,
+      "comparable_value": 445599
+    },
+    {
+      "property_id": "6bd1456f-3e71-4a0c-b2c0-01e0bca23d3c",
+      "requested_address": "39 Windsor Drive",
+      "matched_address": "39 WINDSOR DR, EAST BRUNSWICK, NJ 08816",
+      "provider_property_id": "34023-04-00132-05-00007",
+      "estimated_value": 476971.84375,
+      "low_value": 431516.40625,
+      "high_value": 533063.75,
+      "comparable_value": 527373
+    },
+    {
+      "property_id": "6fb07e06-3ad6-4705-b09a-178910a2b3d1",
+      "requested_address": "198 Jackson Avenue",
+      "matched_address": "198 JACKSON AVE, EDISON, NJ 08837",
+      "provider_property_id": "34023-05-00726-0000-00026-01",
+      "estimated_value": 360341.65625,
+      "low_value": 326001.09375,
+      "high_value": 402717.8125,
+      "comparable_value": 221809
+    },
+    {
+      "property_id": "710124b1-476b-411a-b1f7-ab165700d2b9",
+      "requested_address": "20 Orchard Street",
+      "matched_address": "20 ORCHARD ST, CARTERET, NJ 07008",
+      "provider_property_id": "34023-01-01701-0000-00006",
+      "estimated_value": 480832.90625,
+      "low_value": 435009.53125,
+      "high_value": 537378.875,
+      "comparable_value": 490000
+    },
+    {
+      "property_id": "71d52530-e351-44d7-8a4b-444db598ee7d",
+      "requested_address": "3 Irene Court",
+      "matched_address": "3 IRENE CT, OLD BRIDGE, NJ 08857",
+      "provider_property_id": "34023-15-13002-0000-00001-13",
+      "estimated_value": 647668.3125,
+      "low_value": 585945.5,
+      "high_value": 723834.125,
+      "comparable_value": 717777
+    },
+    {
+      "property_id": "7253ab98-93f0-492f-afe1-e59e9ff5a0aa",
+      "requested_address": "416 Pleasant Avenue",
+      "matched_address": "416 PLEASANT AVE, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-00110-0000-00090-01",
+      "estimated_value": 563192.9375,
+      "low_value": 509520.625,
+      "high_value": 629424.375,
+      "comparable_value": 479155
+    },
+    {
+      "property_id": "72befe42-620d-4a8b-b9fd-65d1c3325792",
+      "requested_address": "26 Jaime Court",
+      "matched_address": "26 JAIME CT, OLD BRIDGE, NJ 08857",
+      "provider_property_id": "34023-15-19200-0000-00013",
+      "estimated_value": 710828.875,
+      "low_value": 643086.875,
+      "high_value": 794422.3125,
+      "comparable_value": 582670
+    },
+    {
+      "property_id": "76c79bd7-85bf-479f-a227-102f25bcf879",
+      "requested_address": "27 Hartwell Street",
+      "matched_address": "27 HARTWELL ST, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00057-0000-00008",
+      "estimated_value": 435753.0,
+      "low_value": 394225.75,
+      "high_value": 486997.5625,
+      "comparable_value": 473016
+    },
+    {
+      "property_id": "76dacce2-01d3-4867-92a0-7d95393e057c",
+      "requested_address": "8 Apple Way",
+      "matched_address": "8 APPLE WAY, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-01702-0000-00013",
+      "estimated_value": 563428.75,
+      "low_value": 509734.0,
+      "high_value": 629688.0,
+      "comparable_value": 554989
+    },
+    {
+      "property_id": "76e38161-8509-4bf0-beab-b4a8433fcac1",
+      "requested_address": "2 Rachel Terrace",
+      "matched_address": "2 RACHEL TER, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-08507-0000-00003",
+      "estimated_value": 504553.46875,
+      "low_value": 456469.53125,
+      "high_value": 563889.0,
+      "comparable_value": 500995
+    },
+    {
+      "property_id": "7760d953-f896-4eef-86af-10bf84c7210e",
+      "requested_address": "40 Washington Avenue",
+      "matched_address": "40 WASHINGTON AVE APT 19, MILLTOWN, NJ 08850",
+      "provider_property_id": "34023-11-00073-0000-00001-04-C0019",
+      "estimated_value": 423627.4375,
+      "low_value": 383255.75,
+      "high_value": 473446.03125,
+      "comparable_value": 395060
+    },
+    {
+      "property_id": "77e4a554-7659-4803-88e2-19072b3e1725",
+      "requested_address": "20 Krumb Street",
+      "matched_address": "20 KRUMB ST, SAYREVILLE, NJ 08872",
+      "provider_property_id": "34023-19-00115-0000-00009",
+      "estimated_value": 821685.0,
+      "low_value": 743378.375,
+      "high_value": 918315.125,
+      "comparable_value": 738019
+    },
+    {
+      "property_id": "790294e0-5c32-4092-b58e-c2908979cc3f",
+      "requested_address": "845 Hoover Drive",
+      "matched_address": "845 HOOVER DR, NORTH BRUNSWICK, NJ 08902",
+      "provider_property_id": "34023-14-00262-0000-00060",
+      "estimated_value": 679505.8125,
+      "low_value": 614748.875,
+      "high_value": 759415.6875,
+      "comparable_value": 769421
+    },
+    {
+      "property_id": "7e428817-13d0-4439-93e1-d38a771811db",
+      "requested_address": "10 Brookside Road",
+      "matched_address": "10 BROOKSIDE RD, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00265-16-00005",
+      "estimated_value": 546098.0,
+      "low_value": 494054.84375,
+      "high_value": 610319.125,
+      "comparable_value": 566685
+    },
+    {
+      "property_id": "7fc9ef51-c7be-4820-a33c-91ada80b632b",
+      "requested_address": "20 Barbour Place",
+      "matched_address": "20 BARBOUR PL, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-03610-0000-00008-03",
+      "estimated_value": 842258.375,
+      "low_value": 761991.125,
+      "high_value": 941307.9375,
+      "comparable_value": 813547
+    },
+    {
+      "property_id": "80b16cb8-3971-4452-a66f-a00a6e63ec75",
+      "requested_address": "46 Melbourne Court",
+      "matched_address": "46 MELBOURNE CT, WOODBRIDGE, NJ 07095",
+      "provider_property_id": "34023-25-00563-29-00013",
+      "estimated_value": 573249.75,
+      "low_value": 518619.0625,
+      "high_value": 640663.9375,
+      "comparable_value": 483422
+    },
+    {
+      "property_id": "837d9c51-f550-41fa-85e7-6d2f221da73b",
+      "requested_address": "87 Renaissance Lane",
+      "matched_address": "87 RENAISSANCE LN, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00237-0000-00002-06-C0060",
+      "estimated_value": 355593.03125,
+      "low_value": 321705.03125,
+      "high_value": 397410.78125,
+      "comparable_value": 357155
+    },
+    {
+      "property_id": "83da36fc-b787-4f11-b8dd-ff200309582e",
+      "requested_address": "99 Griggs Place",
+      "matched_address": "99 GRIGGS PL, EAST BRUNSWICK, NJ 08816",
+      "provider_property_id": "34023-04-00088-43-00001-0000-C0099",
+      "estimated_value": 395638.34375,
+      "low_value": 357934.03125,
+      "high_value": 442165.4375,
+      "comparable_value": 338447
+    },
+    {
+      "property_id": "84015692-a76e-4104-aa8c-27b63f36fb0e",
+      "requested_address": "522 Crows Mill Road",
+      "matched_address": "522 CROWS MILL RD, FORDS, NJ 08863",
+      "provider_property_id": "34023-25-00015-04-00006",
+      "estimated_value": 344174.3125,
+      "low_value": 311374.5,
+      "high_value": 384649.21875,
+      "comparable_value": 451172
+    },
+    {
+      "property_id": "84a79864-cc01-4000-b1bd-bf90138c3597",
+      "requested_address": "5 Herman Street",
+      "matched_address": "5 HERMAN ST, SOUTH RIVER, NJ 08882",
+      "provider_property_id": "34023-23-00304-0000-00022",
+      "estimated_value": 366479.34375,
+      "low_value": 331553.875,
+      "high_value": 409577.34375,
+      "comparable_value": 370626
+    },
+    {
+      "property_id": "8b950cb4-c8a0-44a3-bf2a-a3926d4bbf2b",
+      "requested_address": "4 Nelson Drive",
+      "matched_address": "4 NELSON DR, MILLTOWN, NJ 08850",
+      "provider_property_id": "34023-11-00042-06-00002",
+      "estimated_value": 711307.0,
+      "low_value": 643519.4375,
+      "high_value": 794956.6875,
+      "comparable_value": 722070
+    },
+    {
+      "property_id": "8d78f4a2-c29b-4bc9-9036-f3506a4f04e8",
+      "requested_address": "418 Highland Avenue",
+      "matched_address": "418 HIGHLAND AVE, SOUTH PLAINFIELD, NJ 07080",
+      "provider_property_id": "34023-22-00308-0000-00007",
+      "estimated_value": 579821.25,
+      "low_value": 524564.25,
+      "high_value": 648008.1875,
+      "comparable_value": 573776
+    },
+    {
+      "property_id": "8dc2192e-84ad-4212-be91-b299a8dbd0f3",
+      "requested_address": "38 Ridgeview Road",
+      "matched_address": "38 RIDGEVIEW RD, JAMESBURG, NJ 08831",
+      "provider_property_id": "34023-08-00073-04-00009",
+      "estimated_value": 480839.78125,
+      "low_value": 435015.75,
+      "high_value": 537386.5625,
+      "comparable_value": 562953
+    },
+    {
+      "property_id": "8df03220-47a7-4970-8ecf-a3c5c4db7a89",
+      "requested_address": "14 Pavlocak Court",
+      "matched_address": "14 PAVLOCAK CT, EDISON, NJ 08820",
+      "provider_property_id": "34023-05-00426-0000-00013",
+      "estimated_value": 1315560.125,
+      "low_value": 1190187.25,
+      "high_value": 1470270.0,
+      "comparable_value": 1136646
+    },
+    {
+      "property_id": "8f8bd3f8-b1b7-4352-9432-a60ef75788e5",
+      "requested_address": "4 Garfield Avenue",
+      "matched_address": "4 GARFIELD AVE, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00021-16-00001",
+      "estimated_value": 1107640.25,
+      "low_value": 1002082.1875,
+      "high_value": 1237898.75,
+      "comparable_value": 1105996
+    },
+    {
+      "property_id": "9548b6a7-16e9-42d1-af02-2bd079410daa",
+      "requested_address": "116 Darrow Street",
+      "matched_address": "116 DARROW ST, SOUTH RIVER, NJ 08882",
+      "provider_property_id": "34023-23-00402-0000-00001-03",
+      "estimated_value": 460953.28125,
+      "low_value": 417024.4375,
+      "high_value": 515161.40625,
+      "comparable_value": 485719
+    },
+    {
+      "property_id": "96101d51-845c-46fa-92ff-eab1fd0655cd",
+      "requested_address": "572 Hyatt Street",
+      "matched_address": "572 HYATT ST, AVENEL, NJ 07001",
+      "provider_property_id": "34023-25-00779-0000-00078-01",
+      "estimated_value": 860838.5,
+      "low_value": 778800.5625,
+      "high_value": 962073.0625,
+      "comparable_value": 844710
+    },
+    {
+      "property_id": "9735d634-6e4c-4b2f-bffd-88baade85d2b",
+      "requested_address": "411 Lefferts Street",
+      "matched_address": "411 LEFFERTS ST, SOUTH AMBOY, NJ 08879",
+      "provider_property_id": "34023-20-00086-0000-00001",
+      "estimated_value": 448788.96875,
+      "low_value": 406019.40625,
+      "high_value": 501566.5625,
+      "comparable_value": 495044
+    },
+    {
+      "property_id": "97e9af19-0105-41bc-bf6a-53c99ffd5559",
+      "requested_address": "251 Connors Drive",
+      "matched_address": "251 CONNORS DR, SOUTH AMBOY, NJ 08879",
+      "provider_property_id": "34023-20-00159-0000-00012",
+      "estimated_value": 553768.625,
+      "low_value": 500994.4375,
+      "high_value": 618891.8125,
+      "comparable_value": 623435
+    },
+    {
+      "property_id": "9b839fc5-8667-47cb-ba52-785fb7a90a7b",
+      "requested_address": "35 Stonegate Drive",
+      "matched_address": "35 STONEGATE DR, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00077-0000-00003-50",
+      "estimated_value": 1099261.625,
+      "low_value": 994502.0,
+      "high_value": 1228534.875,
+      "comparable_value": 1059537
+    },
+    {
+      "property_id": "9e04ab2d-ebe7-4c1c-a8b1-fe34c706216f",
+      "requested_address": "54 Clauss Street",
+      "matched_address": "54 CLAUSS ST, CARTERET, NJ 07008",
+      "provider_property_id": "34023-01-01002-0000-00029",
+      "estimated_value": 534762.3125,
+      "low_value": 483799.4375,
+      "high_value": 597650.3125,
+      "comparable_value": 553773
+    },
+    {
+      "property_id": "9e2055af-5fce-413a-95c0-6ec25e9b1736",
+      "requested_address": "107 Vliet Street",
+      "matched_address": "107 VLIET ST, SPOTSWOOD, NJ 08884",
+      "provider_property_id": "34023-24-00087-0000-00008",
+      "estimated_value": 491973.21875,
+      "low_value": 445088.15625,
+      "high_value": 549829.25,
+      "comparable_value": 464149
+    },
+    {
+      "property_id": "9ed82d5c-c7f2-4ba8-bd91-5ad589868d35",
+      "requested_address": "393 Willowbrook Drive",
+      "matched_address": "393 WILLOWBROOK DR, NORTH BRUNSWICK, NJ 08902",
+      "provider_property_id": "34023-14-00004-08-00027-39",
+      "estimated_value": 507878.28125,
+      "low_value": 459477.46875,
+      "high_value": 567604.75,
+      "comparable_value": 545125
+    },
+    {
+      "property_id": "9fe02a62-7af3-40b4-9f34-ed5b3257a566",
+      "requested_address": "1121 Kerwin Street",
+      "matched_address": "1121 KERWIN ST, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-01818-0000-00050-01",
+      "estimated_value": 580954.25,
+      "low_value": 525589.3125,
+      "high_value": 649274.4375,
+      "comparable_value": 544114
+    },
+    {
+      "property_id": "a6da0b34-6d23-4cad-ac6c-ce3d54e8e494",
+      "requested_address": "1064 Bordentown Avenue",
+      "matched_address": "1064 BORDENTOWN AVE, PARLIN, NJ 08859",
+      "provider_property_id": "34023-19-00442-02-00005",
+      "estimated_value": 444703.59375,
+      "low_value": 402323.34375,
+      "high_value": 497000.75,
+      "comparable_value": 501010
+    },
+    {
+      "property_id": "a72bd043-901b-43b6-9d4b-03af1134e7cb",
+      "requested_address": "20 Borghaus Road",
+      "matched_address": "20 BORGHAUS RD, HELMETTA, NJ 08828",
+      "provider_property_id": "34023-06-00022-0000-00013",
+      "estimated_value": 517883.9375,
+      "low_value": 468529.59375,
+      "high_value": 578787.125,
+      "comparable_value": 575851
+    },
+    {
+      "property_id": "ab6c244e-599b-40c0-96b6-cd0ad470ea04",
+      "requested_address": "36 Bradford Drive",
+      "matched_address": "36 BRADFORD DR, OLD BRIDGE, NJ 08857",
+      "provider_property_id": "34023-15-10252-13-00042",
+      "estimated_value": 477062.375,
+      "low_value": 431598.3125,
+      "high_value": 533164.875,
+      "comparable_value": 442373
+    },
+    {
+      "property_id": "aed7a2eb-0717-43f7-9498-bd1129403f2b",
+      "requested_address": "13 Eugene Boulevard",
+      "matched_address": "13 EUGENE BLVD, SOUTH AMBOY, NJ 08879",
+      "provider_property_id": "34023-19-00413-02-00007",
+      "estimated_value": 634429.3125,
+      "low_value": 573968.25,
+      "high_value": 709038.25,
+      "comparable_value": 560270
+    },
+    {
+      "property_id": "af3cf8b8-69d4-4f74-a1ff-54c8b5988bfc",
+      "requested_address": "80 Mayberry Avenue",
+      "matched_address": "80 MAYBERRY AVE, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00147-3-00045",
+      "estimated_value": 630471.4375,
+      "low_value": 570387.5,
+      "high_value": 704614.875,
+      "comparable_value": 598523
+    },
+    {
+      "property_id": "ba78ba88-b78d-4b87-9195-a815d6714903",
+      "requested_address": "35 Blair Avenue",
+      "matched_address": "35 BLAIR AVE, METUCHEN, NJ 08840",
+      "provider_property_id": "34023-09-00172-0000-00024",
+      "estimated_value": 717724.4375,
+      "low_value": 649325.3125,
+      "high_value": 802128.875,
+      "comparable_value": 829854
+    },
+    {
+      "property_id": "ba7c4b2b-34fa-4fc9-a5ee-2242238014ce",
+      "requested_address": "93 Meredith Road",
+      "matched_address": "93 MEREDITH RD, COLONIA, NJ 07067",
+      "provider_property_id": "34023-25-00477-09-00003-01",
+      "estimated_value": 1403549.875,
+      "low_value": 1269791.5,
+      "high_value": 1568607.25,
+      "comparable_value": 1504543
+    },
+    {
+      "property_id": "bb8f935e-34e1-4dd3-82a9-158d3cd0cdaa",
+      "requested_address": "133 College Drive",
+      "matched_address": "133 COLLEGE DR, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00375-32-00025-0000-C0133",
+      "estimated_value": 337380.5625,
+      "low_value": 305228.21875,
+      "high_value": 377056.53125,
+      "comparable_value": 314666
+    },
+    {
+      "property_id": "bbe53137-9070-449b-be97-24fdf8a5d656",
+      "requested_address": "186 Archangela Avenue",
+      "matched_address": "186 ARCHANGELA AVE, COLONIA, NJ 07067",
+      "provider_property_id": "34023-25-00517-12-00074",
+      "estimated_value": 543361.8125,
+      "low_value": 491579.4375,
+      "high_value": 607261.1875,
+      "comparable_value": 565095
+    },
+    {
+      "property_id": "bc9afff4-4a85-46c0-8585-4ae3057c0edb",
+      "requested_address": "14 Concord Street",
+      "matched_address": "14 CONCORD ST, EDISON, NJ 08820",
+      "provider_property_id": "34023-05-00587-0000-00019",
+      "estimated_value": 911308.4375,
+      "low_value": 824460.75,
+      "high_value": 1018478.3125,
+      "comparable_value": 886066
+    },
+    {
+      "property_id": "bd4221ec-61fa-4c4f-9516-e599014fae44",
+      "requested_address": "276 Ward Street",
+      "matched_address": "276 WARD ST, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00281-0000-00041-01",
+      "estimated_value": 355984.25,
+      "low_value": 322058.96875,
+      "high_value": 397848.0,
+      "comparable_value": 353568
+    },
+    {
+      "property_id": "be10a31a-abd5-4a2c-ae6d-ab01c31051b8",
+      "requested_address": "75 Lincoln Avenue",
+      "matched_address": "75 LINCOLN AVE, CARTERET, NJ 07008",
+      "provider_property_id": "34023-01-06005-0000-00007",
+      "estimated_value": 478053.375,
+      "low_value": 432494.90625,
+      "high_value": 534272.4375,
+      "comparable_value": 547561
+    },
+    {
+      "property_id": "bf665746-af17-462a-b635-c2704ddcefc6",
+      "requested_address": "23 Elmer Avenue",
+      "matched_address": "23 ELMER AVE, SPOTSWOOD, NJ 08884",
+      "provider_property_id": "34023-24-00110-7-00011",
+      "estimated_value": 502118.8125,
+      "low_value": 454266.875,
+      "high_value": 561168.0,
+      "comparable_value": 581210
+    },
+    {
+      "property_id": "c2fac692-4f30-4042-9dd9-c541c1a6c59e",
+      "requested_address": "323 Carteret Avenue",
+      "matched_address": "323 CARTERET AVE, CARTERET, NJ 07008",
+      "provider_property_id": "34023-01-03701-0000-00010",
+      "estimated_value": 555176.25,
+      "low_value": 502267.9375,
+      "high_value": 620464.9375,
+      "comparable_value": 591305
+    },
+    {
+      "property_id": "c3ffe170-a17c-4795-ad25-1eb420795abf",
+      "requested_address": "820 2Nd Street",
+      "matched_address": "820 2ND ST, DUNELLEN, NJ 08812",
+      "provider_property_id": "34023-03-00042-0000-00019",
+      "estimated_value": 540040.5625,
+      "low_value": 488574.6875,
+      "high_value": 603549.3125,
+      "comparable_value": 502473
+    },
+    {
+      "property_id": "c9ecd5f1-327a-47f3-ad78-cb85f8e97d51",
+      "requested_address": "31 Emerald Road",
+      "matched_address": "31 EMERALD RD, KENDALL PARK, NJ 08824",
+      "provider_property_id": "34023-21-00356-01-00004",
+      "estimated_value": 789480.5,
+      "low_value": 714243.0,
+      "high_value": 882323.4375,
+      "comparable_value": 852038
+    },
+    {
+      "property_id": "cbc49fb6-4d81-490a-9b9a-68f0585bf064",
+      "requested_address": "3 Dynasty Drive",
+      "matched_address": "3 DYNASTY DR, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00109-0000-00001-5",
+      "estimated_value": 1652703.0,
+      "low_value": 1495200.375,
+      "high_value": 1847060.875,
+      "comparable_value": 1664280
+    },
+    {
+      "property_id": "ce0280d7-d5c9-45f8-897c-34f259c8e4d7",
+      "requested_address": "201 Summerhill Road",
+      "matched_address": "201 SUMMERHILL RD, SPOTSWOOD, NJ 08884",
+      "provider_property_id": "34023-24-00085-2-00006",
+      "estimated_value": 476358.15625,
+      "low_value": 430961.21875,
+      "high_value": 532377.875,
+      "comparable_value": 395144
+    },
+    {
+      "property_id": "d2ed3585-85e8-4a8e-b0ac-dcc121e6514b",
+      "requested_address": "139 Kennedy Street",
+      "matched_address": "139 KENNEDY ST, ISELIN, NJ 08830",
+      "provider_property_id": "34023-25-00447-01-01692",
+      "estimated_value": 542334.1875,
+      "low_value": 490649.71875,
+      "high_value": 606112.6875,
+      "comparable_value": 533362
+    },
+    {
+      "property_id": "d34f3288-03b9-4b43-bda9-6a74a9eff8ec",
+      "requested_address": "16B James Buchanan Drive",
+      "matched_address": "16B JAMES BUCHANAN DR, MONROE TOWNSHIP, NJ 08831",
+      "provider_property_id": "34023-12-00027-3-00030-251-C016B",
+      "estimated_value": 299512.5625,
+      "low_value": 270969.03125,
+      "high_value": 334735.25,
+      "comparable_value": 284937
+    },
+    {
+      "property_id": "d395c682-4c08-49ec-811f-f84cd8e1c187",
+      "requested_address": "135 Baldwin Street",
+      "matched_address": "135 BALDWIN ST, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00189-0000-00011-01",
+      "estimated_value": 561714.0625,
+      "low_value": 508182.71875,
+      "high_value": 627771.625,
+      "comparable_value": 520544
+    },
+    {
+      "property_id": "d4b18ba6-3cc3-4ef0-b131-41cb5d5c0312",
+      "requested_address": "17 Seventh Street",
+      "matched_address": "17 SEVENTH ST, EDISON, NJ 08837",
+      "provider_property_id": "34023-05-00694-01-00034-01",
+      "estimated_value": 450999.90625,
+      "low_value": 408019.59375,
+      "high_value": 504037.46875,
+      "comparable_value": 467825
+    },
+    {
+      "property_id": "d4db0839-c88a-4749-afe0-0608ee8bdffe",
+      "requested_address": "607 Almon Avenue",
+      "matched_address": "607 ALMON AVE, WOODBRIDGE, NJ 07095",
+      "provider_property_id": "34023-25-00563-01-00434",
+      "estimated_value": 798302.375,
+      "low_value": 722224.125,
+      "high_value": 892182.6875,
+      "comparable_value": 798232
+    },
+    {
+      "property_id": "d783dd8f-0c57-4a24-aec5-d45bacf54dce",
+      "requested_address": "27 Juliette Street",
+      "matched_address": "27 JULIETTE ST, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-25-00005-09-00108",
+      "estimated_value": 316872.5625,
+      "low_value": 286674.59375,
+      "high_value": 354136.78125,
+      "comparable_value": 357655
+    },
+    {
+      "property_id": "d836a734-a177-4309-9e7c-c630446cc6ea",
+      "requested_address": "411 High Street",
+      "matched_address": "411 HIGH ST, DUNELLEN, NJ 08812",
+      "provider_property_id": "34023-03-00057-02-00025",
+      "estimated_value": 496762.8125,
+      "low_value": 449421.3125,
+      "high_value": 555182.125,
+      "comparable_value": 488615
+    },
+    {
+      "property_id": "dbade39c-d73a-44ff-99a0-1621a38f0287",
+      "requested_address": "438 Neville Street",
+      "matched_address": "438 NEVILLE ST, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-16-00203-0000-00020",
+      "estimated_value": 436557.0625,
+      "low_value": 394953.15625,
+      "high_value": 487896.15625,
+      "comparable_value": 396918
+    },
+    {
+      "property_id": "ddf8c23b-e087-41d5-856d-ed03e1417d8a",
+      "requested_address": "95 Schuyler Drive",
+      "matched_address": "95 SCHUYLER DR, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00160-15-00011",
+      "estimated_value": 469277.09375,
+      "low_value": 424554.96875,
+      "high_value": 524464.0625,
+      "comparable_value": 428619
+    },
+    {
+      "property_id": "e35011a6-ed22-4da1-877d-0bb12b08cad4",
+      "requested_address": "6 Worden Avenue",
+      "matched_address": "6 WORDEN AVE, PERTH AMBOY, NJ 08861",
+      "provider_property_id": "34023-25-00004-05-00008",
+      "estimated_value": 414047.78125,
+      "low_value": 374589.03125,
+      "high_value": 462739.8125,
+      "comparable_value": 451047
+    },
+    {
+      "property_id": "e3e36c07-8da6-4e8a-bbb3-b1577234442b",
+      "requested_address": "15 Angela Court",
+      "matched_address": "15 ANGELA CT, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-09801-0000-00001-04",
+      "estimated_value": 1124812.75,
+      "low_value": 1017618.125,
+      "high_value": 1257090.75,
+      "comparable_value": 1086230
+    },
+    {
+      "property_id": "e3eb7ee5-4660-44f9-9505-29ea7fdc8a2e",
+      "requested_address": "183 Heywood Court",
+      "matched_address": "183 HEYWOOD CT, MATAWAN, NJ 07747",
+      "provider_property_id": "34023-15-03236-24-00012-11-C0104",
+      "estimated_value": 437567.0,
+      "low_value": 395866.875,
+      "high_value": 489024.875,
+      "comparable_value": 449882
+    },
+    {
+      "property_id": "e46b8d4f-6c23-4801-9fce-65f5addf6e40",
+      "requested_address": "414 David Street",
+      "matched_address": "414 DAVID ST, SOUTH AMBOY, NJ 08879",
+      "provider_property_id": "34023-20-00071-0000-00013",
+      "estimated_value": 494431.28125,
+      "low_value": 447311.96875,
+      "high_value": 552576.375,
+      "comparable_value": 429023
+    },
+    {
+      "property_id": "e4c8597a-b55c-41e9-8797-5634bfe6abe0",
+      "requested_address": "182 Karkus Avenue",
+      "matched_address": "182 KARKUS AVE, WOODBRIDGE, NJ 07095",
+      "provider_property_id": "34023-25-00290-03-00003",
+      "estimated_value": 538807.4375,
+      "low_value": 487459.09375,
+      "high_value": 602171.1875,
+      "comparable_value": 599220
+    },
+    {
+      "property_id": "e82b68fa-79d7-4ac6-a3d0-a63e01aeaae2",
+      "requested_address": "98 Pleasant Avenue",
+      "matched_address": "98 PLEASANT AVE, EDISON, NJ 08837",
+      "provider_property_id": "34023-05-00694-17-00014-01",
+      "estimated_value": 547263.75,
+      "low_value": 495109.5,
+      "high_value": 611621.9375,
+      "comparable_value": 559904
+    },
+    {
+      "property_id": "ec62a284-1d35-4f68-9322-8a32e764cb79",
+      "requested_address": "55 Lynnwood Road",
+      "matched_address": "55 LYNNWOOD RD, EDISON, NJ 08820",
+      "provider_property_id": "34023-05-00546-32-00020",
+      "estimated_value": 803309.1875,
+      "low_value": 726753.8125,
+      "high_value": 897778.375,
+      "comparable_value": 722099
+    },
+    {
+      "property_id": "eee25f43-8a85-4c27-8134-06905384093f",
+      "requested_address": "16 Mcauliffe Drive",
+      "matched_address": "16 MCAULIFFE DR, NORTH BRUNSWICK, NJ 08902",
+      "provider_property_id": "34023-14-00091-0000-00043",
+      "estimated_value": 355399.09375,
+      "low_value": 321529.5625,
+      "high_value": 397194.03125,
+      "comparable_value": 252115
+    },
+    {
+      "property_id": "f3a090c9-0cd0-4d7c-8fa3-34b172d6fa9d",
+      "requested_address": "684 West Avenue",
+      "matched_address": "684 WEST AVE, SEWAREN, NJ 07077",
+      "provider_property_id": "34023-25-00686-01-00014",
+      "estimated_value": 520884.125,
+      "low_value": 471243.875,
+      "high_value": 582140.0625,
+      "comparable_value": 503700
+    },
+    {
+      "property_id": "f3fa162c-d168-4a25-b486-1ac50ebc788a",
+      "requested_address": "40 Beacon Street",
+      "matched_address": "40 BEACON ST, PORT READING, NJ 07064",
+      "provider_property_id": "34023-25-01053-08-00014",
+      "estimated_value": 542378.625,
+      "low_value": 490689.96875,
+      "high_value": 606162.375,
+      "comparable_value": 495605
+    },
+    {
+      "property_id": "f545c20c-a1b5-4ff9-ab63-52d341c6ddff",
+      "requested_address": "104 Jordyn Court",
+      "matched_address": "104 JORDYN CT, MATAWAN, NJ 07747",
+      "provider_property_id": "34023-15-11252-11-00097",
+      "estimated_value": 932890.125,
+      "low_value": 843985.6875,
+      "high_value": 1042598.0,
+      "comparable_value": 1001335
+    },
+    {
+      "property_id": "f5bd85f8-d672-4aac-a4c0-413e34a4844b",
+      "requested_address": "24 Skurka Court",
+      "matched_address": "24 SKURKA CT, SAYREVILLE, NJ 08872",
+      "provider_property_id": "34023-19-00136-0000-00053",
+      "estimated_value": 957402.25,
+      "low_value": 866161.8125,
+      "high_value": 1069992.75,
+      "comparable_value": 828916
+    },
+    {
+      "property_id": "f78ef684-1f76-4a33-9bef-3eb116a5f18c",
+      "requested_address": "162 Holly Street",
+      "matched_address": "162 HOLLY ST, PORT READING, NJ 07064",
+      "provider_property_id": "34023-25-01079-23-00020",
+      "estimated_value": 484472.0,
+      "low_value": 438301.8125,
+      "high_value": 541445.875,
+      "comparable_value": 510653
+    },
+    {
+      "property_id": "fa072017-c9d0-46c6-8091-2dbe7cf804c1",
+      "requested_address": "191 Cleveland Avenue",
+      "matched_address": "191 CLEVELAND AVE, SOUTH AMBOY, NJ 08879",
+      "provider_property_id": "34023-15-00053-0000-00191",
+      "estimated_value": 435325.1875,
+      "low_value": 393838.6875,
+      "high_value": 486519.4375,
+      "comparable_value": 421062
+    },
+    {
+      "property_id": "fb2b49a2-d0a5-452c-aaf1-d3dbb44e0d57",
+      "requested_address": "682 Leone Street",
+      "matched_address": "682 LEONE ST, WOODBRIDGE, NJ 07095",
+      "provider_property_id": "34023-25-00589-0000-00009",
+      "estimated_value": 539067.0,
+      "low_value": 487693.90625,
+      "high_value": 602461.3125,
+      "comparable_value": 535514
+    },
+    {
+      "property_id": "fbbcc718-77f6-48b4-a093-8a4fe5fccdfb",
+      "requested_address": "1 Garwood Street",
+      "matched_address": "1 GARWOOD ST, SOUTH RIVER, NJ 08882",
+      "provider_property_id": "34023-23-00121-0000-00008",
+      "estimated_value": 425527.6875,
+      "low_value": 384974.90625,
+      "high_value": 475569.71875,
+      "comparable_value": 475730
+    },
+    {
+      "property_id": "fcc853b5-7453-420c-8acc-79cfbeda80a0",
+      "requested_address": "242 Outlook Boulevard",
+      "matched_address": "242 OUTLOOK BLVD, KEYPORT, NJ 07735",
+      "provider_property_id": "34023-15-01082-0000-00242-11",
+      "estimated_value": 473564.75,
+      "low_value": 428434.03125,
+      "high_value": 529255.9375,
+      "comparable_value": 509290
+    },
+    {
+      "property_id": "fd081fb6-2f8c-47a8-96f3-6e748dd79eb5",
+      "requested_address": "29 Loretto Street",
+      "matched_address": "29 LORETTO ST, NEW BRUNSWICK, NJ 08901",
+      "provider_property_id": "34023-13-00338-0000-00020",
+      "estimated_value": 322838.34375,
+      "low_value": 292071.84375,
+      "high_value": 360804.125,
+      "comparable_value": 241089
+    },
+    {
+      "property_id": "ff5ecef0-e753-42fe-8386-f3d80d5e4b20",
+      "requested_address": "50 Prospect Avenue",
+      "matched_address": "50 PROSPECT AVE, EDISON, NJ 08817",
+      "provider_property_id": "34023-05-00161-05-00026",
+      "estimated_value": 568121.3125,
+      "low_value": 513979.375,
+      "high_value": 634932.4375,
+      "comparable_value": 554856
+    },
+    {
+      "property_id": "ffcc510f-e7da-4155-afe8-fe02a83d3d42",
+      "requested_address": "10 Waldhaven Court",
+      "matched_address": "10 WALDHAVEN CT, PISCATAWAY, NJ 08854",
+      "provider_property_id": "34023-17-11701-0000-00009-21",
+      "estimated_value": 806657.875,
+      "low_value": 729783.375,
+      "high_value": 901520.8125,
+      "comparable_value": 672352
+    }
+  ],
+  "failures": [
+    {
+      "property_id": "00b4f3f7-d8f1-41b3-9073-88eb1e4495b4",
+      "address": "38 Summitt Avenue",
+      "city": "Fords (Woodbridge Twp.)",
+      "zip_code": "08863",
+      "error": "not_found"
+    },
+    {
+      "property_id": "102d3497-1813-491f-a30d-fb2c5811b64a",
+      "address": "168-N Portland Lane",
+      "city": "Monroe",
+      "zip_code": "08831",
+      "error": "not_found"
+    },
+    {
+      "property_id": "10e62bc0-6869-4384-83a5-c6f3695ad91d",
+      "address": "2 Brookside Avenue",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "1daee3b0-3b88-47db-91a6-fe8382a42046",
+      "address": "128B Remsen Avenue",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "not_found"
+    },
+    {
+      "property_id": "1de84e3a-9a3a-4b4c-9a82-fcdf637d7614",
+      "address": "33 Elm Terrace",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "1e9f90cd-7de4-4f13-971f-de4cad634a97",
+      "address": "110 South Fulton Street",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "20629db3-0bcf-461f-9319-7f93dc6e1b3e",
+      "address": "88 West Willow Street",
+      "city": "Colonia",
+      "zip_code": "07067",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "21cfe278-1ee4-4ee7-93eb-212a02f03726",
+      "address": "23 Columbus Avenue",
+      "city": "Cliffwood Beach",
+      "zip_code": "07735",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "253b02f7-ef5a-40c0-92fd-9364cb17a2cb",
+      "address": "323 Regency Place",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "2576f1f4-484f-45e1-a2a8-817e7537837e",
+      "address": "104 2Nd Street",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "280a62bc-317c-4429-89ab-086f431fdcde",
+      "address": "46 Bramble Lane Mailing Address: 46 Bramble Lane Matawan, New Jersey",
+      "city": "Old Bridge",
+      "zip_code": "07747",
+      "error": "not_found"
+    },
+    {
+      "property_id": "33f5ab50-eeed-4b10-9d1a-f79030a43bfd",
+      "address": "172 Avenue",
+      "city": "Jamesburg",
+      "zip_code": "08831",
+      "error": "not_found"
+    },
+    {
+      "property_id": "3c93eecf-cec5-4497-bf6c-cb154ee7e148",
+      "address": "528 Sharon Court",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "not_found"
+    },
+    {
+      "property_id": "47a31d2e-db00-43a8-9bcd-86a4da82d0c0",
+      "address": "44 Road",
+      "city": "Piscataway",
+      "zip_code": "08854",
+      "error": "not_found"
+    },
+    {
+      "property_id": "4bdd1b55-7c06-4c6d-83cb-304769f73dba",
+      "address": "3319 Falston Circle",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "4d973d54-de4b-4fbe-9edc-0bed8ea04ec7",
+      "address": "105 North Talmadge Street",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "528f01b7-9152-4533-b8fe-dcb8526f9273",
+      "address": "36 Lincoln Avenue",
+      "city": "Carteret",
+      "zip_code": "07008",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "57994430-4f6e-415d-a64e-65c277d59ffd",
+      "address": "202 Bently Drive",
+      "city": "Princeton",
+      "zip_code": "08540",
+      "error": "not_found"
+    },
+    {
+      "property_id": "5bcbb7cf-ada5-422c-a822-861b02ce03b8",
+      "address": "432 North Lincoln Avenue",
+      "city": "Middlesex",
+      "zip_code": "08846",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "5c83d6d7-cdc7-45f2-b5ec-9ae741f75ab5",
+      "address": "744 Second Street",
+      "city": "Dunellen",
+      "zip_code": "08812",
+      "error": "not_found"
+    },
+    {
+      "property_id": "5d05eba1-1049-4640-87cb-7271328eb65e",
+      "address": "196 William Street",
+      "city": "South River",
+      "zip_code": "08882",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "5e9c851b-00e7-4266-8e1b-c7626715c9d1",
+      "address": "48 Delaware Avenue",
+      "city": "Carteret",
+      "zip_code": "07008",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "5f8235d5-a5f9-4d31-a472-47df598157d1",
+      "address": "12 New Street",
+      "city": "Middlesex",
+      "zip_code": "08846",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "6d257841-ae60-41af-a74d-4462116ce35f",
+      "address": "72 Heather Court",
+      "city": "Monmouth Junction",
+      "zip_code": "08852",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "7446f54b-7e38-47a3-b098-dd8872964764",
+      "address": "122 Kenwood Avenue",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "76cfe2a6-d35f-4d86-bdda-e9c7175fb05f",
+      "address": "134 North Bergen Mills Road",
+      "city": "Monroe",
+      "zip_code": "08831",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "7880b394-898e-4227-844b-49353f1cd875",
+      "address": "1301 Harbour Club Drive",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "78bf6def-cca3-4b77-95e8-a8e1cd1a42e6",
+      "address": "809 North Oaks Boulevard",
+      "city": "North Brunswick",
+      "zip_code": "08902",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "7a5815cc-7496-455c-a498-b775432eb3fa",
+      "address": "91 Giera Court",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "832dd781-8c89-4655-9daa-62cfa709f554",
+      "address": "93 Hickory Street",
+      "city": "Edison",
+      "zip_code": "08817",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "84ba2baf-9966-4023-b154-a8b7d0befd77",
+      "address": "107 Lloyd Court Building 15",
+      "city": "East Brunswick",
+      "zip_code": "08816",
+      "error": "not_found"
+    },
+    {
+      "property_id": "86a96769-e06c-4a74-99ec-327aaf046669",
+      "address": "460-468 Mitchell Place",
+      "city": "Perth Amboy",
+      "zip_code": "08861",
+      "error": "not_found"
+    },
+    {
+      "property_id": "87970b72-8317-4c17-a2f0-3fe02f4e2dd2",
+      "address": "23 Beech Street",
+      "city": "Edison",
+      "zip_code": "08817",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "89d17a50-1369-49f6-8a3e-d578324312be",
+      "address": "1001 Green Hollow Drive",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "912d206b-511d-43cb-8a9a-17f635b1d202",
+      "address": "108 South Pennington Road",
+      "city": "New Brunswick",
+      "zip_code": "08901",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "920e2aee-0fd0-4520-b6e3-09711d28d1ff",
+      "address": "72 Letts Court",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "96ce07aa-bf86-4f55-8ce1-bcabb26de750",
+      "address": "25 Roll Avenue",
+      "city": "South Amboy",
+      "zip_code": "08879",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "99fbcc30-2b5b-4742-b9f5-9adc4b4c112b",
+      "address": "Mailing Address: 12 Denhard Court Parlin, NJ12 Denhard Court",
+      "city": "Sayreville",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "a2792c6d-51c3-4053-bfc7-ed36076c232c",
+      "address": "124 Norman Street",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "af955ac1-d472-4aab-83bc-e9415c4e03b2",
+      "address": "123 Frank Court",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "b19dd984-01d8-487c-bfd4-f0d3d921dd14",
+      "address": "7 Sherbone Place",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "b1a1cd8b-08c1-4850-92f6-b16503a147af",
+      "address": "1611 Green Hollow Drive",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "b77885e8-4ed0-46de-9865-f985fa1143a9",
+      "address": "40 Eisenhower Drive",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "bc84091b-294c-439d-a69a-025f54d338af",
+      "address": "Mailing Address 20 Thomas Road South Amboy NJ 0887920 Thomas Road",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c16386d1-3c24-4f42-8e18-43b5b98774fc",
+      "address": "1207 Harbour Club Drive",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c22b19cd-0c94-416c-b6d5-088b6b073fce",
+      "address": "92 Main Street",
+      "city": "Helmetta",
+      "zip_code": "08828",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "c5556a32-9afc-49ab-963e-f90a8d923c8d",
+      "address": "32 Meinzer Street Mailing Address 32 Meinzer St Avenel, NJ",
+      "city": "Woodbridge",
+      "zip_code": "07001",
+      "error": "not_found"
+    },
+    {
+      "property_id": "c6a52ec8-77ee-476f-932c-b83b23e220ab",
+      "address": "370 East Greystone Road",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "c912da9d-c40a-4b2a-924c-6793be14398b",
+      "address": "32 Sturgis Road",
+      "city": "Kendall Park",
+      "zip_code": "08824",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "d41fcba6-4ed5-486c-b2f3-561470e25bd8",
+      "address": "201 East George Place",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e376912c-ef97-4ab7-9f7e-3bb417dc9160",
+      "address": "109 West Arthur Place",
+      "city": "Iselin",
+      "zip_code": "08830",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e3da8e20-0ffe-46e1-ab9c-28ad05689835",
+      "address": "3165 Clark Lane",
+      "city": "South Plainfield",
+      "zip_code": "07080",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "e54047ea-0ffd-484a-91b3-293d83f6338c",
+      "address": "274 Granview Avenue",
+      "city": "Edison",
+      "zip_code": "08837",
+      "error": "not_found"
+    },
+    {
+      "property_id": "e62dd54e-df08-4c5d-9866-26237a1fa433",
+      "address": "6 Cozy Corner",
+      "city": "Avenel",
+      "zip_code": "07001",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e75d9dfb-23e6-4872-a12c-f9b7f90e9d7a",
+      "address": "107 East Cliff Road",
+      "city": "Colonia",
+      "zip_code": "07067",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "e7959808-e700-444c-a7c3-d6b4a4d24d4c",
+      "address": "33 Thomas Street",
+      "city": "South River",
+      "zip_code": "08882",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "e7efd8b0-b416-4ce7-a0b7-cf690a72832b",
+      "address": "128 Cleveland Avenue",
+      "city": "Colonia",
+      "zip_code": "07067",
+      "error": "returned ZIP code did not match"
+    },
+    {
+      "property_id": "ed4d1cc8-a788-4b03-893e-5dbe5f8ea18b",
+      "address": "219 Johnson Lane",
+      "city": "Parlin",
+      "zip_code": "08859",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "edfadf1b-b719-4bfc-8db9-50e0a09aa6f1",
+      "address": "89-B Golden Square",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "returned street address did not match"
+    },
+    {
+      "property_id": "f5c15df1-bc01-486a-a56f-1f612b9fe081",
+      "address": "186-B Sierra Court",
+      "city": "Woodbridge",
+      "zip_code": "07095",
+      "error": "matched property has no Realie ML valuation"
+    },
+    {
+      "property_id": "f9b2b2e3-790f-4be8-bcd5-a6f03d699f89",
+      "address": "1654 W Third Street",
+      "city": "Piscataway",
+      "zip_code": "08854",
+      "error": "not_found"
+    },
+    {
+      "property_id": "fa0b3500-9f82-4e01-a894-faafc3108098",
+      "address": "3 East Faith Drive",
+      "city": "Sayreville",
+      "zip_code": "08872",
+      "error": "not_found"
+    },
+    {
+      "property_id": "fe48f1e9-dfcb-4632-9ec9-1cdadf7ee23d",
+      "address": "25 Shelly Road",
+      "city": "Old Bridge",
+      "zip_code": "08857",
+      "error": "not_found"
+    }
+  ]
+}
