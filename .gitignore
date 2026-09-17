@@ -4,9 +4,16 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.local/
+backend/data/public/ny_salesweb/
+backend/data/public/nyc_staten_island/
 backend/data/nj_property/raw/
 backend/data/nj_property/models/
 backend/data/pa_property/models/
+backend/data/state_avm/models/
+backend/cook_county_backfill.log
+backend/cook_county_backfill.pid
+tmp/
 
 # Temporary Figma Make handoff artifacts (the integrated source lives in frontend/).
 figma_export/

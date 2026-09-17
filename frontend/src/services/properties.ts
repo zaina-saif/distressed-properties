@@ -3,6 +3,7 @@ import type {
   PropertyCoverageItem,
   PropertyResponse,
 } from "@/types/property";
+import type { WarehouseCoverage, WarehouseCursor, WarehouseMonthlyCoverage, WarehousePropertyPage } from "@/types/warehouse-valuation";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
@@ -106,4 +107,43 @@ export async function getLienCoverage(
 
   const result = (await response.json()) as { items: LienCoverageItem[] };
   return result.items;
+}
+
+export async function getWarehouseCoverage(state: string): Promise<WarehouseCoverage> {
+  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/coverage?state=${encodeURIComponent(state)}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load warehouse coverage: ${response.status}`);
+  return response.json();
+}
+
+export async function getWarehouseCounties(state: string, year: number): Promise<string[]> {
+  const params = new URLSearchParams({ state, year: String(year) });
+  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/counties?${params}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load warehouse counties: ${response.status}`);
+  const result = (await response.json()) as { counties: string[] };
+  return result.counties;
+}
+
+export async function getWarehouseProperties(filters: {
+  state: string;
+  year: number;
+  county: string;
+  query?: string;
+  cursor?: WarehouseCursor | null;
+}): Promise<WarehousePropertyPage> {
+  const params = new URLSearchParams({ state: filters.state, year: String(filters.year), county: filters.county, page_size: "25" });
+  if (filters.query) params.set("q", filters.query);
+  if (filters.cursor) {
+    params.set("after_parcel", filters.cursor.parcel);
+    params.set("after_source", filters.cursor.source);
+  }
+  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/properties?${params}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load warehouse properties: ${response.status}`);
+  return response.json();
+}
+
+export async function getWarehouseMonthlyCoverage(state: string, county: string, year: number): Promise<WarehouseMonthlyCoverage> {
+  const params = new URLSearchParams({ state, county, year: String(year) });
+  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/months?${params}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load monthly coverage: ${response.status}`);
+  return response.json();
 }

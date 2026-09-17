@@ -48,6 +48,8 @@ export interface Property {
   valuation_pending_reason?: string | null;
   parcel_match_confidence?: number | null;
   judgment_amount?: number | null;
+  avm_judgment_spread?: number | null;
+  avm_judgment_spread_percent?: number | null;
   upset_price?: number | null;
   gross_equity?: number | null;
   gross_equity_percent?: number | null;

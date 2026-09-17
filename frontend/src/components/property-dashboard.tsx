@@ -3,8 +3,8 @@
 import {
   ChevronLeft,
   ChevronRight,
+  BadgeDollarSign,
   Filter,
-  Gavel,
   ListFilter,
   Map as MapIcon,
   RefreshCw,
@@ -16,6 +16,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
+import { EstimatedPriceView } from "@/components/estimated-price-view";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { getProperties, getPropertyCoverage } from "@/services/properties";
@@ -24,6 +25,20 @@ import type { Property, PropertyCoverageItem } from "@/types/property";
 const PAGE_SIZE = 24;
 
 type SortDirection = "asc" | "desc";
+
+function DistressSaleLogo() {
+  return (
+    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-slate-950 text-white shadow-[0_6px_18px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/10">
+      <svg viewBox="0 0 48 48" className="h-10 w-10" aria-hidden="true">
+        <path d="M9 23.5 24 11l15 12.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M13.5 21.5V37h21V21.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" />
+        <path d="m26 18-4 7h5l-4 8" fill="none" stroke="#2dd4bf" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M31.5 13.5 37 19" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+      <span className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
+    </div>
+  );
+}
 
 export default function PropertyDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -43,13 +58,14 @@ export default function PropertyDashboard() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
-  const [desktopView, setDesktopView] = useState<"dashboard" | "list">("dashboard");
+  const [desktopView, setDesktopView] = useState<"dashboard" | "list" | "estimates">("dashboard");
 
   useEffect(() => {
     getPropertyCoverage().then(setCoverage).catch(() => setCoverage([]));
   }, []);
 
   useEffect(() => {
+    if (desktopView === "estimates") return;
     let active = true;
     getProperties({
       states: selectedState ? [selectedState] : undefined,
@@ -76,7 +92,7 @@ export default function PropertyDashboard() {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [highEquityOnly, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, upcomingOnly]);
+  }, [desktopView, highEquityOnly, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, upcomingOnly]);
 
   const states = useMemo(() => {
     const values = new Set(coverage.map((item) => item.state));
@@ -124,18 +140,21 @@ export default function PropertyDashboard() {
 
   return (
     <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
-      <header className="z-30 flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+      <header className="z-30 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm"><Gavel className="h-5 w-5" /></div>
+          <DistressSaleLogo />
           <div>
-            <h1 className="font-bold leading-tight text-slate-950">Sheriff Sale Pro</h1>
-            <p className="hidden text-xs text-slate-500 sm:block">Distressed property intelligence</p>
+            <div className="flex items-center gap-2">
+              <h1 className="font-bold leading-tight tracking-tight text-slate-950">Sheriff Sale Pro</h1>
+              <span className="hidden rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-amber-700 ring-1 ring-inset ring-amber-200 md:inline">Distress sales</span>
+            </div>
+            <p className="hidden text-[11px] font-medium tracking-wide text-slate-500 sm:block">Distressed property intelligence</p>
           </div>
         </div>
         <nav className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
           <button
             type="button"
-            onClick={() => setDesktopView("dashboard")}
+            onClick={() => { setLoading(true); setError(null); setDesktopView("dashboard"); }}
             className={`hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
             aria-current={desktopView === "dashboard" ? "page" : undefined}
           >
@@ -143,16 +162,28 @@ export default function PropertyDashboard() {
           </button>
           <button
             type="button"
-            onClick={() => { setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
+            onClick={() => { setLoading(true); setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
             aria-current={desktopView === "list" ? "page" : undefined}
           >
             <ListFilter className="h-4 w-4" />List View
           </button>
-          <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
+          <button
+            type="button"
+            onClick={() => setDesktopView("estimates")}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${desktopView === "estimates" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+            aria-current={desktopView === "estimates" ? "page" : undefined}
+          >
+            <BadgeDollarSign className="h-4 w-4" /><span className="sm:hidden">Prices</span><span className="hidden sm:inline">Estimated Price</span>
+          </button>
+          {desktopView !== "estimates" && <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>}
         </nav>
       </header>
 
+      {desktopView === "estimates" ? (
+        <EstimatedPriceView />
+      ) : (
+        <>
       <section className="z-20 shrink-0 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
           <form onSubmit={submitSearch} className="flex min-w-0 flex-1 items-center rounded-xl border-2 border-slate-200 bg-white px-3 focus-within:border-teal-500">
@@ -250,6 +281,8 @@ export default function PropertyDashboard() {
           </footer>
         </section>
       </div>
+        </>
+      )}
 
       {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
     </main>

@@ -125,6 +125,8 @@ export function PropertyDetailModal({
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Preferred upset</p>
               <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.upset_price)}</p>
               <p className="mt-1 text-xs text-slate-500">Judgment: {currency(property.judgment_amount)}</p>
+              <p className="mt-1 text-xs text-slate-500">AVM–judgment spread: {currency(property.avm_judgment_spread)}</p>
+              <p className="mt-1 text-[11px] text-slate-500">Screening difference only; liens, costs, and title can change actual equity.</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Sale probability</p>

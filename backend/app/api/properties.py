@@ -157,6 +157,7 @@ def list_properties(
         "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
         "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
         "judgment-amount": "ss.judgment_amount", "gross-equity": "gross_equity",
+        "avm-judgment-spread": "avm_judgment_spread",
         "gross-equity-percent": "gross_equity_percent", "probability-to-auction": "sale_probability",
         "overall-risk-score": "ra.risk_score", "overall-risk-level": "ra.risk_level",
         "lien-risk-score": "lrr.risk_score", "lien-risk-level": "lrr.risk_level",
@@ -227,6 +228,12 @@ def list_properties(
                 ss.upset_price
             ) AS upset_price,
             pv.estimated_value AS market_value,
+            CASE WHEN pv.estimated_value IS NOT NULL AND ss.judgment_amount > 0
+                THEN pv.estimated_value - ss.judgment_amount
+            END AS avm_judgment_spread,
+            CASE WHEN pv.estimated_value > 0 AND ss.judgment_amount > 0
+                THEN (pv.estimated_value - ss.judgment_amount) / pv.estimated_value
+            END AS avm_judgment_spread_percent,
             pv.low_value AS market_value_low,
             pv.high_value AS market_value_high,
             pv.provider AS valuation_provider,

@@ -88,6 +88,7 @@ const columns: Column[] = [
   { label: "Valuation note", className: "min-w-64", value: (p) => text(p.valuation_pending_reason) },
   { label: "Upset price", value: (p) => currency(p.upset_price) },
   { label: "Judgment amount", value: (p) => currency(p.judgment_amount) },
+  { label: "AVM judgment spread", value: (p) => currency(p.avm_judgment_spread) },
   { label: "Gross equity", value: (p) => <span className="font-semibold text-teal-700">{currency(p.gross_equity)}</span> },
   { label: "Gross equity %", value: (p) => percent(p.gross_equity_percent) },
   { label: "Probability to auction", value: (p) => percent(p.sale_probability) },

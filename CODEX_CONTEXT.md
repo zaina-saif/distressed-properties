@@ -1,4 +1,4 @@
-You are helping me continue development of an existing full-stack NJ sheriff-sale property analysis platform.
+codeYou are helping me continue development of an existing full-stack NJ sheriff-sale property analysis platform.
 
 Please first inspect the repository structure and existing code before changing anything. Do not assume filenames, database models, API routes, or schemas are exactly as described below. The information below explains the intended architecture and project goals, but the repository is the source of truth.
 

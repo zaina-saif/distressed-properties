@@ -26,10 +26,13 @@ Create `backend/.env`:
 
 ```env
 DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@HOST:5432/DATABASE
+WAREHOUSE_DATABASE_URL=postgresql+psycopg2://LOCAL_USER@localhost:5432/sheriff_sale_warehouse
 RENTCAST_API_KEY=your_rentcast_api_key
 ```
 
 - `DATABASE_URL` is required by the backend and pipeline commands.
+- `WAREHOUSE_DATABASE_URL` is optional and routes large public-history imports
+  to self-hosted PostgreSQL. It falls back to `DATABASE_URL` when omitted.
 - `RENTCAST_API_KEY` is only required for RentCast valuation enrichment.
 - Never commit real database credentials or API keys.
 - A partner can use the existing hosted database if its connection string is

@@ -1,0 +1,1132 @@
+[
+  {
+    "address": "916 HARDING AVENUE, SCIOTOVILLE",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-117",
+    "defendant": "CHAD J. STILTNER",
+    "plaintiff": null,
+    "plaintiff_attorney": "DINSMORE & SHOHL, LLP.(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "916 HARDING AVENUE, SCIOTOVILLE",
+          "appraisal": null,
+          "attorney": "DINSMORE & SHOHL, LLP.(PORTS. DAILY TIMES)",
+          "case": "25-CIE-117",
+          "defendant": "CHAD J. STILTNER",
+          "parcel": "34-2354.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 48,900.00",
+          "sale_date": "2026-01-07",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "34-2354.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 48,900.00",
+      "sale_result_amount": "48900.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-01-07",
+    "sheriff_number": "SCIOTO-8B96DD16441CAA26",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "957 CARTRO ROAD, FRANKLIN FURNACE",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-217",
+    "defendant": "UNKNOWN HEIRS, LEGATEES, & DEVISEES, IF ANY, OF KRISTINA BROOKS aka KRISTINA GAIL BROOKS",
+    "plaintiff": null,
+    "plaintiff_attorney": "COOKE DEMERS, LLC.(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "957 CARTRO ROAD, FRANKLIN FURNACE",
+          "appraisal": null,
+          "attorney": "COOKE DEMERS, LLC.(PORTS. DAILY TIMES)",
+          "case": "25-CIE-217",
+          "defendant": "UNKNOWN HEIRS, LEGATEES, & DEVISEES, IF ANY, OF KRISTINA BROOKS aka KRISTINA GAIL BROOKS",
+          "parcel": "06-0460.001",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 20,000.00",
+          "sale_date": "2026-01-07",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "06-0460.001",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 20,000.00",
+      "sale_result_amount": "20000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-01-07",
+    "sheriff_number": "SCIOTO-3A6CF78B9478101C",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1600 4TH STREET, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "24-CIE-166",
+    "defendant": "MARK LACY",
+    "plaintiff": null,
+    "plaintiff_attorney": "BROCK & SCOTT, PLLC. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1600 4TH STREET, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "BROCK & SCOTT, PLLC. (PORTS. DAILY TIMES)",
+          "case": "24-CIE-166",
+          "defendant": "MARK LACY",
+          "parcel": "32-1310.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 32,400.00",
+          "sale_date": "2026-03-04",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "32-1310.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 32,400.00",
+      "sale_result_amount": "32400.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-04",
+    "sheriff_number": "SCIOTO-0F4FEE71D397040C",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "11034 STATE ROUTE 139, MINFORD",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-240",
+    "defendant": "GREGORY BRAY aka GREGORY KEITH BRAY, JR.",
+    "plaintiff": null,
+    "plaintiff_attorney": "MDK LEGAL (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "11034 STATE ROUTE 139, MINFORD",
+          "appraisal": null,
+          "attorney": "MDK LEGAL (PORTS. DAILY TIMES)",
+          "case": "25-CIE-240",
+          "defendant": "GREGORY BRAY aka GREGORY KEITH BRAY, JR.",
+          "parcel": "10-0817.000 & 10-1866.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 215,900.00",
+          "sale_date": "2026-03-04",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "10-0817.000 & 10-1866.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 215,900.00",
+      "sale_result_amount": "215900.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-04",
+    "sheriff_number": "SCIOTO-32E9F91E1EE3061D",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "81 NAPOLEON LANE, FRANKLIN FURNACE",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-250",
+    "defendant": "JEFFREY LEE MULLINS, II",
+    "plaintiff": null,
+    "plaintiff_attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "81 NAPOLEON LANE, FRANKLIN FURNACE",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-250",
+          "defendant": "JEFFREY LEE MULLINS, II",
+          "parcel": "06-0640.009",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 70,200.00",
+          "sale_date": "2026-03-04",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "06-0640.009",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 70,200.00",
+      "sale_result_amount": "70200.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-04",
+    "sheriff_number": "SCIOTO-3A944DD7FECA454D",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1412 13TH STREET, WEST PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-210",
+    "defendant": "DANNY L. BROWN",
+    "plaintiff": null,
+    "plaintiff_attorney": "ROBERTSON ANSCHUTZ SCHNEID CRANE PARTNERS(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1412 13TH STREET, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "ROBERTSON ANSCHUTZ SCHNEID CRANE PARTNERS(PORTS. DAILY TIMES)",
+          "case": "25-CIE-210",
+          "defendant": "DANNY L. BROWN",
+          "parcel": "27-1694.001 & 27-1694.002",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 20,000.00",
+          "sale_date": "2026-03-18",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "27-1694.001 & 27-1694.002",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 20,000.00",
+      "sale_result_amount": "20000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-18",
+    "sheriff_number": "SCIOTO-6A721459350B5E42",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "8870 STATE ROUTE 140, WHEELERSBURG",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-227",
+    "defendant": "KAYLA M. JACOBY aka KAYLA M. McWILLIAMS",
+    "plaintiff": null,
+    "plaintiff_attorney": "BROCK & SCOTT, PLLC. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "8870 STATE ROUTE 140, WHEELERSBURG",
+          "appraisal": null,
+          "attorney": "BROCK & SCOTT, PLLC. (PORTS. DAILY TIMES)",
+          "case": "25-CIE-227",
+          "defendant": "KAYLA M. JACOBY aka KAYLA M. McWILLIAMS",
+          "parcel": "01-0752.000, 01-0753.000, 01-0754.000, 01-0755.000, 01-1027.000, 01-1028.000 & 01-1030.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 88,600.00",
+          "sale_date": "2026-03-18",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "01-0752.000, 01-0753.000, 01-0754.000, 01-0755.000, 01-1027.000, 01-1028.000 & 01-1030.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 88,600.00",
+      "sale_result_amount": "88600.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-18",
+    "sheriff_number": "SCIOTO-6F63BAEE6DFC3D01",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "7563 NORTH STATE ROUTE 139, LUCASVILLE",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-264",
+    "defendant": "ROBERT D. BRADLEY",
+    "plaintiff": null,
+    "plaintiff_attorney": "MDK LEGAL(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "7563 NORTH STATE ROUTE 139, LUCASVILLE",
+          "appraisal": null,
+          "attorney": "MDK LEGAL(PORTS. DAILY TIMES)",
+          "case": "25-CIE-264",
+          "defendant": "ROBERT D. BRADLEY",
+          "parcel": "08-0233.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-03-18",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "08-0233.000",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-18",
+    "sheriff_number": "SCIOTO-F2F7685F7260E7A4",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "2115 SUNRISE AVENUE, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-173",
+    "defendant": "REBECCA S. CHATFIELD",
+    "plaintiff": null,
+    "plaintiff_attorney": "ROBERTSON ANSCHUTZ SCHNEID CRANE PARTNERS(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "2115 SUNRISE AVENUE, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "ROBERTSON ANSCHUTZ SCHNEID CRANE PARTNERS(PORTS. DAILY TIMES)",
+          "case": "25-CIE-173",
+          "defendant": "REBECCA S. CHATFIELD",
+          "parcel": "31-0733.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 54,000.00",
+          "sale_date": "2026-03-25",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "31-0733.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 54,000.00",
+      "sale_result_amount": "54000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-25",
+    "sheriff_number": "SCIOTO-40328DDA55F3FBFC",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "295 SIMON MILLER ROAD, WHEELERSBURG",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-270",
+    "defendant": "THE UNKNOWN HEIRS AT LAW, DEVISEES, LEGATEES, ADMINISTRATORS & EXECUTORS OF THE ESTATE OF JOAN POWELL, DECEASED",
+    "plaintiff": null,
+    "plaintiff_attorney": "CLUNK HOOSE CO., LPA (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "295 SIMON MILLER ROAD, WHEELERSBURG",
+          "appraisal": null,
+          "attorney": "CLUNK HOOSE CO., LPA (PORTS. DAILY TIMES)",
+          "case": "25-CIE-270",
+          "defendant": "THE UNKNOWN HEIRS AT LAW, DEVISEES, LEGATEES, ADMINISTRATORS & EXECUTORS OF THE ESTATE OF JOAN POWELL, DECEASED",
+          "parcel": "17-0611.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 134,681.37",
+          "sale_date": "2026-03-25",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "17-0611.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 134,681.37",
+      "sale_result_amount": "134681.37",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-03-25",
+    "sheriff_number": "SCIOTO-72AEFAF48DD6EC10",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "101 MARKET STREET, RARDEN",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-196",
+    "defendant": "MATTHEW A. TAYLOR",
+    "plaintiff": null,
+    "plaintiff_attorney": "THE BLUME LAW FIRM (THE SCIOTO VOICE)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "101 MARKET STREET, RARDEN",
+          "appraisal": null,
+          "attorney": "THE BLUME LAW FIRM (THE SCIOTO VOICE)",
+          "case": "25-CIE-196",
+          "defendant": "MATTHEW A. TAYLOR",
+          "parcel": "19-0765.000 & 19-0764.000",
+          "raw_status": "NO BIDS: 2ND SALE ON 4/1/26",
+          "sale_date": "2026-03-18",
+          "status": "unsold"
+        },
+        {
+          "address": "101 MARKET STREET, RARDEN",
+          "appraisal": null,
+          "attorney": "THE BLUME LAW FIRM (THE SCIOTO VOICE)",
+          "case": "25-CIE-196",
+          "defendant": "MATTHEW A. TAYLOR",
+          "parcel": "19-0765.000 & 19-0764.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 63,000.00",
+          "sale_date": "2026-04-01",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "19-0765.000 & 19-0764.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 63,000.00",
+      "sale_result_amount": "63000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-04-01",
+    "sheriff_number": "SCIOTO-5E1E0F519A7602DE",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1023 COLLINGWOOD AVENUE, WHEELERSBURG",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-132",
+    "defendant": "GWENDOLYN ROUSH aka GWENDOLYN S. ROUSH",
+    "plaintiff": null,
+    "plaintiff_attorney": "1023 COLLINGWOOD AVENUE, WHEELERSBURG",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1023 COLLINGWOOD AVENUE, WHEELERSBURG",
+          "appraisal": null,
+          "attorney": "1023 COLLINGWOOD AVENUE, WHEELERSBURG",
+          "case": "25-CIE-132",
+          "defendant": "GWENDOLYN ROUSH aka GWENDOLYN S. ROUSH",
+          "parcel": "17-3630.000, 17-3631.000 & 17-3632.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-04-29",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "17-3630.000, 17-3631.000 & 17-3632.000",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-04-29",
+    "sheriff_number": "SCIOTO-19BE081E9DEB9778",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "1801 TIMMONDS AVENUE, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-252",
+    "defendant": "GREGORY S. HURN aka GREG HURN",
+    "plaintiff": null,
+    "plaintiff_attorney": "1801 TIMMONDS AVENUE, PORTSMOUTH",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1801 TIMMONDS AVENUE, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "1801 TIMMONDS AVENUE, PORTSMOUTH",
+          "case": "25-CIE-252",
+          "defendant": "GREGORY S. HURN aka GREG HURN",
+          "parcel": "33-0255.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-04-29",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "33-0255.000",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-04-29",
+    "sheriff_number": "SCIOTO-2C3BDC98F5AAC8DD",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "(1)10899 US 52, STOUT, (2) 708 FAIRVIEW AVE, WEST PORTSMOUTH, (3) 59 2ND ST, FRIENDSHIP (4) 12917 US 52, FRIENDSHIP, (5) 260 ST RT 239, WEST PORTSMOUTH, (6) 1233 7TH STREET WEST PORTSMOUTH, (7) 74 3RD ST, FRIENDSHIP, (8) WASH. BLVD., WEST PORTSMOUTH, (9) 1221",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-128",
+    "defendant": "SCOTT HORR aka SCOTT C. HORR (ALL 9 PROPERTIES TO BE SOLD TOGETHER)",
+    "plaintiff": null,
+    "plaintiff_attorney": "MCCOWN, FISHER & CREMEANS, LPA(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "(1)10899 US 52, STOUT, (2) 708 FAIRVIEW AVE, WEST PORTSMOUTH, (3) 59 2ND ST, FRIENDSHIP (4) 12917 US 52, FRIENDSHIP, (5) 260 ST RT 239, WEST PORTSMOUTH, (6) 1233 7TH STREET WEST PORTSMOUTH, (7) 74 3RD ST, FRIENDSHIP, (8) WASH. BLVD., WEST PORTSMOUTH, (9) 1221",
+          "appraisal": null,
+          "attorney": "MCCOWN, FISHER & CREMEANS, LPA(PORTS. DAILY TIMES)",
+          "case": "25-CIE-128",
+          "defendant": "SCOTT HORR aka SCOTT C. HORR (ALL 9 PROPERTIES TO BE SOLD TOGETHER)",
+          "parcel": "15-0753.000, 27-2308.000, 15-1586.000, 15-0227.000, 27-1829.000, 27-2192.000, 15-1378.000, 27-2681.000 & 27-3477.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 160,000.00",
+          "sale_date": "2026-05-13",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "15-0753.000, 27-2308.000, 15-1586.000, 15-0227.000, 27-1829.000, 27-2192.000, 15-1378.000, 27-2681.000 & 27-3477.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 160,000.00",
+      "sale_result_amount": "160000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-05-13",
+    "sheriff_number": "SCIOTO-17DE71BE0981BE80",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1645 WHITE GRAVEL ROAD, MINFORD",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-246",
+    "defendant": "CHESTER A. DUMMITT",
+    "plaintiff": null,
+    "plaintiff_attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1645 WHITE GRAVEL ROAD, MINFORD",
+          "appraisal": null,
+          "attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+          "case": "25-CIE-246",
+          "defendant": "CHESTER A. DUMMITT",
+          "parcel": "10-0351.000 & 10-0351.001",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 10,800.00",
+          "sale_date": "2026-05-20",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "10-0351.000 & 10-0351.001",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 10,800.00",
+      "sale_result_amount": "10800.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-05-20",
+    "sheriff_number": "SCIOTO-1E3DD265F6AD465E",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1632 WEBSTER HOPE ROAD, SOUTH WEBSTER",
+    "county": "Scioto",
+    "court_case_number": "20-CIE-078",
+    "defendant": "LAURA LEE BARNETT",
+    "plaintiff": null,
+    "plaintiff_attorney": "DISMORE & SHOHL, LLP. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1632 WEBSTER HOPE ROAD, SOUTH WEBSTER",
+          "appraisal": null,
+          "attorney": "DISMORE & SHOHL, LLP. (PORTS. DAILY TIMES)",
+          "case": "20-CIE-078",
+          "defendant": "LAURA LEE BARNETT",
+          "parcel": "01-0974.004 & 01-0974.003",
+          "raw_status": "NO BIDS: 2ND SALE ON 5/27/26",
+          "sale_date": "2026-05-13",
+          "status": "unsold"
+        },
+        {
+          "address": "1632 WEBSTER HOPE ROAD, SOUTH WEBSTER",
+          "appraisal": null,
+          "attorney": "DISMORE & SHOHL, LLP. (PORTS. DAILY TIMES)",
+          "case": "20-CIE-078",
+          "defendant": "LAURA LEE BARNETT",
+          "parcel": "01-0974.004 & 01-0974.003",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 58,600.00",
+          "sale_date": "2026-05-27",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "01-0974.004 & 01-0974.003",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 58,600.00",
+      "sale_result_amount": "58600.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-05-27",
+    "sheriff_number": "SCIOTO-EB704CC164C0E5BB",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "547 6TH STREET, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-127",
+    "defendant": "MICHAEL H. MEARAN aka MICHAEL HUGH MEARAN, DECEASED, AND/OR ESTATE OF MICHAEL H. MEARAN aka MICHAEL HUGH MEARAN",
+    "plaintiff": null,
+    "plaintiff_attorney": "BENTLEY LAW FIRM, LLC.(PORTS. DAILYT TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "547 6TH STREET, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "BENTLEY LAW FIRM, LLC.(PORTS. DAILYT TIMES)",
+          "case": "25-CIE-127",
+          "defendant": "MICHAEL H. MEARAN aka MICHAEL HUGH MEARAN, DECEASED, AND/OR ESTATE OF MICHAEL H. MEARAN aka MICHAEL HUGH MEARAN",
+          "parcel": "29-0614.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 140,000.00",
+          "sale_date": "2026-06-03",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "29-0614.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 140,000.00",
+      "sale_result_amount": "140000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-06-03",
+    "sheriff_number": "SCIOTO-DE39DE6A1DCA361F",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "9461 STATE ROUTE 125, WEST PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-253",
+    "defendant": "DANNY L. CLAYPOOL, JR.",
+    "plaintiff": null,
+    "plaintiff_attorney": "TIFFANY & BOSCO PA(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "9461 STATE ROUTE 125, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "TIFFANY & BOSCO PA(PORTS. DAILY TIMES)",
+          "case": "25-CIE-253",
+          "defendant": "DANNY L. CLAYPOOL, JR.",
+          "parcel": "15-0140.000, 15-0141.000 & 15-0137.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-03-04",
+          "status": "cancelled"
+        },
+        {
+          "address": "9461 STATE ROUTE 125, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "TIFFANY & BOSCO PA(PORTS. DAILY TIMES)",
+          "case": "25-CIE-253",
+          "defendant": "DANNY L. CLAYPOOL, JR.",
+          "parcel": "15-0140.000, 15-0141.000 & 15-0137.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-06-03",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "15-0140.000, 15-0141.000 & 15-0137.000",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-06-03",
+    "sheriff_number": "SCIOTO-4EB4DC0BB6F40D13",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "2374 EDGEWOOD DRIVE, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-321",
+    "defendant": "THE UNKNOWN HEIRS AT LAW, DEVISEES, LEGATEES, EXECUTORS OF THE ESTATE OF GORDON L. TAYLOR, DECEASED",
+    "plaintiff": null,
+    "plaintiff_attorney": "CLUNK HOOSE CO., LPA (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "2374 EDGEWOOD DRIVE, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "CLUNK HOOSE CO., LPA (PORTS. DAILY TIMES)",
+          "case": "25-CIE-321",
+          "defendant": "THE UNKNOWN HEIRS AT LAW, DEVISEES, LEGATEES, EXECUTORS OF THE ESTATE OF GORDON L. TAYLOR, DECEASED",
+          "parcel": "33-0607.000",
+          "raw_status": "NO BIDS: 2ND SALE ON 6/3/26",
+          "sale_date": "2026-05-20",
+          "status": "unsold"
+        },
+        {
+          "address": "2374 EDGEWOOD DRIVE, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "CLUNK HOOSE CO., LPA (PORTS. DAILY TIMES)",
+          "case": "25-CIE-321",
+          "defendant": "THE UNKNOWN HEIRS AT LAW, DEVISEES, LEGATEES, EXECUTORS OF THE ESTATE OF GORDON L. TAYLOR, DECEASED",
+          "parcel": "33-0607.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 66,400.00",
+          "sale_date": "2026-06-03",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "33-0607.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 66,400.00",
+      "sale_result_amount": "66400.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-06-03",
+    "sheriff_number": "SCIOTO-702BC471E8D2B109",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "2136 N. BEND AVENUE, WEST PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-322",
+    "defendant": "UNKNOWN HEIRS, LEGATEES AND DEVISEES, IF ANY, OF MICHAEL EUGENE CLINE",
+    "plaintiff": null,
+    "plaintiff_attorney": "COOKE DEMERS, LLC.(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "2136 N. BEND AVENUE, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "COOKE DEMERS, LLC.(PORTS. DAILY TIMES)",
+          "case": "25-CIE-322",
+          "defendant": "UNKNOWN HEIRS, LEGATEES AND DEVISEES, IF ANY, OF MICHAEL EUGENE CLINE",
+          "parcel": "27-2399.000 & 27-2400.000",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 21,200.00",
+          "sale_date": "2026-06-03",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "27-2399.000 & 27-2400.000",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 21,200.00",
+      "sale_result_amount": "21200.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-06-03",
+    "sheriff_number": "SCIOTO-5F22B8241D8BFD99",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1036 20TH STREET, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "24-CIE-241",
+    "defendant": "CARLY CHRISTMAN",
+    "plaintiff": null,
+    "plaintiff_attorney": "LOGS LEGAL GROUP, LLP. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1036 20TH STREET, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "LOGS LEGAL GROUP, LLP. (PORTS. DAILY TIMES)",
+          "case": "24-CIE-241",
+          "defendant": "CARLY CHRISTMAN",
+          "parcel": "31-0022.000",
+          "raw_status": "POSTPONED TO 7/15/26",
+          "sale_date": null,
+          "status": "postponed"
+        },
+        {
+          "address": "1036 20TH STREET, PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "LOGS LEGAL GROUP, LLP. (PORTS. DAILY TIMES)",
+          "case": "24-CIE-241",
+          "defendant": "CARLY CHRISTMAN",
+          "parcel": "31-0022.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 47,100.00",
+          "sale_date": "2026-07-15",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "31-0022.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 47,100.00",
+      "sale_result_amount": "47100.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-07-15",
+    "sheriff_number": "SCIOTO-04B10E73DD01FD98",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "2168 SHELA BLVD., PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-089",
+    "defendant": "BRENDA S. CAMPBELL",
+    "plaintiff": null,
+    "plaintiff_attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "2168 SHELA BLVD. PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-089",
+          "defendant": "BRENDA S. CAMPBELL",
+          "parcel": "16-1076.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-01-07",
+          "status": "cancelled"
+        },
+        {
+          "address": "2168 SHELA BLVD., PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-089",
+          "defendant": "BRENDA S. CAMPBELL",
+          "parcel": "16-1076.000",
+          "raw_status": "POSTPONED UNTIL 7/15/26",
+          "sale_date": null,
+          "status": "postponed"
+        },
+        {
+          "address": "2168 SHELA BLVD., PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-089",
+          "defendant": "BRENDA S. CAMPBELL",
+          "parcel": "16-1076.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 131,100.00",
+          "sale_date": "2026-07-15",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "16-1076.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 131,100.00",
+      "sale_result_amount": "131100.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-07-15",
+    "sheriff_number": "SCIOTO-A0014D01B703EF99",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "1122 BRADY CREEK ROAD, SOUTH WEBSTER",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-262",
+    "defendant": "JIM CHARLES, UNKNOWN HEIRS, DEVISEES, LEGATEES & ASSIGNS, IF ANY",
+    "plaintiff": null,
+    "plaintiff_attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "1122 BRADY CREEK ROAD, SOUTH WEBSTER",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-262",
+          "defendant": "JIM CHARLES, UNKNOWN HEIRS, DEVISEES, LEGATEES & ASSIGNS, IF ANY",
+          "parcel": "01-0357.000",
+          "raw_status": "SOLD: 3RD PARTY FOR $ 68,100.00",
+          "sale_date": "2026-07-15",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "01-0357.000",
+      "raw_status": "SOLD: 3RD PARTY FOR $ 68,100.00",
+      "sale_result_amount": "68100.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-07-15",
+    "sheriff_number": "SCIOTO-EE743315D1982A03",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "93 ISAAC RICKEY ROAD, LUCASVILLE",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-304",
+    "defendant": "NICHOLAS E. HOWELL aka NICHOLAS EDWARD HOWELL",
+    "plaintiff": null,
+    "plaintiff_attorney": "COOKE DEMERS, LLC. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "93 ISAAC RICKEY ROAD, LUCASVILLE",
+          "appraisal": null,
+          "attorney": "COOKE DEMERS, LLC. (PORTS. DAILY TIMES)",
+          "case": "25-CIE-304",
+          "defendant": "NICHOLAS E. HOWELL aka NICHOLAS EDWARD HOWELL",
+          "parcel": "10-0435.004",
+          "raw_status": "BACK TO PLAINTIFF FOR $ 30,000.00",
+          "sale_date": "2026-07-15",
+          "status": "sold"
+        }
+      ],
+      "parcel_number": "10-0435.004",
+      "raw_status": "BACK TO PLAINTIFF FOR $ 30,000.00",
+      "sale_result_amount": "30000.00",
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-07-15",
+    "sheriff_number": "SCIOTO-6DDFBA0E740C55E0",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "sold",
+    "upset_price": null
+  },
+  {
+    "address": "390 STONEY RUN ROAD, WEST PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "26-CIE-006",
+    "defendant": "GARY D. NEWMAN, II",
+    "plaintiff": null,
+    "plaintiff_attorney": "COOKE DEMERS, LLC. (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "390 STONEY RUN ROAD, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "COOKE DEMERS, LLC. (PORTS. DAILY TIMES)",
+          "case": "26-CIE-006",
+          "defendant": "GARY D. NEWMAN, II",
+          "parcel": "27-1372.000",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-07-15",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "27-1372.000",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-07-15",
+    "sheriff_number": "SCIOTO-870E5A038FC0F9C2",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "9461 STATE ROUTE 125, WEST PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-253",
+    "defendant": "DANNY L. CLAYPOOL, JR.(Pluries Order of Sale w/o new appraisal)",
+    "plaintiff": null,
+    "plaintiff_attorney": "TIFFANY & BOSCO PA(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": null,
+      "event_history": [
+        {
+          "address": "9461 STATE ROUTE 125, WEST PORTSMOUTH",
+          "appraisal": null,
+          "attorney": "TIFFANY & BOSCO PA(PORTS. DAILY TIMES)",
+          "case": "25-CIE-253",
+          "defendant": "DANNY L. CLAYPOOL, JR.(Pluries Order of Sale w/o new appraisal)",
+          "parcel": "15-0140.000, 15-0141.000 &",
+          "raw_status": "CANCELLED",
+          "sale_date": "2026-08-12",
+          "status": "cancelled"
+        }
+      ],
+      "parcel_number": "15-0140.000, 15-0141.000 &",
+      "raw_status": "CANCELLED",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-08-12",
+    "sheriff_number": "SCIOTO-F5238CFF2BD62191",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "cancelled",
+    "upset_price": null
+  },
+  {
+    "address": "12366 STATE ROUTE 73, MCDERMOTT",
+    "county": "Scioto",
+    "court_case_number": "26-CIE-002",
+    "defendant": "KRISTEN LUTE",
+    "plaintiff": null,
+    "plaintiff_attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": "121626.00",
+      "event_history": [
+        {
+          "address": "12366 STATE ROUTE 73, MCDERMOTT",
+          "appraisal": "121626.00",
+          "attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+          "case": "26-CIE-002",
+          "defendant": "KRISTEN LUTE",
+          "parcel": "23-0277.001",
+          "raw_status": "SALE MOVED TO 12/16/26",
+          "sale_date": "2026-09-09",
+          "status": "postponed"
+        },
+        {
+          "address": "12366 STATE ROUTE 73, MCDERMOTT",
+          "appraisal": null,
+          "attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+          "case": "26-CIE-002",
+          "defendant": "KRISTEN LUTE",
+          "parcel": "23-0277.001",
+          "raw_status": "POSTPONED TO 12/16/26",
+          "sale_date": "2026-09-09",
+          "status": "postponed"
+        }
+      ],
+      "parcel_number": "23-0277.001",
+      "raw_status": "SALE MOVED TO 12/16/26",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-09-09",
+    "sheriff_number": "SCIOTO-9B787DE5E879738E",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "postponed",
+    "upset_price": null
+  },
+  {
+    "address": "744 CENTRAL AVENUE, WHEELERSBURG",
+    "county": "Scioto",
+    "court_case_number": "25-CIE-121",
+    "defendant": "LESLIE ERIN MEADE",
+    "plaintiff": null,
+    "plaintiff_attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": "120000.00",
+      "event_history": [
+        {
+          "address": "744 CENTRAL AVENUE, WHEELERSBURG",
+          "appraisal": "101426.00",
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-121",
+          "defendant": "LESLIE ERIN MEADE",
+          "parcel": "17-0894.000",
+          "raw_status": "SALE MOVED TO 10/14/26",
+          "sale_date": "2026-09-09",
+          "status": "postponed"
+        },
+        {
+          "address": "744 CENTRAL AVENUE, WHEELERSBURG",
+          "appraisal": "120000.00",
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-121",
+          "defendant": "LESLIE ERIN MEADE",
+          "parcel": "17-0894.000",
+          "raw_status": "120000",
+          "sale_date": "2026-10-14",
+          "status": "scheduled"
+        },
+        {
+          "address": "744 CENTRAL AVENUE, WHEELERSBURG",
+          "appraisal": null,
+          "attorney": "ALBERTELLI LAW PARTNERS OHIO(PORTS. DAILY TIMES)",
+          "case": "25-CIE-121",
+          "defendant": "LESLIE ERIN MEADE",
+          "parcel": "17-0894.000",
+          "raw_status": "POSTPONED TO 10/14/26",
+          "sale_date": "2026-09-09",
+          "status": "postponed"
+        }
+      ],
+      "parcel_number": "17-0894.000",
+      "raw_status": "120000",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-10-14",
+    "sheriff_number": "SCIOTO-BE244EC371C4008E",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "scheduled",
+    "upset_price": null
+  },
+  {
+    "address": "1225 KINNEYS LANE, PORTSMOUTH",
+    "county": "Scioto",
+    "court_case_number": "26-CIE-078",
+    "defendant": "THE UNKNOWN SPOUSE, ETC., IF ANY, OF WILLIE LEROY JOSEY, ETC.",
+    "plaintiff": null,
+    "plaintiff_attorney": "GORANSON PARKER & BELLA (PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": "48000.00",
+      "event_history": [
+        {
+          "address": "1225 KINNEYS LANE, PORTSMOUTH",
+          "appraisal": "48000.00",
+          "attorney": "GORANSON PARKER & BELLA (PORTS. DAILY TIMES)",
+          "case": "26-CIE-078",
+          "defendant": "THE UNKNOWN SPOUSE, ETC., IF ANY, OF WILLIE LEROY JOSEY, ETC.",
+          "parcel": "31-0050.000",
+          "raw_status": "48000",
+          "sale_date": "2026-11-04",
+          "status": "scheduled"
+        }
+      ],
+      "parcel_number": "31-0050.000",
+      "raw_status": "48000",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-11-04",
+    "sheriff_number": "SCIOTO-FFF7A95D1715FB16",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "scheduled",
+    "upset_price": null
+  },
+  {
+    "address": "12366 STATE ROUTE 73, MCDERMOTT ADDRESS SOLD",
+    "county": "Scioto",
+    "court_case_number": "26-CIE-002",
+    "defendant": "KRISTEN LUTE DEFENDANTS NAME",
+    "plaintiff": null,
+    "plaintiff_attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+    "raw_payload": {
+      "appraised_value": "90000.00",
+      "event_history": [
+        {
+          "address": "12366 STATE ROUTE 73, MCDERMOTT ADDRESS SOLD",
+          "appraisal": "90000.00",
+          "attorney": "REISENFELD & ASSOCIATES(PORTS. DAILY TIMES)",
+          "case": "26-CIE-002",
+          "defendant": "KRISTEN LUTE DEFENDANTS NAME",
+          "parcel": "23-0277.001 PARCEL #",
+          "raw_status": "90000",
+          "sale_date": "2026-12-16",
+          "status": "scheduled"
+        }
+      ],
+      "parcel_number": "23-0277.001 PARCEL #",
+      "raw_status": "90000",
+      "sale_result_amount": null,
+      "source_file": "2026_real_auction_results.xlsx"
+    },
+    "sale_date": "2026-12-16",
+    "sheriff_number": "SCIOTO-330EDAE16D1DE184",
+    "source_url": "https://www.sciotocountysheriff.org/sales",
+    "state": "OH",
+    "status": "scheduled",
+    "upset_price": null
+  }
+]
