@@ -1,0 +1,271 @@
+{
+  "source_url": "https://publicaccess.hillsclerk.com/PAVDirectSearch/api/CustomQuery/KeywordSearch",
+  "records": [
+    {
+      "case_number": "18-CA-003725",
+      "documents": []
+    },
+    {
+      "case_number": "19-CA-006420",
+      "documents": [
+        {
+          "document_id": "Aaxo03fOBAdsRdcBgkg3crLtzCfw2oBP\u00c9j81La11zRUsmKGo2Se9rXmHytwp29nD34bVFAUfS0ePUzRT2twMm\u00c9s=",
+          "display_name": "Judgment - ORI Record Date -  <span style=\"color:red;\"> 9/19/2019 5:34:04 PM </span> Name - <span style=\"font-weight:bold;\"> USAA FSB - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019411167 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4136373 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 1",
+            "Name": "USAA FSB",
+            "Recording Date Time": "9/19/2019 5:34:04 PM",
+            "ORI - Doc Type": "(JUD) JUDGMENT",
+            "Book Type": "O",
+            "Book #": "26972",
+            "Page #": "60",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019411167"
+          }
+        },
+        {
+          "document_id": "AUfg\u00c9PeiIihwJsE8n0lq89wzjI2zysAZKRNZEruQHLkdYU1DbgIZlQZYtbb3Etc34eCdsmeEFdmj5kKrn8M9vCo=",
+          "display_name": "Judgment - ORI Record Date -  <span style=\"color:red;\"> 9/19/2019 5:34:04 PM </span> Name - <span style=\"font-weight:bold;\"> USAA FSB - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019411167 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4136373 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "PEREZSOTO MARIA",
+            "Recording Date Time": "9/19/2019 5:34:04 PM",
+            "ORI - Doc Type": "(JUD) JUDGMENT",
+            "Book Type": "O",
+            "Book #": "26972",
+            "Page #": "60",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019411167"
+          }
+        },
+        {
+          "document_id": "AbyHMEPz97ovKOzid2Lf\u00c9d1CCKwqM\u00c9eDVuWmQU8UZg9A7\u00c9Aoh2new3HPBYh8xctz4xQrSk1Fv43ill\u00c9B0aaDkzw=",
+          "display_name": "Judgment - ORI Record Date -  <span style=\"color:red;\"> 9/19/2019 5:34:04 PM </span> Name - <span style=\"font-weight:bold;\"> USAA FSB - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019411167 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4136373 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "SOTO MARIA PEREZ",
+            "Recording Date Time": "9/19/2019 5:34:04 PM",
+            "ORI - Doc Type": "(JUD) JUDGMENT",
+            "Book Type": "O",
+            "Book #": "26972",
+            "Page #": "60",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019411167"
+          }
+        },
+        {
+          "document_id": "Aa\u00c1JJj\u00c1vqiERfjRJDC4ouiaEpHkT1CymvPkCUrQyhuYkG8tlrGrB3mjPiwguUkvWQ3VXy3r7HDRVrArVXFfVJ8s=",
+          "display_name": "Judgment - ORI Record Date -  <span style=\"color:red;\"> 9/19/2019 5:34:04 PM </span> Name - <span style=\"font-weight:bold;\"> USAA FSB - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019411167 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4136373 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "PEREZSOTO MARIA T",
+            "Recording Date Time": "9/19/2019 5:34:04 PM",
+            "ORI - Doc Type": "(JUD) JUDGMENT",
+            "Book Type": "O",
+            "Book #": "26972",
+            "Page #": "60",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019411167"
+          }
+        },
+        {
+          "document_id": "AfMloD\u00c9qWDGEYykTW01bV1CmqJBTGtt7Si0Qb\u00c1lQN0O\u00c134M9W9M2ktkqzQIcYt9vfEa3hQ7unbsvnZTrL7ARy1I=",
+          "display_name": "Lis Pendens - ORI Record Date -  <span style=\"color:red;\"> 6/24/2019 7:56:12 AM </span> Name - <span style=\"font-weight:bold;\"> USAA FEDERAL SAVINGS BANK - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019266999 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4018315 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 1",
+            "Name": "USAA FEDERAL SAVINGS BANK",
+            "Recording Date Time": "6/24/2019 7:56:12 AM",
+            "ORI - Doc Type": "(LP) LIS PENDENS",
+            "Book Type": "O",
+            "Book #": "26727",
+            "Page #": "1643",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019266999"
+          }
+        },
+        {
+          "document_id": "AUU8Don3B9GMZmEdGtUf0jxcme10zH469wxx5\u00c1SVGdf2xfpG\u00c9XTMrtTpsyN3l8UTgbo63ytVZ1naImLsWRgWtQ4=",
+          "display_name": "Lis Pendens - ORI Record Date -  <span style=\"color:red;\"> 6/24/2019 7:56:12 AM </span> Name - <span style=\"font-weight:bold;\"> USAA FEDERAL SAVINGS BANK - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019266999 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4018315 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "PEREZSOTO MARIA",
+            "Recording Date Time": "6/24/2019 7:56:12 AM",
+            "ORI - Doc Type": "(LP) LIS PENDENS",
+            "Book Type": "O",
+            "Book #": "26727",
+            "Page #": "1643",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019266999"
+          }
+        },
+        {
+          "document_id": "AdrlqxMDgREeaY3zil2jWcGwXLRw\u00c9fl7FqwZFVygInaoW2vg2FQp64z9oMB2SzO\u00c1zcrA6igIIOF7w0esjg4q8zI=",
+          "display_name": "Lis Pendens - ORI Record Date -  <span style=\"color:red;\"> 6/24/2019 7:56:12 AM </span> Name - <span style=\"font-weight:bold;\"> USAA FEDERAL SAVINGS BANK - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019266999 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4018315 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "SOTO MARIA PEREZ",
+            "Recording Date Time": "6/24/2019 7:56:12 AM",
+            "ORI - Doc Type": "(LP) LIS PENDENS",
+            "Book Type": "O",
+            "Book #": "26727",
+            "Page #": "1643",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019266999"
+          }
+        },
+        {
+          "document_id": "AWy7dRWt09XTsSxJJoraWpBzWG\u00c1ixWMjeNat4ZkGML\u00c9AW\u00c9S07FqEQpX6pFZJb5Be6MRpmzHrJrw495fdyWvUwJ0=",
+          "display_name": "Lis Pendens - ORI Record Date -  <span style=\"color:red;\"> 6/24/2019 7:56:12 AM </span> Name - <span style=\"font-weight:bold;\"> USAA FEDERAL SAVINGS BANK - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019266999 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4018315 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "PEREZSOTO MARIA T",
+            "Recording Date Time": "6/24/2019 7:56:12 AM",
+            "ORI - Doc Type": "(LP) LIS PENDENS",
+            "Book Type": "O",
+            "Book #": "26727",
+            "Page #": "1643",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019266999"
+          }
+        },
+        {
+          "document_id": "ASUi5lHZbQUHrlva5L0r7SVlr0p3GcvzhnwZP5x0L2b6bQw2QJBVZrS5\u00c9TxjcVR7tglnpi8SMAsdEyfBU6ZJRH0=",
+          "display_name": "Lis Pendens - ORI Record Date -  <span style=\"color:red;\"> 6/24/2019 7:56:12 AM </span> Name - <span style=\"font-weight:bold;\"> USAA FEDERAL SAVINGS BANK - PEREZSOTO MARIA, </span> Inst. #: <span style=\"color:blue;\"> 2019266999 </span>  Case # - 19-CA-006420 Recpt # - <span style=\"color:magenta;\"> 4018315 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "SOTO MARIA T PEREZ",
+            "Recording Date Time": "6/24/2019 7:56:12 AM",
+            "ORI - Doc Type": "(LP) LIS PENDENS",
+            "Book Type": "O",
+            "Book #": "26727",
+            "Page #": "1643",
+            "Legal Description": "L 6 B 18 WELLSWOOD SEC C",
+            "Instrument #": "2019266999"
+          }
+        }
+      ]
+    },
+    {
+      "case_number": "2025-CA-006639",
+      "documents": []
+    },
+    {
+      "case_number": "2025-CA-009939",
+      "documents": []
+    },
+    {
+      "case_number": "23-CA-012472",
+      "documents": []
+    },
+    {
+      "case_number": "24-CA-001483",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-000447",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-000984",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-002305",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-009624",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-010141",
+      "documents": [
+        {
+          "document_id": "AQbOPBUyFAV9Qp3IzEgANn\u00c9GEqOzJy1yrbMt3IP0loImc9Wj5CQTeuj73DAZbY8znVR\u00c1AeVFWZjktMnVGspEDKQ=",
+          "display_name": "Order - ORI Record Date -  <span style=\"color:red;\"> 8/25/2026 10:56:52 AM </span> Name - <span style=\"font-weight:bold;\"> SUNCOAST CREDIT UNION - RUNDQUIST ERIC JAMES, </span> Inst. #: <span style=\"color:blue;\"> 2026331742 </span>  Case # - 25-CA-010141 Recpt # - <span style=\"color:magenta;\"> 7679817 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 1",
+            "Name": "SUNCOAST CREDIT UNION",
+            "Recording Date Time": "8/25/2026 10:56:52 AM",
+            "ORI - Doc Type": "(ORD) ORDER",
+            "Book Type": "",
+            "Book #": "",
+            "Page #": "",
+            "Legal Description": "",
+            "Instrument #": "2026331742"
+          }
+        },
+        {
+          "document_id": "AWGuqA8ZYLxdv4OXGY3v74xkiO\u00c9HHjriLT8\u00c9yDIwtNNbqPxyJlYfavubUppT4CgiUXZzBjKQ9RIKsCOKHkBLwDI=",
+          "display_name": "Order - ORI Record Date -  <span style=\"color:red;\"> 8/25/2026 10:56:52 AM </span> Name - <span style=\"font-weight:bold;\"> SUNCOAST CREDIT UNION - RUNDQUIST ERIC JAMES, </span> Inst. #: <span style=\"color:blue;\"> 2026331742 </span>  Case # - 25-CA-010141 Recpt # - <span style=\"color:magenta;\"> 7679817 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "RUNDQUIST ERIC JAMES",
+            "Recording Date Time": "8/25/2026 10:56:52 AM",
+            "ORI - Doc Type": "(ORD) ORDER",
+            "Book Type": "",
+            "Book #": "",
+            "Page #": "",
+            "Legal Description": "",
+            "Instrument #": "2026331742"
+          }
+        },
+        {
+          "document_id": "AS1lh9J\u00c96HN7GAAinnuViCWp8gSznGHDY2gq34qsHvC9Wk6wqQJn0hCEO9wblBLz82eFSDjegu2ddilU\u00c1psBHDY=",
+          "display_name": "Order - ORI Record Date -  <span style=\"color:red;\"> 8/25/2026 10:56:52 AM </span> Name - <span style=\"font-weight:bold;\"> SUNCOAST CREDIT UNION - RUNDQUIST ERIC JAMES, </span> Inst. #: <span style=\"color:blue;\"> 2026331742 </span>  Case # - 25-CA-010141 Recpt # - <span style=\"color:magenta;\"> 7679817 </span>",
+          "fields": {
+            "ORI - Person Type": "PARTY 2",
+            "Name": "RUNDQUIST RACHEL",
+            "Recording Date Time": "8/25/2026 10:56:52 AM",
+            "ORI - Doc Type": "(ORD) ORDER",
+            "Book Type": "",
+            "Book #": "",
+            "Page #": "",
+            "Legal Description": "",
+            "Instrument #": "2026331742"
+          }
+        }
+      ]
+    },
+    {
+      "case_number": "25-CA-011298",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-011540",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-011721",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-012087",
+      "documents": []
+    },
+    {
+      "case_number": "25-CA-012864",
+      "documents": []
+    },
+    {
+      "case_number": "26-CA-000042",
+      "documents": []
+    },
+    {
+      "case_number": "26-CA-000064",
+      "documents": []
+    },
+    {
+      "case_number": "26-CA-002312",
+      "documents": []
+    },
+    {
+      "case_number": "29-2023-CA-015123",
+      "documents": []
+    },
+    {
+      "case_number": "29-2024-CA-007406",
+      "documents": []
+    }
+  ]
+}

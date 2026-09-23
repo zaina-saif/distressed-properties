@@ -37,16 +37,8 @@ function date(value: string | null | undefined): string {
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(value));
-}
-
-function valuationProviderLabel(value: string | null | undefined): string {
-  if (value === "realie") return "Realie AVM";
-  if (value === "monmouth_xgboost_avm_v2") return "Monmouth AVM";
-  if (value === "monroe_kiz_xgboost_avm_v1") return "Monroe experimental AVM";
-  if (value === "rentcast") return "RentCast";
-  if (value === "manual_csv" || value === "manual") return "Manual review";
-  return value ?? "Valuation pending";
 }
 
 function Fact({ label, value }: { label: string; value: string | number }) {
@@ -55,6 +47,32 @@ function Fact({ label, value }: { label: string; value: string | number }) {
       <dt className="text-sm text-slate-500">{label}</dt>
       <dd className="text-right text-sm font-semibold text-slate-900">{value}</dd>
     </div>
+  );
+}
+
+function readable(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number") return value.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (typeof value === "string") return value;
+  return JSON.stringify(value);
+}
+
+function ApifyTable({ title, value }: { title: string; value: unknown }) {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const rows = value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item));
+  if (rows.length === 0) return null;
+  const keys = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
+  return (
+    <section className="mt-5 rounded-xl border border-slate-200 p-4">
+      <h3 className="mb-3 font-bold text-slate-900">{title}</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-max border-collapse text-left text-xs">
+          <thead><tr className="border-b border-slate-200 bg-slate-50">{keys.map((key) => <th key={key} className="whitespace-nowrap px-3 py-2 font-semibold text-slate-600">{key}</th>)}</tr></thead>
+          <tbody>{rows.map((row, index) => <tr key={index} className="border-b border-slate-100 last:border-0">{keys.map((key) => <td key={key} className="max-w-72 px-3 py-2 align-top text-slate-700">{readable(row[key])}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -114,7 +132,6 @@ export function PropertyDetailModal({
             <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Estimated value</p>
               <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.market_value)}</p>
-              <p className="mt-1 text-xs text-slate-500">{valuationProviderLabel(property.valuation_provider ?? property.valuation_status)}</p>
             </div>
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Gross equity</p>
@@ -122,11 +139,10 @@ export function PropertyDetailModal({
               <p className="mt-1 text-xs text-slate-500">{percent(property.gross_equity_percent)} of estimated value</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Preferred upset</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.upset_price)}</p>
-              <p className="mt-1 text-xs text-slate-500">Judgment: {currency(property.judgment_amount)}</p>
-              <p className="mt-1 text-xs text-slate-500">AVM–judgment spread: {currency(property.avm_judgment_spread)}</p>
-              <p className="mt-1 text-[11px] text-slate-500">Screening difference only; liens, costs, and title can change actual equity.</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Judgment amount</p>
+              <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.judgment_amount)}</p>
+              <p className="mt-1 text-xs text-slate-500">Judgment: {currency(property.judgment_amount)}{property.judgment_amount_as_of_date ? ` (as of ${date(property.judgment_amount_as_of_date)}; not current payoff)` : ""}</p>
+              {property.judgment_source_url && <a href={property.judgment_source_url} target="_blank" rel="noreferrer" className="text-xs font-medium text-teal-700 underline">View judgment source</a>}
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Sale probability</p>
@@ -155,15 +171,19 @@ export function PropertyDetailModal({
             </section>
 
             <section className="rounded-xl border border-slate-200 p-4">
-              <h3 className="mb-3 flex items-center gap-2 font-bold text-slate-900"><Gavel className="h-4 w-4 text-teal-600" />Sheriff sale</h3>
+              <h3 className="mb-3 flex items-center gap-2 font-bold text-slate-900"><Gavel className="h-4 w-4 text-teal-600" />{property.sale_type ?? "Sheriff sale"}</h3>
               <dl>
-                <Fact label="Status" value={property.current_status} />
+                <Fact label="Status" value={property.current_status.replaceAll("_", " ")} />
                 <Fact label="Sale date" value={date(property.current_sale_date)} />
-                <Fact label="Sheriff number" value={property.sheriff_number} />
+                <Fact label="Upset price" value={currency(property.upset_price)} />
+                <Fact label={property.sale_type === "Sheriff sale" ? "Sheriff number" : "Auction ID"} value={property.sheriff_number} />
                 <Fact label="Court case" value={property.court_case_number ?? "Unavailable"} />
+                <Fact label="Parcel / tax ID" value={property.bbl ?? "Unavailable"} />
                 <Fact label="Plaintiff" value={property.plaintiff ?? "Unavailable"} />
                 <Fact label="Defendant" value={property.defendant ?? "Unavailable"} />
+                {property.notice_lien_amount != null && <Fact label="Approx. lien amount (notice)" value={currency(property.notice_lien_amount)} />}
               </dl>
+              {property.notice_details && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-700">{property.notice_details}</p>}
               {property.foreclosure_source_url && (
                 <a href={property.foreclosure_source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
                   Open source record <ExternalLink className="h-3.5 w-3.5" />
@@ -202,9 +222,20 @@ export function PropertyDetailModal({
 
           <div className="mt-5 flex flex-wrap gap-4 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
             <span className="flex items-center gap-1.5"><CalendarDays className="h-4 w-4" />Valuation retrieved: {date(property.valuation_retrieved_at)}</span>
-            <span>AVM confidence: {percent(property.valuation_confidence)}</span>
             <span>Coordinate source: {property.coordinate_source?.replaceAll("_", " ") ?? "Unavailable"}</span>
           </div>
+
+          {typeof property.apify_data?.description === "string" && property.apify_data.description && (
+            <section className="mt-5 rounded-xl border border-slate-200 p-4">
+              <h3 className="mb-2 font-bold text-slate-900">Description</h3>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{property.apify_data.description}</p>
+            </section>
+          )}
+
+          <ApifyTable title="Listing price history" value={property.apify_data?.listingPriceHistory} />
+          <ApifyTable title="Listing tax history" value={property.apify_data?.listingTaxHistory} />
+          <ApifyTable title="Nearby properties" value={property.apify_data?.nearbyProperties} />
+          <ApifyTable title="Nearby schools" value={property.apify_data?.nearbySchools} />
         </div>
       </article>
     </div>

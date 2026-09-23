@@ -1,0 +1,36 @@
+{
+  "source_index_url": "https://www.bid4assets.com/pbsosheriffsales",
+  "record_source_url": "https://floridapublicnotices.com/",
+  "source_checked_date": "2026-09-21",
+  "coverage_note": "Bid4Assets-linked Palm Beach sheriff notices filtered to explicit real property. Vehicles and other personal property are excluded.",
+  "records": [
+    {
+      "source_system": "fl_palm_beach_sheriff_execution",
+      "source_url": "https://floridapublicnotices.com/notices/11654351",
+      "auction_url": "https://www.bid4assets.com/pbsosheriffsales",
+      "source_notice_id": "11654351",
+      "publication_date": "2026-08-18",
+      "state": "FL",
+      "county": "Palm Beach",
+      "court_case_number": "50-2024-CA-005371-XXXA-MB",
+      "plaintiff": "PRESCOTT RESOURCES INC",
+      "defendant": "ELIZABETH J BECKLES; EMERSON BECKLES; ERROL BECKLES; CITY OF BOYNTON BEACH",
+      "levied_interest_holder": "EMERSON BECKLES",
+      "interest_offered": "25% undivided interest",
+      "writ_issued_date": "2025-01-24",
+      "levy_date": "2026-07-27",
+      "sale_date": "2026-09-22",
+      "street_address": "300 NW 16TH COURT",
+      "city": "Boynton Beach",
+      "zip_code": "33435",
+      "legal_description": "LOT 10 OF BLOCK 42, ROLLING GREEN RIDGE FIRST ADDITION, ACCORDING TO THE PLAT THEREOF, RECORDED IN PLAT BOOK 24, PAGE 223, OF THE PUBLIC RECORDS OF PALM BEACH COUNTY, FLORIDA",
+      "judgment_amount": null,
+      "judgment_amount_note": "Not stated in the sheriff-sale notice",
+      "distress_start_date": "2025-01-24",
+      "distress_start_year": null,
+      "distress_start_basis": "Writ of Execution issue date",
+      "status": "scheduled",
+      "notice_text": "NOTICE OF SHERIFFS SALE\nNOTICE IS HEREBY GIVEN THAT I, Ric L. Bradshaw, Sheriff of Palm Beach County, Florida, by virtue of a Writ of Execution, Case # 50-2024-CA-005371-XXXA-MB, issued out of the Circuit Court in and for PALM BEACH County, Florida on the 24th day of January, 2025 in that certain cause wherein, PRESCOTT RESOURCES INC., Plaintiff and ELIZABETH J BECKLES; EMERSON BECKLES; ERROL BECKLES; CITY OF BOYNTON BEACH, Defendant, and on the 27th day of July, 2026 on behalf of the Plaintiff, PRESCOTT RESOURCES INC., have made levy upon the following described property: \nAll rights, title and interest of EMERSON BECKLES, the within named defendant, to wit: \nA 25 PERCENT UNDIVIDED INTEREST IN THE FOLLOWING DESCRIBED REAL PROPERTY OF THE DEFENDANT LISTED BELOW:  \nLOT 10 OF BLOCK 42, ROLLING GREEN RIDGE FIRST ADDITION, ACCORDING TO THE PLAT THEREOF, RECORDED IN PLAT BOOK 24, PAGE 223, OF THE PUBLIC RECORDS OF PALM BEACH COUNTY, FLORIDA.  \nThe property may be seen prior to the sale at 300 NW 16TH COURT BOYNTON BEACH, FL 33435. Images of the property will be available on the Palm Beach County Sheriffs website at https://www.pbso.org/inside-pbso/law-enforcement/court-services-division/sheriffs-sale. Further I shall offer this property for sale AS IS, WHERE IS, AND SUBJECT to all prior liens and encumbrances, if any, and without recourse on Tuesday the 22nd day of September, 2026, from 10:00 a.m. to 1:00 pm online at https://www.Bid4Assets.com/pbsosheriffsales and will sell to the highest CASH BIDDER FOR CASH IN HAND, all rights, title and interest of said defendant, EMERSON BECKLES in said property. Bidders need to be registered at least one hour prior to the start of the sale. By the close of the next business day after the auction, the purchaser shall pay the exact amount of the balance due. A $35 per asset processing fee will be assessed by Bid4Assets. Release of Property form will be provided by email upon receipt of sale proceeds from Bid4Assets which will take approximately 5 to 6 business days. Please visit https://www.Bid4Assets.com/pbsosheriffsales to review the full Conditions of Sale. Failure to comply with the Conditions of Sale shall result in a default and forfeiture of sale. At my discretion I reserve the right to withdraw from sale all or part of the property. Dated at West Palm Beach, Florida, this 27th day of July, A.D., 2026. \nRic L. Bradshaw, Sheriff \nPALM BEACH COUNTY, FLORIDA  \nBY: Kimberly Miller           \nCivil Process / Fugitive Warrants Division \n8/18/2026, 8/25/2026, 9/1/2026, 9/8/2026\n110130"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import {
 import type { Property } from "@/types/property";
 
 function currency(value: number | null | undefined): string {
-  if (value == null) return "Pending";
+  if (value == null) return "";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -20,11 +20,12 @@ function currency(value: number | null | undefined): string {
 }
 
 function date(value: string | null | undefined): string {
-  if (!value) return "Date pending";
+  if (!value) return "";
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(value));
 }
 
@@ -61,7 +62,7 @@ export function PropertyCard({
               </p>
             </div>
             <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold capitalize text-amber-800">
-              {property.current_status}
+              {property.current_status.replaceAll("_", " ")}
             </span>
           </div>
 
@@ -86,20 +87,17 @@ export function PropertyCard({
             )}
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-100 pt-3 text-sm">
+          <div className="mt-4 grid grid-cols-1 gap-3 border-t border-slate-100 pt-3 text-sm">
             <div>
               <p className="text-xs text-slate-500">Est. gross equity</p>
               <p className="font-semibold text-teal-700">{currency(property.gross_equity)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500">Preferred upset</p>
-              <p className="font-semibold text-slate-900">{currency(property.upset_price)}</p>
             </div>
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
             <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{date(property.current_sale_date)}</span>
             <span className="flex items-center gap-1"><Gavel className="h-3.5 w-3.5" />{property.sheriff_number}</span>
+            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{property.sale_type ?? "Sheriff sale"}</span>
           </div>
         </div>
       </div>

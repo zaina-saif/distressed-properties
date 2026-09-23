@@ -258,7 +258,105 @@ cd backend
 python -m pipeline.import_illinois_mydec
 ```
 
+### Hillsborough, Florida foreclosure-auction notices
+
+The Hillsborough clerk's RealAuction calendar is the authoritative live sale
+schedule, but it currently returns HTTP 403 to this collector. The initial
+dashboard feed instead extracts address-bearing, future-dated foreclosure
+auction notices from the public Business Observer Hillsborough notice index.
+It is deliberately labeled `Foreclosure auction (published notice)` and
+`scheduled_unverified`: a published notice is not confirmation that the clerk
+has not cancelled or rescheduled the auction. It does not include tax-deed
+auctions or notices without an explicit street address and case number.
+
+```bash
+cd backend
+python -m pipeline.scrape_hillsborough_foreclosure_notices --pages 40
+python -m pipeline.load_hillsborough_foreclosure_notices
+```
+
+The importer is idempotent by court case and retains each source URL and raw
+notice. Check the clerk's calendar before acting on any sale.
+
 ### New York statewide assessment history
+
+NYC's Department of Finance [auction page](https://www.nyc.gov/site/finance/vehicles/auctions.page)
+has a real-property section, but its currently linked Sheriff notice is a
+September 8, 2021 New York County auction. The notice has been captured in
+`backend/data/sheriff_sales/nyc_dof_property_auctions.json`; load it with:
+
+```bash
+cd backend
+python -m pipeline.load_nyc_dof_property_auctions
+```
+
+It is labeled `date_passed_unverified` and inactive: the PDF establishes an
+auction notice, not that a sale occurred or what price was paid. The page does
+not currently provide a current five-borough real-property auction feed.
+The Kings County Supreme Court's September 17, 2026 foreclosure calendar also
+links 27 address-named PDFs. The index snapshot can be loaded with:
+
+```bash
+cd backend
+python -m pipeline.load_nyc_kings_court_foreclosures
+```
+
+Those entries are labeled **court foreclosure auctions**, not sheriff sales.
+Their addresses are taken from the official PDF filenames and their date from
+the court calendar. Eight PDFs were later supplied locally and OCR-reviewed;
+load their case numbers, BBLs, ZIP codes, parties, and stated amounts with:
+
+```bash
+cd backend
+python -m pipeline.load_nyc_kings_local_notices
+```
+
+The other 19 remain filename-only until their notices are available. The 1025
+East 13th Street notice calls its dollar figure a **lien**, not a judgment, so
+it is stored separately. The supplied 1070 East 73rd Street PDF is marked page
+1 of 2 and needs the missing page checked. None of these notices proves a
+completed auction or winning bid. One filename contains two addresses and
+requires manual parcel review. The
+court warns that listed properties may be stayed, withdrawn, or otherwise not
+sold. The other borough court pages checked do not provide a comparably
+accessible current property-level list, so NYC coverage remains incomplete.
+
+For recurring Kings collection, schedule this one-shot command (for example,
+every weekday morning). It discovers the current court date and PDF links,
+downloads each notice, extracts embedded text or uses macOS Vision OCR,
+checks for conflicting dates, and then updates the database only when every
+PDF download completes:
+
+```bash
+cd backend
+python -m pipeline.collect_nyc_kings_foreclosure_pdfs --load
+```
+
+Downloaded PDFs and extraction JSON are cached under `.local/nyc-kings-court-pdfs/`
+outside Git. An access challenge returns exit code 2, does **not** import stale
+data, and should alert the operator. As of September 17, 2026, the court site
+returned a Cloudflare 403 to direct HTTP and to individual PDF requests from
+automated Chrome. A visible Chrome session reached the directory once but was
+subsequently challenged. The collector is tested, but unattended access is
+**not yet working** from this environment; a reliable accessible route is
+needed before scheduling it in production. A court feed or allowlisting is one
+possible route, not a prerequisite for manually reading public PDFs. The
+collector does not solve CAPTCHAs or bypass access controls.
+The separate NYCTL referee tax-lien auction source
+can be refreshed and loaded into the dashboard/list with:
+
+```bash
+cd backend
+python -m pipeline.scrape_nyc_referee_sales
+python -m pipeline.load_nyc_referee_sales
+```
+
+These are **referee auctions, not sheriff executions**. The importer checks all
+five borough BBL prefixes, saves a source snapshot, and places map pins only
+when NYC Planning GeoSearch returns the exact BBL. The dashboard's NY filter
+shows source-specific counts, including zero-listing boroughs. This source is
+not a comprehensive foreclosure calendar; sale dates can be cancelled or
+stayed and must be checked against the source before bidding.
 
 Load the official 2021-2025 ORPTS final assessment rolls for all New York cities
 and towns outside New York City. The adapter requests only parcel identity,
@@ -345,6 +443,12 @@ MyDec records. The NY class may come from an earlier ORPTS assessment roll.
 These candidates have separate versioned reports and score only
 properties in their documented source/class scope when promoted. They do not
 establish statewide coverage or fill missing property features.
+Florida also has a lower-history repeat-sale county-index experiment:
+`python -m pipeline.train_florida_repeat_sales --sample-percent 10`. It uses
+only qualified improved-property transfers (codes 01/02) and evaluates March
+2026 for selection, then April–May 2026 untouched. It remains **rejected**
+until it beats the unchanged prior-sale benchmark and meets the accuracy gate;
+it is not served as an individual property AVM.
 The sheriff-sale list separately exposes `AVM–judgment spread` only when a
 current property valuation and a positive judgment are both present; it is not
 net or legal equity. Warehouse-to-sheriff-sale linkage still requires a verified

@@ -14,6 +14,7 @@ export interface PropertyFilters {
   zipCode?: string;
   query?: string;
   status?: string;
+  statusContains?: string;
   futureOnly?: boolean;
   minEquity?: number;
   sort?: string;
@@ -43,6 +44,10 @@ export async function getProperties(
 
   if (filters.status) {
     params.set("status", filters.status);
+  }
+
+  if (filters.statusContains) {
+    params.set("status_contains", filters.statusContains);
   }
 
   if (filters.futureOnly !== undefined) {
@@ -80,6 +85,28 @@ export async function getProperties(
   return response.json();
 }
 
+export async function downloadPropertiesXlsx(
+  filters: PropertyFilters = {},
+): Promise<Blob> {
+  const params = new URLSearchParams();
+  filters.states?.forEach((state) => params.append("state", state));
+  filters.counties?.forEach((county) => params.append("county", county));
+  if (filters.zipCode) params.set("zip_code", filters.zipCode);
+  if (filters.query) params.set("q", filters.query);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.statusContains) params.set("status_contains", filters.statusContains);
+  if (filters.futureOnly !== undefined) params.set("future_only", String(filters.futureOnly));
+  if (filters.minEquity !== undefined) params.set("min_equity", String(filters.minEquity));
+  if (filters.sort) params.set("sort", filters.sort);
+  if (filters.sortDirection) params.set("sort_direction", filters.sortDirection);
+  params.set("page", String(filters.page ?? 1));
+  params.set("page_size", String(filters.pageSize ?? 24));
+
+  const response = await fetch(`${API_URL}/api/v1/properties/export.xlsx?${params.toString()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to export properties: ${response.status}`);
+  return response.blob();
+}
+
 export async function getPropertyCoverage(): Promise<PropertyCoverageItem[]> {
   const response = await fetch(`${API_URL}/api/v1/properties/facets/coverage`, {
     cache: "no-store",
@@ -91,6 +118,20 @@ export async function getPropertyCoverage(): Promise<PropertyCoverageItem[]> {
 
   const result = (await response.json()) as { items: PropertyCoverageItem[] };
   return result.items;
+}
+
+export interface NycAuctionCoverage {
+  source_type: string;
+  source_url: string;
+  last_checked_at: string | null;
+  boroughs: { county: string; upcoming: number }[];
+  coverage_note: string;
+}
+
+export async function getNycAuctionCoverage(): Promise<NycAuctionCoverage> {
+  const response = await fetch(`${API_URL}/api/v1/properties/facets/nyc-auction-coverage`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load NYC auction coverage: ${response.status}`);
+  return response.json();
 }
 
 export async function getLienCoverage(

@@ -1,0 +1,15 @@
+{
+  "source_note": "Amounts manually verified against the clerk's scanned final judgment. Handwritten amendments supersede crossed-out printed amounts. These are historical judgment totals, not current payoff balances or auction opening bids.",
+  "records": [
+    {
+      "court_case_number": "19-CA-006420",
+      "street_address": "1502 W BRANDON DR",
+      "zip_code": "33603",
+      "judgment_amount": "263216.09",
+      "judgment_amount_as_of_date": "2019-09-19",
+      "instrument_number": "2019411167",
+      "source_url": "https://publicaccess.hillsclerk.com/PAVDirectSearch/index.html?CQID=350&OBKey__1259_1=19-CA-006420",
+      "verification_note": "Page 2, paragraph 3, handwritten replacement of the crossed-out TOTAL SUM; equals $264,020.99 subtotal less $804.90 escrow advance. Page 2 property address and page 1 case number match the auction notice."
+    }
+  ]
+}

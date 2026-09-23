@@ -1,0 +1,11 @@
+BEGIN;
+
+ALTER TABLE sheriff_sales
+    ADD COLUMN IF NOT EXISTS starting_bid NUMERIC(14, 2);
+
+ALTER TABLE properties
+    ADD COLUMN IF NOT EXISTS acreage NUMERIC(12, 4),
+    ADD COLUMN IF NOT EXISTS year_built INTEGER;
+
+COMMIT;
+

@@ -2,10 +2,14 @@ export interface Property {
   property_id: string;
   sheriff_sale_id: string;
   sheriff_number: string;
+  sale_type?: string;
   court_case_number?: string | null;
+  bbl?: string | null;
+  notice_details?: string | null;
   plaintiff?: string | null;
   defendant?: string | null;
   foreclosure_source_url?: string | null;
+  apify_data?: Record<string, unknown> | null;
 
   normalized_address: string;
   street_address: string;
@@ -25,7 +29,7 @@ export interface Property {
   qualifier?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  coordinate_source?: "canonical_parcel" | "nj_avm_parcel" | null;
+  coordinate_source?: "canonical_parcel" | "nj_avm_parcel" | "nyc_planning_geosearch" | null;
 
   current_status: string;
   current_sale_date: string | null;
@@ -48,9 +52,20 @@ export interface Property {
   valuation_pending_reason?: string | null;
   parcel_match_confidence?: number | null;
   judgment_amount?: number | null;
+  judgment_amount_as_of_date?: string | null;
+  judgment_source_url?: string | null;
+  starting_bid?: number | null;
+  distress_start_date?: string | null;
+  distress_start_year?: number | null;
+  distress_start_basis?: string | null;
+  distress_duration_days?: number | null;
+  distress_duration_min_days?: number | null;
+  distress_duration_max_days?: number | null;
+  notice_lien_amount?: number | null;
   avm_judgment_spread?: number | null;
   avm_judgment_spread_percent?: number | null;
   upset_price?: number | null;
+  opening_bid?: number | null;
   gross_equity?: number | null;
   gross_equity_percent?: number | null;
 

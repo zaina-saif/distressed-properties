@@ -1,6 +1,12 @@
+import json
+from io import BytesIO
+from functools import lru_cache
+from pathlib import Path
 from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -11,6 +17,84 @@ router = APIRouter(
     prefix="/api/v1/properties",
     tags=["properties"],
 )
+
+APIFY_DATASET = Path(__file__).resolve().parents[3] / ".local/apify-zillow-scheduled/dataset.json"
+APIFY_MANIFEST = Path(__file__).resolve().parents[3] / ".local/apify-zillow-scheduled/manifest.json"
+APIFY_IL_DATASET = Path(__file__).resolve().parents[3] / ".local/apify-zillow-il/dataset.json"
+APIFY_IL_MANIFEST = Path(__file__).resolve().parents[3] / ".local/apify-zillow-il/manifest.json"
+
+EXPORT_FIELDS = [
+    ("Distress source", "sale_type"), ("Sale ID", "sheriff_number"),
+    ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
+    ("zestimate", "apify_data.zestimate"), ("Upset amount", "upset_price"),
+    ("Judgment amount", "judgment_amount"),
+    ("Description", "apify_data.description"),
+    ("Address", "normalized_address"), ("Street address", "street_address"),
+    ("City", "city"), ("County", "county"), ("State", "state"), ("ZIP", "zip_code"),
+    ("Court case", "court_case_number"), ("Parcel / tax ID", "bbl"), ("Status", "current_status"),
+    ("Sale date", "current_sale_date"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
+    ("Time in distress", "distress_duration_days"), ("Estimated market value", "market_value"),
+    ("zestimate", "apify_data.zestimate"),
+    ("Notice lien amount", "notice_lien_amount"),
+    ("Probability to auction", "sale_probability"), ("Lien risk score", "lien_risk_score"),
+    ("Lien risk level", "lien_risk_level"), ("Lien risk confidence", "lien_risk_confidence"),
+    ("Total lien amount", "total_lien_amount"), ("Property type", "property_type"),
+    ("Bedrooms", "bedrooms"), ("Bathrooms", "bathrooms"), ("Square feet", "square_feet"),
+    ("Acreage", "acreage"), ("Year built", "year_built"), ("PAMS PIN", "pams_pin"),
+    ("Block", "block"), ("Lot", "lot"), ("Qualifier", "qualifier"),
+    ("Parcel match confidence", "parcel_match_confidence"), ("Latitude", "latitude"),
+    ("Longitude", "longitude"), ("Coordinate source", "coordinate_source"),
+    ("Valuation retrieved", "valuation_retrieved_at"), ("Lien risk calculated", "lien_risk_calculated_at"),
+]
+APIFY_EXPORT_KEYS = [
+    "homeType", "lastSoldPrice", "bedrooms", "bathrooms", "livingArea", "yearBuilt",
+    "daysOnZillow", "pageViewCount", "favoriteCount", "rentZestimate",
+    "lotArea", "pricePerSquareFoot", "taxAssessedValue", "onMarketDate", "taxAnnualAmount",
+    "parking", "dateSold", "priceChange", "priceChangedAt", "monthlyHoaFee",
+    "hoa", "propertyTaxRate", "listingMortgageRates",
+]
+
+
+def readable_apify_value(value, depth=0):
+    if value is None or value == "":
+        return ""
+    if isinstance(value, bool):
+        return "Yes" if value else "No"
+    if isinstance(value, (int, float)):
+        return f"{value:,.2f}".rstrip("0").rstrip(".")
+    if isinstance(value, str):
+        return value
+    if isinstance(value, list):
+        shown = [readable_apify_value(item, depth + 1) for item in value[:4]]
+        result = " | ".join(item for item in shown if item)
+        if len(value) > 4:
+            result += f" | +{len(value) - 4} more"
+        return result
+    if depth >= 2:
+        return json.dumps(value, default=str)
+    parts = []
+    for key, item in value.items():
+        label = "".join(f" {char.lower()}" if char.isupper() else char for char in key).capitalize()
+        parts.append(f"{label}: {readable_apify_value(item, depth + 1)}")
+    return "; ".join(parts)
+
+
+@lru_cache(maxsize=1)
+def load_apify_properties() -> dict[str, dict]:
+    merged: dict[str, dict] = {}
+    for dataset_path, manifest_path in (
+        (APIFY_DATASET, APIFY_MANIFEST),
+        (APIFY_IL_DATASET, APIFY_IL_MANIFEST),
+    ):
+        if not dataset_path.exists() or not manifest_path.exists():
+            continue
+        dataset = json.loads(dataset_path.read_text())
+        manifest = {row["input_address"]: row for row in json.loads(manifest_path.read_text())}
+        for item in dataset:
+            address = item.get("addressOrUrlFromInput")
+            if address in manifest:
+                merged[manifest[address]["property_id"]] = item
+    return merged
 
 class ParcelApproval(BaseModel):
     candidate_id: int
@@ -82,6 +166,7 @@ def list_properties(
     q: Optional[str] = Query(default=None, max_length=200),
     zip_code: Optional[str] = None,
     status: Optional[str] = None,
+    status_contains: Optional[str] = Query(default=None, max_length=100),
     future_only: bool = False,
     min_equity: Optional[float] = None,
     max_risk: Optional[int] = None,
@@ -124,20 +209,20 @@ def list_properties(
         conditions.append("p.zip_code = :zip_code")
         parameters["zip_code"] = zip_code
 
+    effective_status = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
     if status:
-        conditions.append("LOWER(ss.current_status) = :status")
+        conditions.append(f"{effective_status} = :status")
         parameters["status"] = status.lower()
+
+    if status_contains and status_contains.strip():
+        conditions.append(f"strpos({effective_status}, :status_contains) > 0")
+        parameters["status_contains"] = status_contains.strip().lower()
 
     if future_only:
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
 
     if min_equity is not None:
-        conditions.append(
-            "pv.estimated_value - GREATEST("
-            "ss.estimated_upset_price, "
-            "ss.alternate_upset_price, ss.upset_price"
-            ") >= :min_equity"
-        )
+        conditions.append("pv.estimated_value - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END >= :min_equity")
         parameters["min_equity"] = min_equity
 
     if max_risk is not None:
@@ -151,12 +236,17 @@ def list_properties(
         "city": "p.city", "county": "p.county", "state": "p.state", "zip": "p.zip_code",
         "lakefront": "CASE WHEN p.normalized_address ~* '\\m(LAKEFRONT|LAKE[[:space:]]+FRONT|LAKESHORE|LAKE[[:space:]]+SHORE|LAKESIDE)\\M' THEN 1 ELSE 0 END",
         "court-case": "court_case_number", "status": "ss.current_status",
+        "bbl": "ss.property_number",
+        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system='nyc_kings_court_foreclosure_index' THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' ELSE 'Sheriff sale' END",
         "sale-date": "ss.current_sale_date", "plaintiff": "ss.plaintiff", "defendant": "ss.defendant",
         "estimated-market-value": "market_value", "value-range-low": "market_value_low",
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
         "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
         "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
-        "judgment-amount": "ss.judgment_amount", "gross-equity": "gross_equity",
+        "opening-bid": "CASE WHEN ss.state='IL' THEN ss.upset_price END",
+        "judgment-amount": "ss.judgment_amount", "starting-bid": "ss.starting_bid", "gross-equity": "gross_equity",
+        "distress-duration": "COALESCE(ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
+        "notice-lien-amount": "ss.notice_lien_amount",
         "avm-judgment-spread": "avm_judgment_spread",
         "gross-equity-percent": "gross_equity_percent", "probability-to-auction": "sale_probability",
         "overall-risk-score": "ra.risk_score", "overall-risk-level": "ra.risk_level",
@@ -194,15 +284,15 @@ def list_properties(
             p.bedrooms,
             p.bathrooms,
             p.square_feet,
-            COALESCE(canonical_parcel.acreage, f.acreage) AS acreage,
-            COALESCE(canonical_parcel.year_built, f.year_built) AS year_built,
+            COALESCE(canonical_parcel.acreage, f.acreage, p.acreage) AS acreage,
+            COALESCE(canonical_parcel.year_built, f.year_built, p.year_built) AS year_built,
             canonical_parcel.pams_pin,
-            canonical_parcel.block,
-            canonical_parcel.lot,
+            COALESCE(canonical_parcel.block, p.block) AS block,
+            COALESCE(canonical_parcel.lot, p.lot) AS lot,
             canonical_parcel.qualifier,
-            COALESCE(canonical_parcel.latitude, avm_subject.latitude)
+            COALESCE(canonical_parcel.latitude, avm_subject.latitude, p.latitude)
                 AS latitude,
-            COALESCE(canonical_parcel.longitude, avm_subject.longitude)
+            COALESCE(canonical_parcel.longitude, avm_subject.longitude, p.longitude)
                 AS longitude,
             CASE
                 WHEN canonical_parcel.latitude IS NOT NULL
@@ -211,22 +301,65 @@ def list_properties(
                 WHEN avm_subject.latitude IS NOT NULL
                  AND avm_subject.longitude IS NOT NULL
                     THEN 'nj_avm_parcel'
+                WHEN ss.source_system='nyc_nyctl_referee_sales'
+                 AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
+                    THEN 'nyc_planning_geosearch'
                 ELSE NULL
             END AS coordinate_source,
             ss.sheriff_number,
+            ss.property_number AS bbl,
+            CASE WHEN ss.source_system='nyc_nyctl_referee_sales'
+                THEN 'Referee tax-lien auction'
+                WHEN ss.source_system='nyc_kings_court_foreclosure_index'
+                THEN 'Court foreclosure auction'
+                WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice'
+                THEN 'Foreclosure auction (published notice)'
+                WHEN ss.source_system='fl_columbia_clerk_foreclosure'
+                THEN 'Foreclosure auction'
+                WHEN ss.source_system='fl_palm_beach_sheriff_execution'
+                THEN 'Sheriff execution sale'
+                WHEN ss.source_system='fl_fdot_surplus_property'
+                THEN 'FDOT surplus property'
+                WHEN ss.source_system='fl_swfwmd_land_for_sale'
+                THEN 'Government land for sale'
+                WHEN ss.source_system='fl_us_treasury_real_property'
+                THEN 'Federal seized-property auction'
+                WHEN ss.source_system='il_tjsc_upcoming_sales'
+                THEN 'Illinois judicial sale'
+                ELSE 'Sheriff sale' END AS sale_type,
             COALESCE(ss.docket_number, ss.court_case_number)
                 AS court_case_number,
             ss.plaintiff,
             ss.defendant,
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property')
+                THEN ss.description_text ELSE NULL END AS notice_details,
             ss.source_url AS foreclosure_source_url,
-            ss.current_status,
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice')
+                AND ss.current_sale_date<CURRENT_DATE
+                AND ss.current_status='scheduled_unverified'
+                THEN 'date_passed_unverified'
+                ELSE ss.current_status END AS current_status,
             ss.current_sale_date,
             ss.judgment_amount,
+            ss.judgment_amount_as_of_date,
+            ss.judgment_source_url,
+            ss.starting_bid,
+            ss.distress_start_date,
+            ss.distress_start_year,
+            ss.distress_start_basis,
+            CASE WHEN ss.distress_start_date IS NOT NULL
+                THEN GREATEST(CURRENT_DATE - ss.distress_start_date, 0) END AS distress_duration_days,
+            CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
+                THEN GREATEST(CURRENT_DATE - make_date(ss.distress_start_year, 12, 31), 0) END AS distress_duration_min_days,
+            CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
+                THEN GREATEST(CURRENT_DATE - make_date(ss.distress_start_year, 1, 1), 0) END AS distress_duration_max_days,
+            ss.notice_lien_amount,
             GREATEST(
                 ss.estimated_upset_price,
                 ss.alternate_upset_price,
                 ss.upset_price
             ) AS upset_price,
+            CASE WHEN ss.state='IL' THEN ss.upset_price END AS opening_bid,
             pv.estimated_value AS market_value,
             CASE WHEN pv.estimated_value IS NOT NULL AND ss.judgment_amount > 0
                 THEN pv.estimated_value - ss.judgment_amount
@@ -514,6 +647,42 @@ def list_properties(
             ).mappings()
         ]
 
+    apify_properties = load_apify_properties()
+    for item in items:
+        item["apify_data"] = apify_properties.get(str(item["property_id"]))
+        item["gross_equity"] = None
+        item["gross_equity_percent"] = None
+        zestimate = (item["apify_data"] or {}).get("zestimate")
+        upset_price = item.get("upset_price")
+        judgment = item.get("judgment_amount")
+        opening_bid = item.get("opening_bid")
+        try:
+            zestimate_value = float(zestimate)
+            if item.get("state") == "IL":
+                basis_value = float(opening_bid) if opening_bid is not None else None
+            else:
+                basis_value = float(upset_price) if upset_price is not None else float(judgment)
+        except (TypeError, ValueError):
+            zestimate_value = basis_value = None
+        if zestimate_value is not None and basis_value is not None and zestimate_value > 0:
+            item["gross_equity"] = zestimate_value - basis_value
+            item["gross_equity_percent"] = (zestimate_value - basis_value) / zestimate_value
+
+    if sort in {"gross-equity", "gross-equity-percent"}:
+        equity_field = "gross_equity" if sort == "gross-equity" else "gross_equity_percent"
+        descending = sort_direction == "desc"
+
+        def equity_sort_key(item):
+            value = item.get(equity_field)
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                return (1, 0)
+            return (0, -numeric if descending else numeric)
+
+        items.sort(key=equity_sort_key)
+
+    with engine.connect() as connection:
         total = connection.execute(
             count_query,
             parameters,
@@ -525,6 +694,76 @@ def list_properties(
         "page_size": page_size,
         "total": total,
     }
+
+
+@router.get("/export.xlsx")
+def export_properties_xlsx(
+    state: list[str] = Query(default=[]),
+    county: list[str] = Query(default=[]),
+    q: Optional[str] = Query(default=None, max_length=200),
+    zip_code: Optional[str] = None,
+    status: Optional[str] = None,
+    status_contains: Optional[str] = Query(default=None, max_length=100),
+    future_only: bool = False,
+    min_equity: Optional[float] = None,
+    sort: str = "sale-date",
+    sort_direction: Literal["asc", "desc"] = "asc",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=24, ge=1, le=200),
+):
+    result = list_properties(
+        state=state, county=county, q=q, zip_code=zip_code, status=status,
+        status_contains=status_contains, future_only=future_only,
+        min_equity=min_equity, sort=sort, sort_direction=sort_direction,
+        page=page, page_size=page_size,
+    )
+    rows = list(result["items"])
+
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Sheriff properties"
+    export_fields = list(EXPORT_FIELDS)
+    if rows and all(row.get("state") == "IL" for row in rows):
+        export_fields.insert(4, ("Opening bid", "opening_bid"))
+    static_keys = [field for _, field in export_fields]
+    apify_keys = APIFY_EXPORT_KEYS
+    headers = [label for label, _ in export_fields] + apify_keys
+    sheet.append(headers)
+    for row in rows:
+        values = [
+            row.get(key.split(".", 1)[0]) if "." not in key
+            else (row.get(key.split(".", 1)[0]) or {}).get(key.split(".", 1)[1])
+            for key in static_keys
+        ]
+        apify_values = []
+        for key in apify_keys:
+            value = (row.get("apify_data") or {}).get(key)
+            if key == "lotArea" and isinstance(value, dict) and isinstance(value.get("value"), (int, float)):
+                unit = str(value.get("unit") or "").lower()
+                acres = value["value"] if "acre" in unit else value["value"] / 43560
+                value = f"{acres:,.2f} acres"
+            elif isinstance(value, (dict, list)):
+                value = readable_apify_value(value)
+            apify_values.append(value)
+        values.extend(apify_values)
+        sheet.append([
+            value if value is None or isinstance(value, (str, int, float, bool))
+            else json.dumps(value, default=str)
+            for value in values
+        ])
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = sheet.dimensions
+    for column in sheet.columns:
+        width = min(max(max(len(str(cell.value or "")) for cell in column) + 2, 10), 45)
+        sheet.column_dimensions[column[0].column_letter].width = width
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=sheriff-properties.xlsx"},
+    )
 
 
 @router.get("/facets/coverage")
@@ -553,6 +792,27 @@ def list_property_coverage():
     return {"items": items}
 
 
+@router.get("/facets/nyc-auction-coverage")
+def nyc_auction_coverage():
+    boroughs = ("New York", "Bronx", "Kings", "Queens", "Richmond")
+    with engine.connect() as connection:
+        rows = connection.execute(text("""SELECT county,COUNT(*) AS count,MAX(last_scraped_at) AS checked_at
+            FROM sheriff_sales WHERE state='NY'
+              AND source_system IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index')
+              AND current_status IN ('scheduled','scheduled_unverified')
+              AND current_sale_date>=CURRENT_DATE
+            GROUP BY county""")).mappings().all()
+        checked = connection.execute(text("""SELECT MAX(completed_at) FROM scrape_runs
+            WHERE job_name IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index')
+              AND status='completed'""")).scalar()
+    counts = {row["county"]: int(row["count"]) for row in rows}
+    return {"source_type": "Court foreclosure and referee tax-lien auctions (not sheriff sales)",
+            "source_url": "https://www.nycourts.gov/courts/2nd-judicial-district/kings-county-supreme-court-civil-term/foreclosure-sales",
+            "last_checked_at": checked.isoformat() if checked else None,
+            "boroughs": [{"county": county, "upcoming": counts.get(county, 0)} for county in boroughs],
+            "coverage_note": "Includes address-indexed Kings court PDFs and NYCTL tax-lien referee listings, not a complete NYC foreclosure or Sheriff inventory. A calendar listing can be stayed or cancelled. Zero means no verified listing from these sources, not no auctions in the borough."}
+
+
 @router.get("/{property_id}")
 def get_property(property_id: str):
     query = text(
@@ -561,9 +821,15 @@ def get_property(property_id: str):
             p.*,
             ss.id AS sheriff_sale_id,
             ss.sheriff_number,
-            ss.current_status,
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice')
+                AND ss.current_sale_date<CURRENT_DATE
+                AND ss.current_status='scheduled_unverified'
+                THEN 'date_passed_unverified'
+                ELSE ss.current_status END AS current_status,
             ss.current_sale_date,
             ss.judgment_amount,
+            ss.judgment_amount_as_of_date,
+            ss.judgment_source_url,
             GREATEST(
                 ss.estimated_upset_price,
                 ss.alternate_upset_price,
