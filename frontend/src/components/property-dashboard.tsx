@@ -63,9 +63,7 @@ export default function PropertyDashboard() {
   const [selectedCounty, setSelectedCounty] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [upcomingOnly, setUpcomingOnly] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState("scheduled-containing");
-  const [highEquityOnly, setHighEquityOnly] = useState(false);
   const [sort, setSort] = useState("gross-equity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -86,8 +84,6 @@ export default function PropertyDashboard() {
       query: searchQuery || undefined,
       status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
       statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
-      futureOnly: upcomingOnly,
-      minEquity: highEquityOnly ? 150000 : undefined,
       sort,
       sortDirection,
       page,
@@ -106,7 +102,7 @@ export default function PropertyDashboard() {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, highEquityOnly, page, refreshKey, searchQuery, selectedCounty, selectedState, selectedStatus, sort, sortDirection, upcomingOnly]);
+  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, selectedStatus, sort, sortDirection]);
 
   const states = useMemo(() => {
     const values = new Set(coverage.map((item) => item.state));
@@ -167,9 +163,7 @@ export default function PropertyDashboard() {
     setSelectedCounty("");
     setSearchInput("");
     setSearchQuery("");
-    setUpcomingOnly(false);
     setSelectedStatus("scheduled-containing");
-    setHighEquityOnly(false);
     setSort("gross-equity");
     setSortDirection("desc");
     setPage(1);
@@ -184,8 +178,6 @@ export default function PropertyDashboard() {
         query: searchQuery || undefined,
         status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
         statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
-        futureOnly: upcomingOnly,
-        minEquity: highEquityOnly ? 150000 : undefined,
         sort,
         sortDirection,
         page,
@@ -288,8 +280,6 @@ export default function PropertyDashboard() {
 
         <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
           <Filter className="h-4 w-4 shrink-0 text-slate-400" />
-          <button type="button" onClick={() => { setUpcomingOnly((value) => !value); setPage(1); }} className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${upcomingOnly ? "border-teal-600 bg-teal-50 text-teal-700" : "border-slate-200 text-slate-600"}`}>Upcoming sale dates</button>
-          <button type="button" onClick={() => { setHighEquityOnly((value) => !value); setPage(1); }} className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold ${highEquityOnly ? "border-teal-600 bg-teal-50 text-teal-700" : "border-slate-200 text-slate-600"}`}>$150k+ equity</button>
           {searchQuery && <span className="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         </div>
         {selectedState === "NY" && nycCoverage && (
