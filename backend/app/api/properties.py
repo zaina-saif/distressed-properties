@@ -31,12 +31,7 @@ EXPORT_FIELDS = [
     ("Notice lien amount", "notice_lien_amount"),
     ("Probability to auction", "sale_probability"), ("Lien risk score", "lien_risk_score"),
     ("Lien risk level", "lien_risk_level"), ("Lien risk confidence", "lien_risk_confidence"),
-    ("Total lien amount", "total_lien_amount"), ("Property type", "property_type"),
-    ("Bedrooms", "bedrooms"), ("Bathrooms", "bathrooms"), ("Square feet", "square_feet"),
-    ("Acreage", "acreage"), ("Year built", "year_built"), ("PAMS PIN", "pams_pin"),
-    ("Block", "block"), ("Lot", "lot"), ("Qualifier", "qualifier"),
-    ("Parcel match confidence", "parcel_match_confidence"), ("Latitude", "latitude"),
-    ("Longitude", "longitude"), ("Coordinate source", "coordinate_source"),
+    ("Total lien amount", "total_lien_amount"),
     ("Valuation retrieved", "valuation_retrieved_at"), ("Lien risk calculated", "lien_risk_calculated_at"),
 ]
 APIFY_EXPORT_KEYS = [
