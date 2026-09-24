@@ -217,15 +217,6 @@ export function PropertyTable({
                 <button type="button" onClick={() => onPropertyClick(property)} className="mt-1 block text-xs font-medium text-slate-600 underline hover:text-slate-900">
                   More details
                 </button>
-                <a
-                  href={`https://www.zillow.com/homes/${encodeURIComponent(property.normalized_address)}_rb/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Search this address on Zillow (opens in a new tab)"
-                  className="mt-1 block text-xs font-medium text-teal-700 underline"
-                >
-                  View Zillow link
-                </a>
               </td>
               <td className="border-b border-r border-slate-200 px-3 py-3 align-top">
                 <button type="button" onClick={() => onPropertyClick(property)} className="font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900" aria-label={`View details for sheriff sale ${property.sheriff_number}`}>
