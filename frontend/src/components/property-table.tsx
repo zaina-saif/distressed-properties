@@ -103,10 +103,10 @@ const addressColumn: Column = {
 };
 
 const columns: Column[] = [
+  { label: "Estimated Market Value", value: (p) => apifyValue(p.apify_data?.zestimate) },
+  { label: "Minimum bid amount", value: (p) => currency(p.upset_price ?? p.judgment_amount) },
   { label: "Gross equity", value: (p) => <span className="font-semibold text-teal-700">{currency(p.gross_equity)}</span> },
   { label: "Gross equity %", value: (p) => percent(p.gross_equity_percent) },
-  { label: "Estimated Market Value", value: (p) => apifyValue(p.apify_data?.zestimate) },
-  { label: "Minimum asking amount", value: (p) => currency(p.upset_price ?? p.judgment_amount) },
   {
     label: "Description",
     className: "min-w-64",
@@ -128,11 +128,6 @@ const columns: Column[] = [
       ) : text(null);
     },
   },
-  { label: "Street address", className: "min-w-48", value: (p) => text(p.street_address) },
-  { label: "City", value: (p) => text(p.city) },
-  { label: "County", value: (p) => text(p.county) },
-  { label: "State", value: (p) => text(p.state) },
-  { label: "ZIP", value: (p) => text(p.zip_code) },
   { label: "Court case", value: (p) => text(p.court_case_number) },
   { label: "Status", value: (p) => <span className="font-medium capitalize">{p.current_status.replaceAll("_", " ")}</span> },
   { label: "Sale date", value: (p) => date(p.current_sale_date) },
@@ -162,9 +157,9 @@ function tableColumns(showOpeningBid: boolean): Column[] {
     ? [{ label: "Opening bid", value: (p: Property) => currency(p.opening_bid) }]
     : [];
   return [
-    ...columns.slice(0, 2),
+    ...columns.slice(0, 4),
     ...equityColumns,
-    ...columns.slice(2),
+    ...columns.slice(4),
     ...apifyColumnKeys.map((key) => ({
       label: key,
       className: "min-w-40",

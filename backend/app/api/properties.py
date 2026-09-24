@@ -18,12 +18,11 @@ router = APIRouter(
 
 EXPORT_FIELDS = [
     ("Distress source", "sale_type"),
-    ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
     ("Estimated Market Value", "apify_data.zestimate"),
-    ("Minimum asking amount", "minimum_asking_amount"),
+    ("Minimum bid amount", "minimum_asking_amount"),
+    ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
     ("Description", "apify_data.description"),
-    ("Address", "normalized_address"), ("Street address", "street_address"),
-    ("City", "city"), ("County", "county"), ("State", "state"), ("ZIP", "zip_code"),
+    ("Address", "normalized_address"),
     ("Court case", "court_case_number"), ("Status", "current_status"),
     ("Sale date", "current_sale_date"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
     ("Time in distress", "distress_duration_days"),
@@ -213,6 +212,7 @@ def list_properties(
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
         "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
         "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
+        "minimum-bid-amount": "COALESCE(upset_price, ss.judgment_amount)",
         "opening-bid": "CASE WHEN ss.state='IL' THEN ss.upset_price END",
         "judgment-amount": "ss.judgment_amount", "starting-bid": "ss.starting_bid", "gross-equity": "gross_equity",
         "distress-duration": "COALESCE(ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
