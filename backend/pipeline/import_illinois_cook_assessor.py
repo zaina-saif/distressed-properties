@@ -186,7 +186,8 @@ def get_checkpoint(feed: str) -> tuple[str | None, int, bool]:
 
 def rows(client: httpx.Client, dataset: str, fields: tuple[str, ...], page_size: int, after: str | None, where: str | None) -> Iterator[tuple[dict[str, str], bool]]:
     while True:
-        base_where = f"row_id > '{after.replace("'", "''")}'" if after else None
+        escaped_after = after.replace("'", "''") if after else None
+        base_where = f"row_id > '{escaped_after}'" if escaped_after else None
         condition = f"({where}) AND ({base_where})" if where and base_where else where or base_where
         params = {"$select": ",".join(fields), "$order": "row_id", "$limit": page_size}
         if condition: params["$where"] = condition

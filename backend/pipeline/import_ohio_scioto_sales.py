@@ -82,7 +82,8 @@ def parse_workbook(path: Path) -> list[dict]:
 
     grouped: dict[str, list[dict]] = {}
     for event in events:
-        key = f"{event['case']}|{re.sub(r'\s+', '', event['parcel'])}"
+        normalized_parcel = re.sub(r"\s+", "", event["parcel"])
+        key = f"{event['case']}|{normalized_parcel}"
         grouped.setdefault(key, []).append(event)
     records = []
     for key, history in grouped.items():

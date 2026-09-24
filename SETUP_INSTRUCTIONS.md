@@ -22,6 +22,13 @@ python -m pip install --upgrade pip
 python -m pip install -r backend/requirements.txt
 ```
 
+On macOS, XGBoost requires the OpenMP runtime. Install it once before running
+the AVM pipeline or the full test suite:
+
+```bash
+brew install libomp
+```
+
 Create `backend/.env`:
 
 ```env
