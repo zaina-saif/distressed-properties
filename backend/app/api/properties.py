@@ -17,26 +17,19 @@ router = APIRouter(
 )
 
 EXPORT_FIELDS = [
-    ("Distress source", "sale_type"), ("Sale ID", "sheriff_number"),
+    ("Distress source", "sale_type"),
+    ("Estimated Market Value", "apify_data.zestimate"),
+    ("Minimum bid amount", "minimum_asking_amount"),
     ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
-    ("zestimate", "apify_data.zestimate"), ("Upset amount", "upset_price"),
-    ("Judgment amount", "judgment_amount"),
     ("Description", "apify_data.description"),
-    ("Address", "normalized_address"), ("Street address", "street_address"),
-    ("City", "city"), ("County", "county"), ("State", "state"), ("ZIP", "zip_code"),
-    ("Court case", "court_case_number"), ("Parcel / tax ID", "bbl"), ("Status", "current_status"),
-    ("Sale date", "current_sale_date"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
-    ("Time in distress", "distress_duration_days"), ("Estimated market value", "market_value"),
-    ("zestimate", "apify_data.zestimate"),
+    ("Address", "normalized_address"), ("County", "county"),
+    ("Status", "current_status"), ("Sale date", "current_sale_date"),
+    ("Court case", "court_case_number"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
+    ("Time in distress", "distress_duration_days"),
     ("Notice lien amount", "notice_lien_amount"),
     ("Probability to auction", "sale_probability"), ("Lien risk score", "lien_risk_score"),
     ("Lien risk level", "lien_risk_level"), ("Lien risk confidence", "lien_risk_confidence"),
-    ("Total lien amount", "total_lien_amount"), ("Property type", "property_type"),
-    ("Bedrooms", "bedrooms"), ("Bathrooms", "bathrooms"), ("Square feet", "square_feet"),
-    ("Acreage", "acreage"), ("Year built", "year_built"), ("PAMS PIN", "pams_pin"),
-    ("Block", "block"), ("Lot", "lot"), ("Qualifier", "qualifier"),
-    ("Parcel match confidence", "parcel_match_confidence"), ("Latitude", "latitude"),
-    ("Longitude", "longitude"), ("Coordinate source", "coordinate_source"),
+    ("Total lien amount", "total_lien_amount"),
     ("Valuation retrieved", "valuation_retrieved_at"), ("Lien risk calculated", "lien_risk_calculated_at"),
 ]
 APIFY_EXPORT_KEYS = [
@@ -219,9 +212,10 @@ def list_properties(
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
         "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
         "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
+        "minimum-bid-amount": "COALESCE(upset_price, ss.judgment_amount)",
         "opening-bid": "CASE WHEN ss.state='IL' THEN ss.upset_price END",
         "judgment-amount": "ss.judgment_amount", "starting-bid": "ss.starting_bid", "gross-equity": "gross_equity",
-        "distress-duration": "COALESCE(ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
+        "distress-duration": "COALESCE(first_scheduled.first_scheduled_at::date, ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
         "notice-lien-amount": "ss.notice_lien_amount",
         "avm-judgment-spread": "avm_judgment_spread",
         "gross-equity-percent": "gross_equity_percent", "probability-to-auction": "sale_probability",
@@ -328,7 +322,9 @@ def list_properties(
             ss.distress_start_year,
             ss.distress_start_basis,
             CASE WHEN ss.distress_start_date IS NOT NULL
-                THEN GREATEST(CURRENT_DATE - ss.distress_start_date, 0) END AS distress_duration_days,
+                THEN GREATEST(CURRENT_DATE - COALESCE(first_scheduled.first_scheduled_at::date, ss.distress_start_date), 0)
+                 WHEN first_scheduled.first_scheduled_at IS NOT NULL
+                THEN GREATEST(CURRENT_DATE - first_scheduled.first_scheduled_at::date, 0) END AS distress_duration_days,
             CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
                 THEN GREATEST(CURRENT_DATE - make_date(ss.distress_start_year, 12, 31), 0) END AS distress_duration_min_days,
             CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
@@ -462,6 +458,12 @@ def list_properties(
             ORDER BY retrieved_at DESC, id DESC
             LIMIT 1
         ) AS azr ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT MIN(observed_at) AS first_scheduled_at
+            FROM sheriff_sale_status_history
+            WHERE sheriff_sale_id = ss.id
+              AND LOWER(status) LIKE '%scheduled%'
+        ) AS first_scheduled ON TRUE
         LEFT JOIN property_avm_features AS f
             ON f.property_id = p.id
         LEFT JOIN LATERAL (
@@ -644,6 +646,7 @@ def list_properties(
         ]
 
     for item in items:
+        item["minimum_asking_amount"] = item.get("upset_price") if item.get("upset_price") is not None else item.get("judgment_amount")
         item["gross_equity"] = None
         item["gross_equity_percent"] = None
         zestimate = item.get("zestimate")
