@@ -16,7 +16,6 @@ router = APIRouter(
     tags=["properties"],
 )
 
-
 EXPORT_FIELDS = [
     ("Distress source", "sale_type"), ("Sale ID", "sheriff_number"),
     ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
@@ -72,13 +71,6 @@ def readable_apify_value(value, depth=0):
         parts.append(f"{label}: {readable_apify_value(item, depth + 1)}")
     return "; ".join(parts)
 
-
-def load_apify_properties() -> dict[str, dict]:
-    with engine.connect() as connection:
-        rows = connection.execute(text("""SELECT property_id::text AS property_id, raw_payload
-            FROM apify_zillow_results
-            WHERE is_current=TRUE AND match_status='matched' AND property_id IS NOT NULL""")).mappings()
-        return {row["property_id"]: row["raw_payload"] for row in rows}
 
 class ParcelApproval(BaseModel):
     candidate_id: int
@@ -206,7 +198,7 @@ def list_properties(
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
 
     if min_equity is not None:
-        conditions.append("pv.estimated_value - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END >= :min_equity")
+        conditions.append("azr.zestimate - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END >= :min_equity")
         parameters["min_equity"] = min_equity
 
     if max_risk is not None:
@@ -324,6 +316,10 @@ def list_properties(
                 THEN 'date_passed_unverified'
                 ELSE ss.current_status END AS current_status,
             ss.current_sale_date,
+            azr.zestimate,
+            CASE WHEN azr.zestimate IS NULL THEN COALESCE(azr.raw_payload, '{{}}'::JSONB)
+                 ELSE JSONB_SET(COALESCE(azr.raw_payload, '{{}}'::JSONB), '{{zestimate}}', TO_JSONB(azr.zestimate), TRUE)
+            END AS apify_data,
             ss.judgment_amount,
             ss.judgment_amount_as_of_date,
             ss.judgment_source_url,
@@ -458,6 +454,14 @@ def list_properties(
             ORDER BY retrieved_at DESC
             LIMIT 1
         ) AS pv ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT zestimate, raw_payload
+            FROM apify_zillow_results
+            WHERE property_id = p.id
+              AND is_current = TRUE
+            ORDER BY retrieved_at DESC, id DESC
+            LIMIT 1
+        ) AS azr ON TRUE
         LEFT JOIN property_avm_features AS f
             ON f.property_id = p.id
         LEFT JOIN LATERAL (
@@ -605,6 +609,14 @@ def list_properties(
             LIMIT 1
         ) AS pv ON TRUE
         LEFT JOIN LATERAL (
+            SELECT zestimate
+            FROM apify_zillow_results
+            WHERE property_id = p.id
+              AND is_current = TRUE
+            ORDER BY retrieved_at DESC, id DESC
+            LIMIT 1
+        ) AS azr ON TRUE
+        LEFT JOIN LATERAL (
             SELECT *
             FROM property_analyses
             WHERE sheriff_sale_id = ss.id
@@ -631,12 +643,10 @@ def list_properties(
             ).mappings()
         ]
 
-    apify_properties = load_apify_properties()
     for item in items:
-        item["apify_data"] = apify_properties.get(str(item["property_id"]))
         item["gross_equity"] = None
         item["gross_equity_percent"] = None
-        zestimate = (item["apify_data"] or {}).get("zestimate")
+        zestimate = item.get("zestimate")
         upset_price = item.get("upset_price")
         judgment = item.get("judgment_amount")
         opening_bid = item.get("opening_bid")
