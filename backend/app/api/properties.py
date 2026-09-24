@@ -1,7 +1,5 @@
 import json
 from io import BytesIO
-from functools import lru_cache
-from pathlib import Path
 from typing import Literal, Optional
 
 from fastapi import APIRouter, HTTPException, Query
@@ -18,10 +16,6 @@ router = APIRouter(
     tags=["properties"],
 )
 
-APIFY_DATASET = Path(__file__).resolve().parents[3] / ".local/apify-zillow-scheduled/dataset.json"
-APIFY_MANIFEST = Path(__file__).resolve().parents[3] / ".local/apify-zillow-scheduled/manifest.json"
-APIFY_IL_DATASET = Path(__file__).resolve().parents[3] / ".local/apify-zillow-il/dataset.json"
-APIFY_IL_MANIFEST = Path(__file__).resolve().parents[3] / ".local/apify-zillow-il/manifest.json"
 
 EXPORT_FIELDS = [
     ("Distress source", "sale_type"), ("Sale ID", "sheriff_number"),
@@ -79,22 +73,12 @@ def readable_apify_value(value, depth=0):
     return "; ".join(parts)
 
 
-@lru_cache(maxsize=1)
 def load_apify_properties() -> dict[str, dict]:
-    merged: dict[str, dict] = {}
-    for dataset_path, manifest_path in (
-        (APIFY_DATASET, APIFY_MANIFEST),
-        (APIFY_IL_DATASET, APIFY_IL_MANIFEST),
-    ):
-        if not dataset_path.exists() or not manifest_path.exists():
-            continue
-        dataset = json.loads(dataset_path.read_text())
-        manifest = {row["input_address"]: row for row in json.loads(manifest_path.read_text())}
-        for item in dataset:
-            address = item.get("addressOrUrlFromInput")
-            if address in manifest:
-                merged[manifest[address]["property_id"]] = item
-    return merged
+    with engine.connect() as connection:
+        rows = connection.execute(text("""SELECT property_id::text AS property_id, raw_payload
+            FROM apify_zillow_results
+            WHERE is_current=TRUE AND match_status='matched' AND property_id IS NOT NULL""")).mappings()
+        return {row["property_id"]: row["raw_payload"] for row in rows}
 
 class ParcelApproval(BaseModel):
     candidate_id: int
