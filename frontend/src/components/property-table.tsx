@@ -85,18 +85,20 @@ const addressColumn: Column = {
   label: "Address",
   className: "min-w-60",
   value: (p) => (
-    <a
-      href={`https://www.zillow.com/homes/${encodeURIComponent(p.normalized_address)}_rb/`}
-      target="_blank"
-      rel="noopener noreferrer"
-      title="Search this address on Zillow (opens in a new tab)"
-      aria-label={`Search ${p.normalized_address} on Zillow (opens in a new tab)`}
-      className="font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900"
-    >
-      <span className="block">{p.street_address || p.normalized_address}</span>
-      {(p.city || p.state) && <span className="block">{[p.city, p.state].filter(Boolean).join(", ")}</span>}
-      {p.zip_code && <span className="block">{p.zip_code}</span>}
-    </a>
+    <span className="block">
+      <a
+        href={`https://www.zillow.com/homes/${encodeURIComponent(p.normalized_address)}_rb/`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Search this address on Zillow (opens in a new tab)"
+        aria-label={`Search ${p.normalized_address} on Zillow (opens in a new tab)`}
+        className="font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900"
+      >
+        <span className="block">{p.street_address || p.normalized_address}</span>
+        {(p.city || p.state) && <span className="block">{[p.city, p.state].filter(Boolean).join(", ")}</span>}
+        {p.zip_code && <span className="block">{p.zip_code}</span>}
+      </a>
+    </span>
   ),
 };
 
@@ -211,12 +213,14 @@ export function PropertyTable({
         <tbody>
           {properties.map((property) => (
             <tr key={property.sheriff_sale_id} className="odd:bg-white even:bg-slate-50 hover:bg-teal-50">
-              <td className="sticky left-0 z-[1] min-w-60 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top text-slate-700">{addressColumn.value(property)}</td>
-              <td className="min-w-44 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top">
-                <span className="inline-block rounded-full bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800">{property.sale_type ?? "Sheriff sale"}</span>
+              <td className="sticky left-0 z-[1] min-w-60 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top text-slate-700">
+                {addressColumn.value(property)}
                 <button type="button" onClick={() => onPropertyClick(property)} className="mt-1 block text-xs font-medium text-slate-600 underline hover:text-slate-900">
                   More details
                 </button>
+              </td>
+              <td className="min-w-44 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top">
+                <span className="inline-block rounded-full bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800">{property.sale_type ?? "Sheriff sale"}</span>
               </td>
               <td className="border-b border-r border-slate-200 px-3 py-3 align-top">
                 <button type="button" onClick={() => onPropertyClick(property)} className="font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900" aria-label={`View details for sheriff sale ${property.sheriff_number}`}>
