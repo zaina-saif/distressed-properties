@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 EXPORT_FIELDS = [
-    ("Distress source", "sale_type"), ("Sale ID", "sheriff_number"),
+    ("Distress source", "sale_type"),
     ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
     ("zestimate", "apify_data.zestimate"), ("Upset amount", "upset_price"),
     ("Judgment amount", "judgment_amount"),
