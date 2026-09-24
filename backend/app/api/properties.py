@@ -22,7 +22,7 @@ EXPORT_FIELDS = [
     ("Minimum bid amount", "minimum_asking_amount"),
     ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
     ("Description", "apify_data.description"),
-    ("Address", "normalized_address"),
+    ("Address", "normalized_address"), ("County", "county"),
     ("Status", "current_status"), ("Sale date", "current_sale_date"),
     ("Court case", "court_case_number"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
     ("Time in distress", "distress_duration_days"),
