@@ -128,9 +128,9 @@ const columns: Column[] = [
       ) : text(null);
     },
   },
-  { label: "Court case", value: (p) => text(p.court_case_number) },
   { label: "Status", value: (p) => <span className="font-medium capitalize">{p.current_status.replaceAll("_", " ")}</span> },
   { label: "Sale date", value: (p) => date(p.current_sale_date) },
+  { label: "Court case", value: (p) => text(p.court_case_number) },
   { label: "Plaintiff", className: "min-w-56", value: (p) => text(p.plaintiff) },
   { label: "Defendant", className: "min-w-56", value: (p) => text(p.defendant) },
   { label: "Time in distress", className: "min-w-44", value: duration },
