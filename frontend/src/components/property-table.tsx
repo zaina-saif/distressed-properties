@@ -105,9 +105,8 @@ const addressColumn: Column = {
 const columns: Column[] = [
   { label: "Gross equity", value: (p) => <span className="font-semibold text-teal-700">{currency(p.gross_equity)}</span> },
   { label: "Gross equity %", value: (p) => percent(p.gross_equity_percent) },
-  { label: "zestimate", value: (p) => apifyValue(p.apify_data?.zestimate) },
-  { label: "Upset amount", value: (p) => currency(p.upset_price) },
-  { label: "Judgment amount", value: (p) => <span>{currency(p.judgment_amount)}{p.judgment_amount_as_of_date && <span className="block text-xs text-slate-500">As of {date(p.judgment_amount_as_of_date)} · not current payoff</span>}{p.judgment_source_url && <a href={p.judgment_source_url} target="_blank" rel="noreferrer" className="block text-xs text-teal-700 underline">Judgment source</a>}</span> },
+  { label: "Estimated Market Value", value: (p) => apifyValue(p.apify_data?.zestimate) },
+  { label: "Minimum asking amount", value: (p) => currency(p.upset_price ?? p.judgment_amount) },
   {
     label: "Description",
     className: "min-w-64",
@@ -141,7 +140,6 @@ const columns: Column[] = [
   { label: "Plaintiff", className: "min-w-56", value: (p) => text(p.plaintiff) },
   { label: "Defendant", className: "min-w-56", value: (p) => text(p.defendant) },
   { label: "Time in distress", className: "min-w-44", value: duration },
-  { label: "Estimated market value", value: (p) => currency(p.market_value) },
   { label: "Notice lien amount", value: (p) => currency(p.notice_lien_amount) },
   { label: "Probability to auction", value: (p) => percent(p.sale_probability) },
   { label: "Lien risk score", value: (p) => text(p.lien_risk_score) },

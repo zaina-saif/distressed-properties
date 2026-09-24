@@ -19,15 +19,14 @@ router = APIRouter(
 EXPORT_FIELDS = [
     ("Distress source", "sale_type"),
     ("Gross equity", "gross_equity"), ("Gross equity %", "gross_equity_percent"),
-    ("zestimate", "apify_data.zestimate"), ("Upset amount", "upset_price"),
-    ("Judgment amount", "judgment_amount"),
+    ("Estimated Market Value", "apify_data.zestimate"),
+    ("Minimum asking amount", "minimum_asking_amount"),
     ("Description", "apify_data.description"),
     ("Address", "normalized_address"), ("Street address", "street_address"),
     ("City", "city"), ("County", "county"), ("State", "state"), ("ZIP", "zip_code"),
     ("Court case", "court_case_number"), ("Parcel / tax ID", "bbl"), ("Status", "current_status"),
     ("Sale date", "current_sale_date"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
-    ("Time in distress", "distress_duration_days"), ("Estimated market value", "market_value"),
-    ("zestimate", "apify_data.zestimate"),
+    ("Time in distress", "distress_duration_days"),
     ("Notice lien amount", "notice_lien_amount"),
     ("Probability to auction", "sale_probability"), ("Lien risk score", "lien_risk_score"),
     ("Lien risk level", "lien_risk_level"), ("Lien risk confidence", "lien_risk_confidence"),
@@ -639,6 +638,7 @@ def list_properties(
         ]
 
     for item in items:
+        item["minimum_asking_amount"] = item.get("upset_price") if item.get("upset_price") is not None else item.get("judgment_amount")
         item["gross_equity"] = None
         item["gross_equity_percent"] = None
         zestimate = item.get("zestimate")
