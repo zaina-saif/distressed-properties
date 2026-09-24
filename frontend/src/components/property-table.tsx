@@ -217,6 +217,11 @@ export function PropertyTable({
                 <button type="button" onClick={() => onPropertyClick(property)} className="mt-1 block text-xs font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900" aria-label={`View details for sheriff sale ${property.sheriff_number}`}>
                   {property.sheriff_number}
                 </button>
+                {property.foreclosure_source_url && (
+                  <a href={property.foreclosure_source_url} target="_blank" rel="noreferrer" className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">
+                    View auction source
+                  </a>
+                )}
               </td>
               {visibleColumns.map((column) => <td key={column.label} className={`${column.className ?? "min-w-32"} max-w-80 whitespace-normal break-words border-b border-r border-slate-200 px-3 py-3 align-top text-slate-700`}>{column.value(property)}</td>)}
             </tr>
