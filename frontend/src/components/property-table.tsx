@@ -134,7 +134,6 @@ const columns: Column[] = [
   { label: "State", value: (p) => text(p.state) },
   { label: "ZIP", value: (p) => text(p.zip_code) },
   { label: "Court case", value: (p) => text(p.court_case_number) },
-  { label: "Parcel / tax ID", value: (p) => text(p.bbl) },
   { label: "Status", value: (p) => <span className="font-medium capitalize">{p.current_status.replaceAll("_", " ")}</span> },
   { label: "Sale date", value: (p) => date(p.current_sale_date) },
   { label: "Plaintiff", className: "min-w-56", value: (p) => text(p.plaintiff) },

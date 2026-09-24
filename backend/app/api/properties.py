@@ -24,7 +24,7 @@ EXPORT_FIELDS = [
     ("Description", "apify_data.description"),
     ("Address", "normalized_address"), ("Street address", "street_address"),
     ("City", "city"), ("County", "county"), ("State", "state"), ("ZIP", "zip_code"),
-    ("Court case", "court_case_number"), ("Parcel / tax ID", "bbl"), ("Status", "current_status"),
+    ("Court case", "court_case_number"), ("Status", "current_status"),
     ("Sale date", "current_sale_date"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
     ("Time in distress", "distress_duration_days"),
     ("Notice lien amount", "notice_lien_amount"),
