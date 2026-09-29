@@ -190,17 +190,20 @@ export function PropertyDetailModal({
                 </a>
               )}
               <div className="mt-4 border-t border-slate-100 pt-3">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sheriff sale event history</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sheriff status history</h4>
                 {property.status_history?.length ? (
-                  <div className="max-h-48 space-y-2 overflow-y-auto">
+                  <div className="max-h-56 overflow-y-auto rounded-lg border border-slate-200">
+                    <div className="grid grid-cols-[1fr_auto] gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                      <span>Status</span><span>Date</span>
+                    </div>
                     {property.status_history.map((entry, index) => (
-                      <div key={`${entry.observed_at}-${entry.status}-${index}`} className="flex items-start justify-between gap-3 text-xs">
+                      <div key={`${entry.observed_at}-${entry.status}-${index}`} className="grid grid-cols-[1fr_auto] gap-3 border-b border-slate-100 px-3 py-2 text-xs last:border-0">
                         <span className="font-medium capitalize text-slate-800">{(entry.raw_status || entry.status).replaceAll("_", " ")}</span>
-                        <span className="text-right text-slate-500">{date(entry.observed_at)}{entry.sale_date ? ` · Sale ${date(entry.sale_date)}` : ""}</span>
+                        <span className="text-right text-slate-500">{date(entry.event_date || entry.sale_date || entry.observed_at)}</span>
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-xs text-slate-500">No sheriff sale events recorded.</p>}
+                ) : <p className="text-xs text-slate-500">No sheriff status history recorded.</p>}
               </div>
             </section>
 

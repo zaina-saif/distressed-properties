@@ -97,6 +97,7 @@ export interface Property {
 export interface SheriffStatusHistoryItem {
   status: string;
   raw_status?: string | null;
+  event_date?: string | null;
   observed_at: string;
   sale_date?: string | null;
   upset_price?: number | null;
