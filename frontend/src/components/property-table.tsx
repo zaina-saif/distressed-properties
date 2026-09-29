@@ -92,7 +92,7 @@ const addressColumn: Column = {
         rel="noopener noreferrer"
         title="Search this address on Zillow (opens in a new tab)"
         aria-label={`Search ${p.normalized_address} on Zillow (opens in a new tab)`}
-        className="font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900"
+        className="block max-w-64 whitespace-normal break-words font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2 hover:text-teal-900"
       >
         <span className="block">{p.street_address || p.normalized_address}</span>
         {(p.city || p.state) && <span className="block">{[p.city, p.state].filter(Boolean).join(", ")}</span>}
@@ -207,7 +207,7 @@ export function PropertyTable({
         <tbody>
           {properties.map((property) => (
             <tr key={property.sheriff_sale_id} className="odd:bg-white even:bg-slate-50 hover:bg-teal-50">
-              <td className="sticky left-0 z-[1] min-w-60 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top text-slate-700">
+              <td className="sticky left-0 z-[1] min-w-60 max-w-72 border-b border-r border-slate-200 bg-inherit px-3 py-3 align-top whitespace-normal break-words text-slate-700">
                 {addressColumn.value(property)}
               </td>
               <td className="min-w-32 border-b border-r border-slate-200 px-3 py-3 align-top text-slate-700">{property.county}</td>
