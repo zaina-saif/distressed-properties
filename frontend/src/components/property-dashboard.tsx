@@ -370,7 +370,7 @@ export default function PropertyDashboard() {
 
           <footer className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
             <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((value) => Math.max(1, value - 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40"><ChevronLeft className="h-4 w-4" />Previous</button>
-            <span className="text-xs text-slate-500">Page <strong className="text-slate-800">{page}</strong> of {totalPages}</span>
+            <span className="text-xs text-slate-500">Showing <strong className="text-slate-800">{total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> of <strong className="text-slate-800">{total.toLocaleString()}</strong> rows · Page <strong className="text-slate-800">{page}</strong> of {totalPages}</span>
             <button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40">Next<ChevronRight className="h-4 w-4" /></button>
           </footer>
         </section>
