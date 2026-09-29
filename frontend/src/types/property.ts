@@ -33,6 +33,7 @@ export interface Property {
 
   current_status: string;
   current_sale_date: string | null;
+  status_history?: SheriffStatusHistoryItem[];
 
   market_value?: number | null;
   market_value_low?: number | null;
@@ -91,6 +92,13 @@ export interface Property {
   potentially_surviving_lien_count?: number;
   lien_manual_review_count?: number;
   lien_items?: LienSummaryItem[];
+}
+
+export interface SheriffStatusHistoryItem {
+  status: string;
+  observed_at: string;
+  sale_date?: string | null;
+  upset_price?: number | null;
 }
 
 export interface LienSummaryItem {

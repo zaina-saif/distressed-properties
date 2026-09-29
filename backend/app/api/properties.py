@@ -310,6 +310,11 @@ def list_properties(
                 THEN 'date_passed_unverified'
                 ELSE ss.current_status END AS current_status,
             ss.current_sale_date,
+            COALESCE((SELECT JSONB_AGG(JSONB_BUILD_OBJECT(
+                'status', h.status, 'observed_at', h.observed_at,
+                'sale_date', h.sale_date, 'upset_price', h.upset_price
+            ) ORDER BY h.observed_at DESC) FROM sheriff_sale_status_history h
+                WHERE h.sheriff_sale_id = ss.id), '[]'::JSONB) AS status_history,
             azr.zestimate,
             CASE WHEN azr.zestimate IS NULL THEN COALESCE(azr.raw_payload, '{{}}'::JSONB)
                  ELSE JSONB_SET(COALESCE(azr.raw_payload, '{{}}'::JSONB), '{{zestimate}}', TO_JSONB(azr.zestimate), TRUE)
@@ -824,6 +829,11 @@ def get_property(property_id: str):
                 THEN 'date_passed_unverified'
                 ELSE ss.current_status END AS current_status,
             ss.current_sale_date,
+            COALESCE((SELECT JSONB_AGG(JSONB_BUILD_OBJECT(
+                'status', h.status, 'observed_at', h.observed_at,
+                'sale_date', h.sale_date, 'upset_price', h.upset_price
+            ) ORDER BY h.observed_at DESC) FROM sheriff_sale_status_history h
+                WHERE h.sheriff_sale_id = ss.id), '[]'::JSONB) AS status_history,
             ss.judgment_amount,
             ss.judgment_amount_as_of_date,
             ss.judgment_source_url,
