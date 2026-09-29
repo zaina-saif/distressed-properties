@@ -215,7 +215,7 @@ def list_properties(
         "minimum-bid-amount": "COALESCE(upset_price, ss.judgment_amount)",
         "opening-bid": "CASE WHEN ss.state='IL' THEN ss.upset_price END",
         "judgment-amount": "ss.judgment_amount", "starting-bid": "ss.starting_bid", "gross-equity": "gross_equity",
-        "distress-duration": "COALESCE(first_scheduled.first_scheduled_at::date, ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
+        "distress-duration": "COALESCE(status_dates.latest_scheduled_date, ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
         "notice-lien-amount": "ss.notice_lien_amount",
         "avm-judgment-spread": "avm_judgment_spread",
         "gross-equity-percent": "gross_equity_percent", "probability-to-auction": "sale_probability",
@@ -330,10 +330,11 @@ def list_properties(
             ss.distress_start_date,
             ss.distress_start_year,
             ss.distress_start_basis,
-            CASE WHEN ss.distress_start_date IS NOT NULL
-                THEN GREATEST(CURRENT_DATE - COALESCE(first_scheduled.first_scheduled_at::date, ss.distress_start_date), 0)
-                 WHEN first_scheduled.first_scheduled_at IS NOT NULL
-                THEN GREATEST(CURRENT_DATE - first_scheduled.first_scheduled_at::date, 0) END AS distress_duration_days,
+            CASE WHEN status_dates.latest_scheduled_date IS NOT NULL
+                       AND status_dates.earliest_status_date IS NOT NULL
+                THEN GREATEST(status_dates.latest_scheduled_date - status_dates.earliest_status_date, 0)
+                WHEN ss.distress_start_date IS NOT NULL
+                THEN GREATEST(CURRENT_DATE - ss.distress_start_date, 0) END AS distress_duration_days,
             CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
                 THEN GREATEST(CURRENT_DATE - make_date(ss.distress_start_year, 12, 31), 0) END AS distress_duration_min_days,
             CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
@@ -468,11 +469,12 @@ def list_properties(
             LIMIT 1
         ) AS azr ON TRUE
         LEFT JOIN LATERAL (
-            SELECT MIN(observed_at) AS first_scheduled_at
+            SELECT
+                MAX(CASE WHEN LOWER(status) LIKE '%scheduled%' THEN COALESCE(sale_date, observed_at)::date END) AS latest_scheduled_date,
+                MIN(COALESCE(sale_date, observed_at)::date) AS earliest_status_date
             FROM sheriff_sale_status_history
             WHERE sheriff_sale_id = ss.id
-              AND LOWER(status) LIKE '%scheduled%'
-        ) AS first_scheduled ON TRUE
+        ) AS status_dates ON TRUE
         LEFT JOIN property_avm_features AS f
             ON f.property_id = p.id
         LEFT JOIN LATERAL (
