@@ -16,6 +16,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
+import { PropertyStatusHistoryModal } from "@/components/property-status-history-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { downloadPropertiesXlsx, getNycAuctionCoverage, getProperties, getPropertyCoverage } from "@/services/properties";
@@ -59,6 +60,7 @@ export default function PropertyDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [selectedHistoryProperty, setSelectedHistoryProperty] = useState<Property | null>(null);
   const [selectedState, setSelectedState] = useState("");
   const [selectedCounty, setSelectedCounty] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -359,7 +361,7 @@ export default function PropertyDashboard() {
               <div><ListFilter className="mx-auto h-10 w-10 text-slate-300" /><h3 className="mt-3 font-semibold text-slate-900">No matching properties</h3><p className="mt-1 text-sm text-slate-500">Try clearing a filter or searching a broader location.</p></div>
             </div>
           ) : desktopView === "list" ? (
-            <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
+            <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} onStatusHistoryClick={setSelectedHistoryProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
               {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => chooseProperty(property)} />)}
@@ -375,6 +377,7 @@ export default function PropertyDashboard() {
       </div>
 
       {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
+      {selectedHistoryProperty && <PropertyStatusHistoryModal key={selectedHistoryProperty.property_id} property={selectedHistoryProperty} onClose={() => setSelectedHistoryProperty(null)} />}
     </main>
   );
 }

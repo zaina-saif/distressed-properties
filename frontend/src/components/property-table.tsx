@@ -171,12 +171,14 @@ function tableColumns(showOpeningBid: boolean): Column[] {
 export function PropertyTable({
   properties,
   onPropertyClick,
+  onStatusHistoryClick,
   sort,
   sortDirection,
   onSort,
 }: {
   properties: Property[];
   onPropertyClick: (property: Property) => void;
+  onStatusHistoryClick: (property: Property) => void;
   sort: string;
   sortDirection: "asc" | "desc";
   onSort: (column: string) => void;
@@ -221,7 +223,7 @@ export function PropertyTable({
               {visibleColumns.map((column) => <td key={column.label} className={`${column.className ?? "min-w-32"} max-w-80 whitespace-normal break-words border-b border-r border-slate-200 px-3 py-3 align-top text-slate-700`}>
                 {column.value(property)}
                 {column.label === "Time in distress" ? (
-                  <button type="button" onClick={() => onPropertyClick(property)} className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">
+                  <button type="button" onClick={() => onStatusHistoryClick(property)} className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">
                     View status history
                   </button>
                 ) : null}
