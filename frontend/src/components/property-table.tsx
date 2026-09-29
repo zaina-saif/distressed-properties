@@ -60,10 +60,10 @@ function apifyValue(value: unknown, key?: string): ReactNode {
 }
 
 function duration(property: Property): ReactNode {
-  const years = (days: number) => days < 365 ? `${Math.round(days / 30.44)} months` : `${(days / 365.25).toFixed(1)} years`;
-  if (property.distress_duration_days != null) return years(property.distress_duration_days);
+  const months = (days: number) => `${Math.round(days / 30.44)} months`;
+  if (property.distress_duration_days != null) return months(property.distress_duration_days);
   if (property.distress_duration_min_days != null && property.distress_duration_max_days != null) {
-    return <span title={property.distress_start_basis ?? undefined}>{years(property.distress_duration_min_days)}–{years(property.distress_duration_max_days)} (case-year bound)</span>;
+    return <span title={property.distress_start_basis ?? undefined}>{months(property.distress_duration_min_days)}–{months(property.distress_duration_max_days)} (case-year bound)</span>;
   }
   return text(null);
 }
