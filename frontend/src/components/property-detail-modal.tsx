@@ -190,17 +190,17 @@ export function PropertyDetailModal({
                 </a>
               )}
               <div className="mt-4 border-t border-slate-100 pt-3">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sheriff status history</h4>
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Sheriff sale event history</h4>
                 {property.status_history?.length ? (
                   <div className="max-h-48 space-y-2 overflow-y-auto">
                     {property.status_history.map((entry, index) => (
                       <div key={`${entry.observed_at}-${entry.status}-${index}`} className="flex items-start justify-between gap-3 text-xs">
-                        <span className="font-medium capitalize text-slate-800">{entry.status.replaceAll("_", " ")}</span>
+                        <span className="font-medium capitalize text-slate-800">{(entry.raw_status || entry.status).replaceAll("_", " ")}</span>
                         <span className="text-right text-slate-500">{date(entry.observed_at)}{entry.sale_date ? ` · Sale ${date(entry.sale_date)}` : ""}</span>
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-xs text-slate-500">No sheriff status history recorded.</p>}
+                ) : <p className="text-xs text-slate-500">No sheriff sale events recorded.</p>}
               </div>
             </section>
 
