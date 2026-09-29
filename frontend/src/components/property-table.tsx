@@ -220,9 +220,9 @@ export function PropertyTable({
               </td>
               {visibleColumns.map((column) => <td key={column.label} className={`${column.className ?? "min-w-32"} max-w-80 whitespace-normal break-words border-b border-r border-slate-200 px-3 py-3 align-top text-slate-700`}>
                 {column.value(property)}
-                {column.label === "Time in distress" && property.status_history?.length ? (
+                {column.label === "Time in distress" ? (
                   <button type="button" onClick={() => onPropertyClick(property)} className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">
-                    Sheriff sale event history
+                    View status history
                   </button>
                 ) : null}
               </td>)}
