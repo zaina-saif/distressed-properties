@@ -312,10 +312,13 @@ def list_properties(
             ss.current_sale_date,
             COALESCE((SELECT JSONB_AGG(JSONB_BUILD_OBJECT(
                 'status', h.status, 'raw_status', h.raw_status, 'event_date', COALESCE(h.sale_date, h.observed_at),
-                'observed_at', h.observed_at,
-                'sale_date', h.sale_date, 'upset_price', h.upset_price
-            ) ORDER BY COALESCE(h.sale_date, h.observed_at) DESC) FROM sheriff_sale_status_history h
-                WHERE h.sheriff_sale_id = ss.id), '[]'::JSONB) AS status_history,
+                'observed_at', h.observed_at, 'sale_date', h.sale_date, 'upset_price', h.upset_price
+            ) ORDER BY COALESCE(h.sale_date, h.observed_at) DESC) FROM (
+                SELECT status, raw_status, sale_date, upset_price, MAX(observed_at) AS observed_at
+                FROM sheriff_sale_status_history
+                WHERE sheriff_sale_id = ss.id
+                GROUP BY status, raw_status, sale_date, upset_price
+            ) h), '[]'::JSONB) AS status_history,
             azr.zestimate,
             CASE WHEN azr.zestimate IS NULL THEN COALESCE(azr.raw_payload, '{{}}'::JSONB)
                  ELSE JSONB_SET(COALESCE(azr.raw_payload, '{{}}'::JSONB), '{{zestimate}}', TO_JSONB(azr.zestimate), TRUE)
@@ -832,10 +835,13 @@ def get_property(property_id: str):
             ss.current_sale_date,
             COALESCE((SELECT JSONB_AGG(JSONB_BUILD_OBJECT(
                 'status', h.status, 'raw_status', h.raw_status, 'event_date', COALESCE(h.sale_date, h.observed_at),
-                'observed_at', h.observed_at,
-                'sale_date', h.sale_date, 'upset_price', h.upset_price
-            ) ORDER BY COALESCE(h.sale_date, h.observed_at) DESC) FROM sheriff_sale_status_history h
-                WHERE h.sheriff_sale_id = ss.id), '[]'::JSONB) AS status_history,
+                'observed_at', h.observed_at, 'sale_date', h.sale_date, 'upset_price', h.upset_price
+            ) ORDER BY COALESCE(h.sale_date, h.observed_at) DESC) FROM (
+                SELECT status, raw_status, sale_date, upset_price, MAX(observed_at) AS observed_at
+                FROM sheriff_sale_status_history
+                WHERE sheriff_sale_id = ss.id
+                GROUP BY status, raw_status, sale_date, upset_price
+            ) h), '[]'::JSONB) AS status_history,
             ss.judgment_amount,
             ss.judgment_amount_as_of_date,
             ss.judgment_source_url,
