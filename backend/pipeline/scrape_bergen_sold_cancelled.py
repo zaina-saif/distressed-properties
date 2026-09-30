@@ -1,8 +1,4 @@
-"""Scrape Bergen County CivilView sold/cancelled foreclosure listings.
-
-The month list is read from the official search page, so this follows all
-months currently offered by Bergen County instead of hard-coding a date range.
-"""
+"""Scrape Bergen County CivilView's rolling sold/cancelled history."""
 from __future__ import annotations
 
 import argparse
@@ -61,13 +57,10 @@ async def scrape(output: Path) -> Path:
         initial.raise_for_status()
         adapter._cookies.update(initial.cookies)
         initial_soup = BeautifulSoup(initial.text, "html.parser")
-        months = [
-            str(option.get("value"))
-            for option in initial_soup.select('select[name="MonthNumber"] option[value]')
-            if str(option.get("value")) not in {"", "0"}
-        ]
-        if not months:
-            raise RuntimeError("CivilView did not provide any Bergen sales months")
+        # MonthNumber=0 is the portal's unfiltered Sold/Cancelled search. It
+        # returns the rolling historical window (currently the last 12 months)
+        # and is broader than the future-month options shown in the form.
+        months = ["0"]
 
         for month in months:
             response = await client.post(SEARCH_URL, data=_form_data(initial_soup, month), headers={"Referer": SEARCH_URL})
@@ -82,14 +75,14 @@ async def scrape(output: Path) -> Path:
                 record = adapter._parse_row(row, header_map)
                 if record is not None:
                     rows.append(record)
-            print(f"Bergen month {month}: {len(rows)} sold/cancelled listings")
+            print(f"Bergen rolling history: {len(rows)} sold/cancelled listings")
 
             for position, record in enumerate(rows, start=1):
                 if record.sheriff_number in records:
                     continue
                 try:
                     enriched = await adapter.enrich_record_from_detail_page(client, record)
-                    enriched.raw_payload["historical_search_month"] = month
+                    enriched.raw_payload["historical_search_month"] = "rolling-last-12-months"
                     records[record.sheriff_number] = _classify(enriched)
                     print(f"  {position}/{len(rows)} {record.sheriff_number} -> {records[record.sheriff_number].status}")
                 except Exception as exc:
