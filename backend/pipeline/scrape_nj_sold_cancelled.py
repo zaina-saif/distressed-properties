@@ -1,10 +1,11 @@
-"""Scrape Bergen County CivilView's rolling sold/cancelled history."""
+"""Scrape an NJ CivilView county's rolling sold/cancelled history."""
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
 from dataclasses import asdict, replace
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -14,10 +15,6 @@ from bs4 import BeautifulSoup
 from pipeline.adapters.civilview_county import CountyCivilViewAdapter
 from pipeline.load_to_supabase import load_into_supabase
 from pipeline.scrape_civilview import json_serializer
-
-
-COUNTY_ID = 7
-SEARCH_URL = f"https://salesweb.civilview.com/Sales/SalesSearch?countyId={COUNTY_ID}"
 
 
 def _form_data(soup: BeautifulSoup, month: str) -> dict[str, str]:
@@ -48,12 +45,15 @@ def _classify(record: Any) -> Any:
     return replace(record, status=status, raw_payload={**record.raw_payload, "historical_search_status": status})
 
 
-async def scrape(output: Path) -> Path:
-    adapter = CountyCivilViewAdapter("Bergen", COUNTY_ID)
+async def scrape(county: str, county_id: int, output: Path) -> Path:
+    search_url = f"https://salesweb.civilview.com/Sales/SalesSearch?countyId={county_id}"
+    adapter = CountyCivilViewAdapter(county, county_id)
     records: dict[str, Any] = {}
+    end_date = date.today()
+    start_date = end_date - timedelta(days=365)
     headers = adapter._browser_headers()
     async with httpx.AsyncClient(headers=headers, timeout=45, follow_redirects=True, cookies=adapter._cookies) as client:
-        initial = await client.get(SEARCH_URL)
+        initial = await client.get(search_url)
         initial.raise_for_status()
         adapter._cookies.update(initial.cookies)
         initial_soup = BeautifulSoup(initial.text, "html.parser")
@@ -63,19 +63,19 @@ async def scrape(output: Path) -> Path:
         months = ["0"]
 
         for month in months:
-            response = await client.post(SEARCH_URL, data=_form_data(initial_soup, month), headers={"Referer": SEARCH_URL})
+            response = await client.post(search_url, data=_form_data(initial_soup, month), headers={"Referer": search_url})
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             table = adapter._find_sales_table(soup)
             if table is None:
-                raise RuntimeError(f"No Bergen results table for month {month}")
+                raise RuntimeError(f"No {county} results table for rolling history")
             header_map = adapter._get_header_map(table)
             rows = []
             for row in table.find_all("tr"):
                 record = adapter._parse_row(row, header_map)
-                if record is not None:
+                if record is not None and record.sale_date is not None and start_date <= record.sale_date.date() <= end_date:
                     rows.append(record)
-            print(f"Bergen rolling history: {len(rows)} sold/cancelled listings")
+            print(f"{county} rolling 12-month history ({start_date} through {end_date}): {len(rows)} sold/cancelled listings")
 
             for position, record in enumerate(rows, start=1):
                 if record.sheriff_number in records:
@@ -93,16 +93,18 @@ async def scrape(output: Path) -> Path:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps([asdict(record) for record in records.values()], indent=2, default=json_serializer) + "\n", encoding="utf-8")
-    print(f"Saved {len(records)} unique Bergen sold/cancelled listings to {output}")
+    print(f"Saved {len(records)} unique {county} sold/cancelled listings to {output}")
     return output
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", type=Path, default=Path("data/sheriff_sales/bergen_sold_cancelled.json"))
+    parser.add_argument("--county", required=True)
+    parser.add_argument("--county-id", required=True, type=int)
+    parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--load", action="store_true", help="Load the scraped records into Supabase")
     args = parser.parse_args()
-    path = asyncio.run(scrape(args.output))
+    path = asyncio.run(scrape(args.county, args.county_id, args.output))
     if args.load:
         load_into_supabase(path)
 
