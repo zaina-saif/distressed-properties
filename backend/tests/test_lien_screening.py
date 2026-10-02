@@ -8,6 +8,7 @@ from app.liens.models import (
 )
 from app.liens.risk import calculate_lien_risk
 from app.liens.sources import parse_civilview_disclosures
+from app.liens.title_search import DEFAULT_PROVIDER_URL, get_professional_title_search
 
 
 NOTICE = """
@@ -114,3 +115,20 @@ def test_no_records_does_not_mean_low_confidence_clean_title():
     assert report.risk_score > 0
     assert report.confidence_score == 0
     assert any("does not confirm clean title" in flag.message for flag in report.flags)
+
+
+def test_professional_title_search_uses_safe_configured_defaults(monkeypatch):
+    monkeypatch.delenv("TITLE_SEARCH_PROVIDER_NAME", raising=False)
+    monkeypatch.delenv("TITLE_SEARCH_PROVIDER_URL", raising=False)
+    provider = get_professional_title_search()
+    assert provider.provider_name == "ProTitleUSA"
+    assert provider.provider_url == DEFAULT_PROVIDER_URL
+    assert provider.relationship == "independent_third_party"
+
+
+def test_professional_title_search_rejects_non_http_urls(monkeypatch):
+    monkeypatch.setenv("TITLE_SEARCH_PROVIDER_NAME", "Example Provider")
+    monkeypatch.setenv("TITLE_SEARCH_PROVIDER_URL", "file:///etc/passwd")
+    provider = get_professional_title_search()
+    assert provider.provider_name == "Example Provider"
+    assert provider.provider_url == DEFAULT_PROVIDER_URL

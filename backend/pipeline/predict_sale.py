@@ -109,6 +109,22 @@ def score_sale_probability(
 
 
 def main() -> None:
+    # Prefer the trained, calibrated event-level model when its artifact is
+    # available.  The heuristic remains as a safe fallback for a fresh install
+    # before the first training run.
+    try:
+        from pipeline.train_sale_probability_model import ARTIFACT_PATH, MODEL_VERSION as TRAINED_VERSION, score_current, _load_db_rows
+        import joblib
+        if ARTIFACT_PATH.exists():
+            artifact = joblib.load(ARTIFACT_PATH)
+            sales, histories = _load_db_rows()
+            count = score_current(artifact["model"], sales, histories, artifact["feature_columns"])
+            print(f"Created {count} auction-probability predictions ({TRAINED_VERSION})")
+            return
+    except (ImportError, OSError, ValueError, KeyError):
+        # Keep the legacy heuristic operational if an artifact is unavailable
+        # or was produced by an older dependency version.
+        pass
     from app.database.session import engine
 
     now = datetime.now(timezone.utc)

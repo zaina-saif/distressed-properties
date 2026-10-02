@@ -100,6 +100,32 @@ MONMOUTH_MUNICIPALITIES = sorted(
         "Township of Washington", "Washington Township", "Westwood", "Woodcliff Lake",
         "Wood Ridge", "Wood-Ridge", "Wyckoff",
         "Ocean View",
+        # Atlantic County municipalities commonly present in CivilView
+        # sheriff-sale addresses.  This list is shared by the NJ address
+        # normalizer despite its historical name.
+        "Atlantic City", "Absecon", "Bargaintown", "Brigantine",
+        "Buena", "Buena Vista Township", "Corbin City", "Egg Harbor City",
+        "Egg Harbor Township", "Estell Manor", "Folsom", "Galloway Township",
+        "Hamilton Township", "Hammonton", "Linwood", "Longport",
+        "Margate City", "Mays Landing", "Mullica Township", "Northfield",
+        "Port Republic", "Pleasantville", "Somers Point", "Ventnor City",
+        "Vineland", "Weymouth Township", "Richland", "Landisville",
+        "Buena Borough", "Buena Boro", "Buena Vista Twp", "Buena Vista",
+        "Hamilton", "Galloway", "Minotola", "Newtonville", "Williamstown",
+        "Collings Lakes", "Richland", "Dorothy",
+        # Municipalities covered by the additional CivilView counties.
+        "Swedesboro", "Clayton", "National Park", "Paulsboro", "Woodbury",
+        "West Deptford", "Deptford", "Wenonah", "Glassboro", "Sewell",
+        "Westville", "Gibbstown", "Turnersville", "Williamstown",
+        "Washington Township", "South Harrison", "East Greenwich",
+        "Woolwich", "Harrison Township", "Franklinville", "Newfield",
+        "Paterson", "North Haledon", "Haledon", "Passaic", "Clifton",
+        "Wayne", "West Milford", "Little Falls", "Woodland Park", "Ringwood",
+        "Wanaque", "Pompton Lakes", "Hawthorne", "Prospect Park", "Totowa",
+        "Bloomingdale", "Ridgewood", "Garfield", "Kinnelon", "Montville",
+        "Morristown", "Dover", "Parsippany", "Randolph", "Rockaway",
+        "Burlington", "Mount Holly", "Evesham", "Medford", "Marlton",
+        "Willingboro", "Palmyra", "Riverside", "Bordentown", "Florence",
         "Avenel", "Carteret", "Colonia", "Cranbury", "Dunellen", "East Brunswick",
         "Edison", "Fords", "Fords (Woodbridge Twp.)", "Helmetta", "Highland Park", "Hopelawn", "Iselin",
         "Jamesburg", "Keasbey", "Laurence Harbor", "Metuchen", "Middlesex", "Milltown",
@@ -204,6 +230,17 @@ def find_municipality(before_state: str) -> tuple[Optional[str], str]:
 
     cleaned = clean_whitespace(before_state)
 
+    # CivilView sometimes appends the legal municipality in parentheses
+    # after the mailing community (for example, "Mays Landing
+    # (Hamilton Township)").  Prefer that explicit legal municipality
+    # while retaining the full address text before it as the street field.
+    parenthetical = re.search(r"\(([^()]+)\)\s*$", cleaned)
+    if parenthetical:
+        candidate = clean_whitespace(parenthetical.group(1))
+        for municipality in MONMOUTH_MUNICIPALITIES:
+            if candidate.casefold() == municipality.casefold():
+                return municipality, clean_whitespace(cleaned[: parenthetical.start()])
+
     for municipality in MONMOUTH_MUNICIPALITIES:
         pattern = re.compile(
             rf"(?:^|\s){re.escape(municipality)}$",
@@ -215,6 +252,23 @@ def find_municipality(before_state: str) -> tuple[Optional[str], str]:
         if match:
             street = clean_whitespace(cleaned[: match.start()])
             return municipality, street
+
+    # CivilView includes many NJ municipalities that are not yet in the
+    # curated list above.  Preserve those records for the UI using a
+    # conservative trailing-city fallback; callers retain the low-confidence
+    # review flag because this inference is not parcel-level identity.
+    words = cleaned.split()
+    if len(words) >= 2:
+        two_word_suffixes = {
+            "point", "park", "falls", "milford", "landing", "heights",
+            "greenwich", "harrison", "river", "beach", "creek", "hill",
+            "junction", "amboy", "lake", "island", "harbor", "haven",
+            "valley", "laurel", "view", "grove", "station", "plains",
+            "township", "borough", "city",
+        }
+        if words[-1].casefold().strip(".,") in two_word_suffixes:
+            return " ".join(words[-2:]), " ".join(words[:-2])
+        return words[-1], " ".join(words[:-1])
 
     return None, cleaned
 

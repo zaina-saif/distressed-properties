@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.properties import router as properties_router
+from app.api.liens import jobs_router as lien_jobs_router
 from app.api.liens import router as liens_router
 from app.api.pa_data import router as pa_data_router
 from app.api.warehouse_valuations import router as warehouse_valuations_router
@@ -25,6 +26,7 @@ app.add_middleware(
 
 app.include_router(properties_router)
 app.include_router(liens_router)
+app.include_router(lien_jobs_router)
 app.include_router(pa_data_router)
 app.include_router(warehouse_valuations_router)
 

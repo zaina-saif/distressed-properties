@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { getLienCoverage } from "@/services/properties";
-import type { LienCoverageItem, Property } from "@/types/property";
+import { getLienCoverage, getLiens, getProfessionalTitleSearch } from "@/services/properties";
+import type { LienCoverageItem, LienItem, ProfessionalTitleSearch, Property } from "@/types/property";
 
 function currency(value: number | null | undefined): string {
   if (value == null) return "Unavailable";
@@ -58,6 +58,33 @@ function readable(value: unknown): string {
   return JSON.stringify(value);
 }
 
+const zillowDetailKeys = [
+  "daysOnZillow", "pageViewCount", "favoriteCount", "rentZestimate",
+  "lotArea", "pricePerSquareFoot", "taxAssessedValue", "onMarketDate",
+  "taxAnnualAmount", "parking", "dateSold", "priceChange", "priceChangedAt",
+  "monthlyHoaFee", "hoa", "propertyTaxRate", "listingMortgageRates",
+];
+
+function readableZillowValue(key: string, value: unknown): string {
+  if (key === "lotArea" && typeof value === "object" && value !== null && "value" in value && typeof value.value === "number") {
+    const unit = "unit" in value && typeof value.unit === "string" ? value.unit.toLowerCase() : "";
+    const acres = unit.includes("acre") ? value.value : value.value / 43560;
+    return `${acres.toLocaleString("en-US", { maximumFractionDigits: 2 })} acres`;
+  }
+  return readable(value) || "Unavailable";
+}
+
+function zillowLabel(key: string): string {
+  return key.replaceAll(/([A-Z])/g, " $1").replace(/^./, (character) => character.toUpperCase());
+}
+
+function propertyFactValue(primary: unknown, zillowValue: unknown, key?: string): string | number {
+  if (primary !== null && primary !== undefined && primary !== "") {
+    return typeof primary === "number" ? primary.toLocaleString("en-US") : String(primary);
+  }
+  return readableZillowValue(key ?? "", zillowValue);
+}
+
 function ApifyTable({ title, value }: { title: string; value: unknown }) {
   if (!Array.isArray(value) || value.length === 0) return null;
   const rows = value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item));
@@ -85,6 +112,8 @@ export function PropertyDetailModal({
 }) {
   const [coverage, setCoverage] = useState<LienCoverageItem[]>([]);
   const [coverageLoading, setCoverageLoading] = useState(true);
+  const [liens, setLiens] = useState<LienItem[]>([]);
+  const [titleSearch, setTitleSearch] = useState<ProfessionalTitleSearch | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -92,6 +121,12 @@ export function PropertyDetailModal({
       .then((items) => { if (active) setCoverage(items); })
       .catch(() => { if (active) setCoverage([]); })
       .finally(() => { if (active) setCoverageLoading(false); });
+    getProfessionalTitleSearch(property.property_id)
+      .then((provider) => { if (active) setTitleSearch(provider); })
+      .catch(() => { if (active) setTitleSearch(null); });
+    getLiens(property.property_id)
+      .then((items) => { if (active) setLiens(items); })
+      .catch(() => { if (active) setLiens([]); });
     return () => { active = false; };
   }, [property.property_id]);
 
@@ -155,12 +190,12 @@ export function PropertyDetailModal({
             <section className="rounded-xl border border-slate-200 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-bold text-slate-900"><Landmark className="h-4 w-4 text-teal-600" />Property facts</h3>
               <dl>
-                <Fact label="Property type" value={property.property_type ?? "Unavailable"} />
-                <Fact label="Bedrooms" value={property.bedrooms ?? "Unavailable"} />
-                <Fact label="Bathrooms" value={property.bathrooms ?? "Unavailable"} />
-                <Fact label="Square feet" value={property.square_feet?.toLocaleString() ?? "Unavailable"} />
-                <Fact label="Acreage" value={property.acreage ?? "Unavailable"} />
-                <Fact label="Year built" value={property.year_built ?? "Unavailable"} />
+                <Fact label="Property type" value={propertyFactValue(property.property_type, property.apify_data?.homeType, "homeType")} />
+                <Fact label="Bedrooms" value={propertyFactValue(property.bedrooms, property.apify_data?.bedrooms, "bedrooms")} />
+                <Fact label="Bathrooms" value={propertyFactValue(property.bathrooms, property.apify_data?.bathrooms, "bathrooms")} />
+                <Fact label="Square feet" value={propertyFactValue(property.square_feet, property.apify_data?.livingArea, "livingArea")} />
+                <Fact label="Acreage" value={propertyFactValue(property.acreage, property.apify_data?.lotArea, "lotArea")} />
+                <Fact label="Year built" value={propertyFactValue(property.year_built, property.apify_data?.yearBuilt, "yearBuilt")} />
                 <Fact label="Parcel ID" value={property.pams_pin ?? "Unavailable"} />
               </dl>
               <div className="mt-3 flex flex-wrap gap-3 text-xs text-slate-500">
@@ -215,6 +250,24 @@ export function PropertyDetailModal({
                 <Fact label="Records found" value={property.lien_record_count ?? 0} />
                 <Fact label="May survive sale" value={property.potentially_surviving_lien_count ?? 0} />
               </dl>
+              {liens.length > 0 && (
+                <div className="mt-4 overflow-x-auto border-t border-slate-100 pt-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Public-record documents</p>
+                  <table className="w-full min-w-[42rem] text-left text-xs">
+                    <thead><tr className="border-b border-slate-200 text-[10px] uppercase tracking-wide text-slate-500"><th className="px-2 py-2">Type</th><th className="px-2 py-2">Creditor / debtor</th><th className="px-2 py-2">Amount</th><th className="px-2 py-2">Recorded</th><th className="px-2 py-2">Status</th><th className="px-2 py-2">Confidence</th><th className="px-2 py-2">Source</th></tr></thead>
+                    <tbody>{liens.map((lien) => <tr key={lien.id} className="border-b border-slate-100 align-top last:border-0">
+                      <td className="px-2 py-2 font-semibold text-slate-800">{lien.lien_type.replaceAll("_", " ")}{lien.requires_manual_review && <span className="ml-1 text-amber-700" title="Manual review required">*</span>}</td>
+                      <td className="max-w-48 px-2 py-2 text-slate-700">{lien.creditor_name || "Unknown creditor"}<br /><span className="text-slate-500">{lien.debtor_name || "Unknown debtor"}</span></td>
+                      <td className="px-2 py-2 text-slate-700">{currency(lien.current_amount ?? lien.original_amount)}</td>
+                      <td className="px-2 py-2 text-slate-700">{date(lien.recording_date)}</td>
+                      <td className="px-2 py-2 text-slate-700">{lien.status.replaceAll("_", " ")}</td>
+                      <td className="px-2 py-2 text-slate-700">{lien.match_confidence}%</td>
+                      <td className="px-2 py-2">{lien.source_url ? <a href={lien.source_url} target="_blank" rel="noopener noreferrer" className="text-teal-700 underline">{lien.source_name.replaceAll("_", " ")}</a> : lien.source_name.replaceAll("_", " ")}</td>
+                    </tr>)}</tbody>
+                  </table>
+                  <p className="mt-2 text-[11px] text-slate-500">* Manual review required. A returned document does not by itself establish that it matches this property or remains active.</p>
+                </div>
+              )}
               <div className="mt-4 border-t border-slate-100 pt-3">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Source coverage</p>
                 {coverageLoading ? (
@@ -225,7 +278,7 @@ export function PropertyDetailModal({
                   <div className="max-h-40 space-y-2 overflow-y-auto">
                     {coverage.map((item) => (
                       <div key={`${item.category}-${item.source_name}`} className="flex items-center justify-between gap-3 text-xs">
-                        <span className="text-slate-700">{item.source_name}</span>
+                        <span className="text-slate-700">{item.source_name}<span className="ml-1 text-[10px] text-slate-400">{date(item.checked_at)}</span></span>
                         <span className="rounded bg-slate-100 px-2 py-1 font-medium text-slate-600">{item.status.replaceAll("_", " ")}</span>
                       </div>
                     ))}
@@ -233,6 +286,25 @@ export function PropertyDetailModal({
                 )}
               </div>
               <p className="mt-4 rounded-lg bg-amber-50 p-2.5 text-xs text-amber-900">This is preliminary public-record screening, not a title search.</p>
+              {titleSearch && (
+                <div className="mt-4 rounded-xl border border-teal-200 bg-teal-50 p-4">
+                  <h4 className="font-bold text-slate-900">Comprehensive Title Search</h4>
+                  <p className="mt-2 text-xs leading-5 text-slate-700">
+                    For additional due diligence before bidding, consider obtaining a professional title search from an independent title-search provider. A professional search may identify recorded interests, liens, judgments, ownership issues, easements, municipal charges, and other matters that may not appear in this preliminary analysis.
+                  </p>
+                  <a
+                    href={titleSearch.provider_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-teal-700 px-3 py-2 text-sm font-semibold text-white hover:bg-teal-800"
+                  >
+                    Order Comprehensive Title Search <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                  <p className="mt-2 text-[11px] text-slate-600">
+                    Provided by independent third-party provider: {titleSearch.provider_name}
+                  </p>
+                </div>
+              )}
             </section>
           </div>
 
@@ -247,6 +319,15 @@ export function PropertyDetailModal({
               <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700">{property.apify_data.description}</p>
             </section>
           )}
+
+          <section className="mt-5 rounded-xl border border-slate-200 p-4">
+            <h3 className="mb-3 font-bold text-slate-900">Zillow listing details</h3>
+            <dl className="grid gap-x-6 sm:grid-cols-2">
+              {zillowDetailKeys.map((key) => (
+                <Fact key={key} label={zillowLabel(key)} value={readableZillowValue(key, property.apify_data?.[key])} />
+              ))}
+            </dl>
+          </section>
 
           <ApifyTable title="Listing price history" value={property.apify_data?.listingPriceHistory} />
           <ApifyTable title="Listing tax history" value={property.apify_data?.listingTaxHistory} />

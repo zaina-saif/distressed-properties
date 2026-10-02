@@ -26,18 +26,11 @@ EXPORT_FIELDS = [
     ("Status", "current_status"), ("Sale date", "current_sale_date"),
     ("Court case", "court_case_number"), ("Plaintiff", "plaintiff"), ("Defendant", "defendant"),
     ("Time in distress", "distress_duration_days"),
-    ("Notice lien amount", "notice_lien_amount"),
-    ("Probability to auction", "sale_probability"), ("Lien risk score", "lien_risk_score"),
-    ("Lien risk level", "lien_risk_level"), ("Lien risk confidence", "lien_risk_confidence"),
-    ("Total lien amount", "total_lien_amount"),
-    ("Valuation retrieved", "valuation_retrieved_at"), ("Lien risk calculated", "lien_risk_calculated_at"),
+    ("Probability to auction", "sale_probability"),
+    ("Valuation retrieved", "valuation_retrieved_at"), ("Lien risk summary", "lien_risk_calculated_at"),
 ]
 APIFY_EXPORT_KEYS = [
     "homeType", "lastSoldPrice", "bedrooms", "bathrooms", "livingArea", "yearBuilt",
-    "daysOnZillow", "pageViewCount", "favoriteCount", "rentZestimate",
-    "lotArea", "pricePerSquareFoot", "taxAssessedValue", "onMarketDate", "taxAnnualAmount",
-    "parking", "dateSold", "priceChange", "priceChangedAt", "monthlyHoaFee",
-    "hoa", "propertyTaxRate", "listingMortgageRates",
 ]
 
 
@@ -230,7 +223,8 @@ def list_properties(
         "pams-pin": "pams_pin", "block": "block", "lot": "lot", "qualifier": "qualifier",
         "parcel-match-confidence": "f.match_confidence", "latitude": "latitude", "longitude": "longitude",
         "coordinate-source": "coordinate_source", "valuation-retrieved": "valuation_retrieved_at",
-        "lien-risk-calculated": "lien_risk_calculated_at", "foreclosure-source": "ss.source_url",
+        "lien-risk-calculated": "lien_risk_calculated_at", "lien-risk-summary": "lien_risk_calculated_at",
+        "foreclosure-source": "ss.source_url",
         # Backward-compatible values used by the existing sort menu.
         "value-desc": "market_value", "equity-desc": "gross_equity",
     }
@@ -435,6 +429,7 @@ def list_properties(
             END AS gross_equity_percent,
             sp.probability AS sale_probability,
             sp.feature_values AS sale_probability_features,
+            sp.feature_explanations AS sale_probability_explanations,
             ra.risk_score,
             ra.risk_level,
             lrr.risk_score AS lien_risk_score,

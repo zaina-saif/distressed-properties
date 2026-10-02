@@ -1768,3 +1768,121 @@ August 11, 2026
 DISCLAIMER
 
 This automated analysis uses publicly available records and probabilistic matching. It is intended for preliminary investment screening and is not a certified title search or legal opinion. Verify title, lien priority, taxes, municipal charges, and surviving interests with qualified professionals before bidding.
+
+
+--------------------------------------------------
+45. PROFESSIONAL TITLE SEARCH ESCALATION
+--------------------------------------------------
+
+The SheriffSale lien/title system is intended for preliminary investment screening only.
+
+After displaying the automated Lien & Title Risk analysis, provide users with a clear option to obtain a more comprehensive professional title search from an independent third-party provider.
+
+The application must NOT imply that SheriffSale's automated analysis is equivalent to:
+
+- a certified title search
+- a title examination
+- a title commitment
+- title insurance
+- a legal opinion regarding lien priority or survival
+
+Add a section to the property detail page beneath the Lien & Title Risk analysis:
+
+### Comprehensive Title Search
+
+Suggested copy:
+
+"For additional due diligence before bidding, consider obtaining a professional title search from an independent title-search provider. A professional search may identify recorded interests, liens, judgments, ownership issues, easements, municipal charges, and other matters that may not appear in SheriffSale's preliminary analysis."
+
+CTA:
+
+**Order Comprehensive Title Search**
+
+For the initial implementation, the CTA should link to an external professional title-search provider such as ProTitleUSA.
+
+Do not imply partnership, sponsorship, endorsement, or affiliation unless one exists.
+
+### Configuration
+
+Do not hardcode the provider throughout the frontend.
+
+Use configuration/environment values such as:
+
+TITLE_SEARCH_PROVIDER_NAME
+TITLE_SEARCH_PROVIDER_URL
+
+Example:
+
+TITLE_SEARCH_PROVIDER_NAME="ProTitleUSA"
+TITLE_SEARCH_PROVIDER_URL="https://..."
+
+Design the implementation so additional providers can be supported later.
+
+Possible future providers may include:
+
+- ProTitleUSA
+- PropertyShark
+- First American / DataTree
+- other professional title-search companies
+
+No provider API integration is required in this phase.
+
+### User Interface
+
+Within the existing LIENS & TITLE RISK section:
+
+1. Display SheriffSale's preliminary findings.
+2. Display data completeness and manual-review warnings.
+3. Display the existing legal/pre-screening disclaimer.
+4. Display the professional title-search CTA.
+
+Example:
+
+--------------------------------------------------
+
+Preliminary Lien & Title Analysis
+
+Risk Score: 68 / 100
+Confidence: 72%
+
+Known Issues:
+- Possible unresolved mortgage
+- Judgment requires verification
+- Municipal tax information unavailable
+
+This analysis is based on available public records and automated matching and is not a certified title search.
+
+[ Order Comprehensive Title Search ]
+
+Provided by independent third-party provider: ProTitleUSA
+
+--------------------------------------------------
+
+### Backend / API
+
+Where useful, expose provider information through configuration or an API response:
+
+{
+  "professional_title_search": {
+    "provider_name": "ProTitleUSA",
+    "provider_url": "...",
+    "relationship": "independent_third_party"
+  }
+}
+
+Do not send property data to the provider automatically in this phase.
+
+The outbound link should simply open the provider's website in a new tab.
+
+### Acceptance Criteria
+
+- Professional title-search CTA appears within the existing Lien & Title Risk experience.
+- Existing preliminary risk analysis remains clearly separated from professional title search.
+- Provider name and URL are configurable.
+- No claim of clean title is made.
+- No affiliation or endorsement is implied.
+- Link opens in a new tab.
+- Existing disclaimer remains visible.
+- Existing lien APIs and UI continue to function.
+- Frontend lint and build pass.
+- Backend tests continue to pass.

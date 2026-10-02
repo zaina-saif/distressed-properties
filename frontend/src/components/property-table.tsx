@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 
 import type { Property } from "@/types/property";
 
+const titleSearchProviderUrl = process.env.NEXT_PUBLIC_TITLE_SEARCH_PROVIDER_URL ?? "https://www.protitleusa.com/";
+
 function currency(value: number | null | undefined): string {
   if (value == null) return "";
   return new Intl.NumberFormat("en-US", {
@@ -134,43 +136,61 @@ const columns: Column[] = [
   { label: "Plaintiff", className: "min-w-56", value: (p) => text(p.plaintiff) },
   { label: "Defendant", className: "min-w-56", value: (p) => text(p.defendant) },
   { label: "Time in distress", className: "min-w-44", value: duration },
-  { label: "Notice lien amount", value: (p) => currency(p.notice_lien_amount) },
   { label: "Probability to auction", value: (p) => percent(p.sale_probability) },
-  { label: "Lien risk score", value: (p) => text(p.lien_risk_score) },
-  { label: "Lien risk level", value: (p) => text(p.lien_risk_level) },
-  { label: "Lien risk confidence", value: (p) => percent(p.lien_risk_confidence) },
-  { label: "Total lien amount", value: (p) => currency(p.total_lien_amount) },
   { label: "Valuation retrieved", value: (p) => date(p.valuation_retrieved_at) },
-  { label: "Lien risk calculated", value: (p) => date(p.lien_risk_calculated_at) },
 ];
 
 const apifyColumnKeys = [
   "homeType", "lastSoldPrice", "bedrooms", "bathrooms", "livingArea", "yearBuilt",
-  "daysOnZillow", "pageViewCount", "favoriteCount", "rentZestimate",
-  "lotArea", "pricePerSquareFoot", "taxAssessedValue", "onMarketDate", "taxAnnualAmount",
-  "parking", "dateSold", "priceChange", "priceChangedAt", "monthlyHoaFee",
-  "hoa", "propertyTaxRate", "listingMortgageRates",
 ];
 
-function tableColumns(showOpeningBid: boolean): Column[] {
+function tableColumns(showOpeningBid: boolean, onLienSummaryClick: (property: Property) => void, onAdditionalDetailsClick: (property: Property) => void, onProbabilityReasonClick: (property: Property) => void): Column[] {
   const equityColumns: Column[] = showOpeningBid
     ? [{ label: "Opening bid", value: (p: Property) => currency(p.opening_bid) }]
     : [];
   return [
     ...columns.slice(0, 4),
     ...equityColumns,
-    ...columns.slice(4),
+    ...columns.slice(4).map((column) => column.label === "Probability to auction"
+      ? { ...column, value: (p: Property) => <span className="block">{percent(p.sale_probability)}<button type="button" onClick={() => onProbabilityReasonClick(p)} className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">Reason</button></span> }
+      : column),
+    {
+      label: "Lien risk summary",
+      className: "min-w-44",
+      value: (property: Property) => (
+        <span className="block">
+          <button type="button" onClick={() => onLienSummaryClick(property)} className="block text-xs font-semibold text-teal-700 underline hover:text-teal-900">
+            Liens summary
+          </button>
+          <a href={titleSearchProviderUrl} target="_blank" rel="noopener noreferrer" className="mt-1 block text-xs font-semibold text-teal-700 underline hover:text-teal-900">
+            Order Comprehensive Title Search
+          </a>
+        </span>
+      ),
+    },
     ...apifyColumnKeys.map((key) => ({
       label: key,
       className: "min-w-40",
       value: (property: Property) => apifyValue(property.apify_data?.[key], key),
     })),
+    {
+      label: "Additional details",
+      className: "min-w-36",
+      value: (property: Property) => (
+        <button type="button" onClick={() => onAdditionalDetailsClick(property)} className="text-xs font-semibold text-teal-700 underline hover:text-teal-900">
+          Complaints
+        </button>
+      ),
+    },
   ];
 }
 
 export function PropertyTable({
   properties,
   onPropertyClick,
+  onLienSummaryClick,
+  onAdditionalDetailsClick,
+  onProbabilityReasonClick,
   onStatusHistoryClick,
   sort,
   sortDirection,
@@ -178,12 +198,15 @@ export function PropertyTable({
 }: {
   properties: Property[];
   onPropertyClick: (property: Property) => void;
+  onLienSummaryClick: (property: Property) => void;
+  onAdditionalDetailsClick: (property: Property) => void;
+  onProbabilityReasonClick: (property: Property) => void;
   onStatusHistoryClick: (property: Property) => void;
   sort: string;
   sortDirection: "asc" | "desc";
   onSort: (column: string) => void;
 }) {
-  const visibleColumns = tableColumns(properties.length > 0 && properties.every((property) => property.state === "IL"));
+  const visibleColumns = tableColumns(properties.length > 0 && properties.every((property) => property.state === "IL"), onLienSummaryClick, onAdditionalDetailsClick, onProbabilityReasonClick);
   function sortIcon(column: string) {
     if (sort !== column) return <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" />;
     return sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-teal-700" /> : <ArrowDown className="h-3.5 w-3.5 text-teal-700" />;

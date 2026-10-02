@@ -3,7 +3,9 @@ import re
 from pipeline.adapters.monmouth import MonmouthCivilViewAdapter
 
 class CountyCivilViewAdapter(MonmouthCivilViewAdapter):
-    def __init__(self,county_name: str,county_id: int,sheriff_pattern: str=r"\b[A-Z]{1,4}-\d+\b",timeout: float=30.0) -> None:
+    # Most counties use prefixes such as F-26001234, while Burlington's
+    # public table uses numeric sheriff numbers.  Accept both formats.
+    def __init__(self,county_name: str,county_id: int,sheriff_pattern: str=r"\b(?:[A-Z]{1,4}-)?\d+\b",timeout: float=30.0) -> None:
         self.COUNTY_NAME=county_name
         self.COUNTY_ID=county_id
         self.SEARCH_URL=f"https://salesweb.civilview.com/Sales/SalesSearch?countyId={county_id}"

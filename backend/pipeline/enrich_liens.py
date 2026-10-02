@@ -7,7 +7,7 @@ from collections import Counter
 
 from sqlalchemy import text
 
-from app.api.liens import refresh_liens
+from app.api.liens import _refresh_liens_sync
 from app.database.session import engine
 
 
@@ -30,7 +30,7 @@ def screen_properties(limit: int | None = None) -> dict:
 
     for property_id in property_ids:
         try:
-            result = refresh_liens(property_id)
+            result = _refresh_liens_sync(property_id)
             records_found += result["records_found"]
             levels[result["risk_level"]] += 1
         except Exception as exc:  # batch must continue and report each failure

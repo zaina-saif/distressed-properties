@@ -18,6 +18,8 @@ class PropertyIdentity:
     lot: str | None = None
     qualifier: str | None = None
     pams_pin: str | None = None
+    current_owners: tuple[str, ...] = ()
+    historical_owners: tuple[str, ...] = ()
 
 
 class LienSourceAdapter(ABC):
@@ -30,6 +32,46 @@ class LienSourceAdapter(ABC):
         identity: PropertyIdentity,
     ) -> list[LienRecord]:
         raise NotImplementedError
+
+    async def search_property_with_raw(self, identity: PropertyIdentity):
+        """Return normalized records plus auditable source payloads when supported."""
+        return await self.search_property(identity), [], []
+
+    async def search_owner(self, owner: str, identity: PropertyIdentity | None = None) -> list[LienRecord]:
+        """Optional owner search hook; sources may return an empty/manual result."""
+        return []
+
+    async def fetch_record_details(self, record: object) -> object:
+        """Optional public detail-page hook. Adapters must not bypass access controls."""
+        return record
+
+    async def normalize_record(self, raw_record: object) -> LienRecord | None:
+        """Optional single-record normalization hook."""
+        return None
+
+
+class MunicipalChargeSourceAdapter(ABC):
+    """Public municipal tax/utility contract with an explicit manual fallback."""
+
+    name: str
+    source_type = "MUNICIPAL_TAX_AND_UTILITY"
+
+    @abstractmethod
+    async def search_property(self, identity: PropertyIdentity) -> list[LienRecord]:
+        raise NotImplementedError
+
+    def manual_review(self, identity: PropertyIdentity, source_url: str | None = None) -> dict[str, object]:
+        return {
+            "status": "MANUAL_REVIEW_REQUIRED",
+            "source": self.name,
+            "source_url": source_url,
+            "municipality": identity.municipality,
+            "property_address": identity.address,
+            "block": identity.block,
+            "lot": identity.lot,
+            "pams_pin": identity.pams_pin,
+            "recommended_search_terms": [identity.address, identity.block or "", identity.lot or "", *identity.current_owners],
+        }
 
 
 MONEY = r"\$\s*((?:\d{1,3}(?:,\s*\d{3})+|\d+)(?:\.\d{1,2})?)"

@@ -1,5 +1,10 @@
 import type {
   LienCoverageItem,
+  LienEnrichment,
+  LienItem,
+  LienSummaryResponse,
+  PublicComplaint,
+  ProfessionalTitleSearch,
   PropertyCoverageItem,
   PropertyResponse,
 } from "@/types/property";
@@ -148,6 +153,47 @@ export async function getLienCoverage(
 
   const result = (await response.json()) as { items: LienCoverageItem[] };
   return result.items;
+}
+
+export async function getLiens(propertyId: string): Promise<LienItem[]> {
+  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/liens`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load liens: ${response.status}`);
+  const result = (await response.json()) as { items: LienItem[] };
+  return result.items;
+}
+
+export async function getLienEnrichment(propertyId: string): Promise<LienEnrichment | null> {
+  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/lien-enrichment`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load public-record enrichment: ${response.status}`);
+  const result = (await response.json()) as { item: LienEnrichment | null };
+  return result.item;
+}
+
+export async function getLienSummary(propertyId: string): Promise<LienSummaryResponse> {
+  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/lien-summary`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load lien summary: ${response.status}`);
+  return response.json() as Promise<LienSummaryResponse>;
+}
+
+export async function getPublicComplaints(propertyId: string): Promise<PublicComplaint[]> {
+  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/complaints`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load public complaints: ${response.status}`);
+  const result = (await response.json()) as { items: PublicComplaint[] };
+  return result.items;
+}
+
+export async function getProfessionalTitleSearch(
+  propertyId: string,
+): Promise<ProfessionalTitleSearch> {
+  const response = await fetch(
+    `${API_URL}/api/v1/properties/${propertyId}/professional-title-search`,
+    { cache: "no-store" },
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to load professional title-search provider: ${response.status}`);
+  }
+  const result = (await response.json()) as { professional_title_search: ProfessionalTitleSearch };
+  return result.professional_title_search;
 }
 
 export async function getWarehouseCoverage(state: string): Promise<WarehouseCoverage> {

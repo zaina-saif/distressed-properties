@@ -1,0 +1,32 @@
+{
+  "model_version": "sale_probability_gradient_boosting_v1",
+  "model_name": "sale_probability_gradient_boosting",
+  "target": "reaches_auction",
+  "training_rows": 1710,
+  "holdout_rows": 441,
+  "positive_rows": 535,
+  "negative_rows": 1616,
+  "holdout_roc_auc": 0.7078,
+  "holdout_pr_auc": 0.5132,
+  "holdout_brier_score": 0.1554,
+  "holdout_cutoff": "2026-07-01T00:00:00",
+  "feature_columns": [
+    "state",
+    "county",
+    "prior_event_count",
+    "prior_scheduled_count",
+    "adjournment_count",
+    "plaintiff_adjournment_count",
+    "defendant_adjournment_count",
+    "court_adjournment_count",
+    "bankruptcy_count",
+    "distinct_status_count",
+    "days_in_process",
+    "days_since_previous_event",
+    "days_until_sale",
+    "sale_month",
+    "minimum_bid",
+    "has_upset_price"
+  ],
+  "trained_at": "2026-10-02T00:03:33.751075+00:00"
+}
