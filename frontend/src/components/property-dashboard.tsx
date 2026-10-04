@@ -3,7 +3,6 @@
 import {
   ChevronLeft,
   ChevronRight,
-  Filter,
   ListFilter,
   Map as MapIcon,
   RefreshCw,
@@ -286,8 +285,7 @@ export default function PropertyDashboard() {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
-          <Filter className="h-4 w-4 shrink-0 text-slate-400" />
+        <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
           {searchQuery && <span className="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         </div>
         {selectedState === "NY" && nycCoverage && (
@@ -306,17 +304,20 @@ export default function PropertyDashboard() {
           </div>
         )}
         {selectedState && (
-          <section className="mt-3 rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-3" aria-label={`${selectedState} county record counts`}>
+          <section className="mt-2 w-full rounded-lg border border-teal-200 bg-teal-50/60 px-2 py-1.5" aria-label={`${selectedState} county record counts`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-sm font-bold text-teal-950">{selectedState} county coverage</h2>
-              <span className="text-xs text-teal-800">Counties with available listings</span>
+              <h2 className="text-[10px] font-bold text-teal-950">{selectedState} county coverage</h2>
+              <span className="text-[10px] text-teal-800">Counties with available listings</span>
             </div>
-            <div className="mt-2 grid max-h-48 grid-cols-2 gap-x-4 gap-y-1 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-5">
-              {(selectedState === "FL" ? floridaCountyCounts : selectedStateCountyCounts).map(({ county, count }) => (
-                <button key={county} type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className="flex items-center justify-between gap-2 rounded px-1.5 py-1 text-left text-xs hover:bg-white">
-                  <span className={count === 0 ? "text-slate-500" : "font-medium text-slate-800"}>{county}</span>
-                  <span className={`tabular-nums ${count === 0 ? "text-slate-400" : "font-bold text-teal-700"}`}>{count}</span>
-                </button>
+            <div className="mt-1 flex max-h-10 w-full flex-wrap content-start overflow-hidden pb-0.5 pr-1 text-[10px] leading-5">
+              {(selectedState === "FL" ? floridaCountyCounts : selectedStateCountyCounts).map(({ county, count }, index, items) => (
+                <span key={county} className="flex shrink-0 items-center">
+                  <button type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className="flex items-center gap-1 rounded px-2 py-0.5 text-left hover:bg-white">
+                    <span className={count === 0 ? "text-slate-500" : "font-medium text-slate-800"}>{county}</span>
+                    <span className={`tabular-nums ${count === 0 ? "text-slate-400" : "font-bold text-teal-700"}`}>{count}</span>
+                  </button>
+                  {index < items.length - 1 && <span className="text-slate-300" aria-hidden="true">|</span>}
+                </span>
               ))}
             </div>
           </section>
