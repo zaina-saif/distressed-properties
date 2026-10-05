@@ -6,11 +6,14 @@ from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 
+# The lookarounds stop dates ("as of 6/5/2026") and malformed figures
+# ("$129,99.84") from being read as dollar amounts. " ,000" spacing occurs in
+# some notices ("$441 ,000.00").
 MONEY_VALUE = (
-    r"\$?\s*("
-    r"(?:\d{1,3}(?:,\s*\d{3})+|\d+)"
+    r"\$?\s*(?<![\d,./])("
+    r"(?:\d{1,3}(?:\s*,\s*\d{3})+|\d+)"
     r"(?:\.\d{1,2})?"
-    r")"
+    r")(?![\d/]|\s*,\s*\d|\.\d)"
 )
 
 
@@ -212,6 +215,20 @@ def parse_sale_description(
         max_distance=60,
     )
 
+    # CivilView's structured "Label*: $amount" fields (e.g. Camden's
+    # "Approx. Upset*:", Hudson's "Good Faith Upset*:", Cape May's "Minimum
+    # Bid:"). Matched only when the amount immediately follows the label.
+    if estimated_upset is None:
+        estimated_upset = extract_money_after_labels(
+            text, [r"good\s+faith\s+upset\s*\*?\s*:"], max_distance=2,
+        )
+    if alternate_upset is None:
+        alternate_upset = extract_money_after_labels(
+            text,
+            [r"approx(?:\.|imate)?\s+upset\s*\*?\s*:", r"minimum\s+bid\s*\*?\s*:"],
+            max_distance=2,
+        )
+
     # A generic upset label can overlap a more specific estimated
     # label. Preserve a genuinely different alternate value only.
     if alternate_upset == estimated_upset:
@@ -226,6 +243,12 @@ def parse_sale_description(
             r"final\s+judg(?:e)?ment",
         ],
     )
+    if judgment is None:
+        judgment = extract_money_after_labels(
+            text,
+            [r"(?:\bapprox(?:\.|imate)?\s+)?\bjudg(?:e)?ment\s*\*?\s*:"],
+            max_distance=2,
+        )
 
     daily_interest = extract_money_after_labels(
         text,

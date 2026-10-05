@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 import time
@@ -30,7 +31,7 @@ def save(name, value):
     temp.replace(path)
 
 
-def prepare():
+def prepare(only_missing=False):
     if (OUTPUT / "submission.json").exists():
         raise RuntimeError("A submission already exists. Resume it; do not replace its manifest.")
     with engine.connect() as connection:
@@ -46,15 +47,20 @@ def prepare():
                     AND ss.current_sale_date<CURRENT_DATE
                     AND ss.current_status='scheduled_unverified'
                 THEN 'date_passed_unverified' ELSE ss.current_status END), 'scheduled') > 0
+              AND (NOT :only_missing OR NOT EXISTS (
+                SELECT 1 FROM apify_zillow_results z
+                WHERE z.property_id=p.id AND z.is_current AND z.match_status='matched'))
             ORDER BY p.normalized_address, ss.id
-        """), {"state": TARGET_STATE}).mappings().all()
+        """), {"state": TARGET_STATE, "only_missing": only_missing}).mappings().all()
     manifest = [dict(row) for row in rows]
     for row in manifest:
-        row["input_address"] = row["normalized_address"].strip()
+        # Normalized addresses sometimes split multi-word towns ("West New, York");
+        # Zillow's free-text search matches better without the commas.
+        row["input_address"] = re.sub(r"\s*,\s*", " ", row["normalized_address"]).strip()
     if any(not row["input_address"] for row in manifest):
         raise RuntimeError("Blank input address; review manifest before submitting.")
     save("manifest.json", manifest)
-    save("input.json", {"addresses": [row["input_address"] for row in manifest]})
+    save("input.json", {"addresses": sorted({row["input_address"] for row in manifest})})
     print(json.dumps({"rows": len(manifest), "distinct_properties": len({r['property_id'] for r in manifest}),
                       "distinct_addresses": len({r['input_address'] for r in manifest}),
                       "statuses": sorted({r['current_status'] for r in manifest})}), flush=True)
@@ -138,5 +144,10 @@ def watch():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["prepare", "submit", "watch"])
+    parser.add_argument("--only-missing", action="store_true",
+                        help="prepare: skip properties that already have a current matched Zestimate")
     args = parser.parse_args()
-    {"prepare": prepare, "submit": submit, "watch": watch}[args.action]()
+    if args.action == "prepare":
+        prepare(args.only_missing)
+    else:
+        {"submit": submit, "watch": watch}[args.action]()

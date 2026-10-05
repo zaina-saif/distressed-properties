@@ -224,7 +224,9 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
 
         final_url = str(response.url)
 
-        if "/Sales/SaleDetails" not in final_url:
+        # Missing detail pages redirect to /Home/Index?aspxerrorpath=/Sales/SaleDetails,
+        # so compare the path rather than searching the whole URL.
+        if response.url.path.rstrip("/").lower() != "/sales/saledetails":
             record.raw_payload[
                 "detail_page_redirected_to"
             ] = final_url
@@ -517,9 +519,13 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
 
             joined = " ".join(headers)
 
+            # Morris labels its sale-date column "Status Date".
             if (
                 "sheriff" in joined
-                and "sales date" in joined
+                and (
+                    "sales date" in joined
+                    or "status date" in joined
+                )
                 and "address" in joined
             ):
                 return table
@@ -573,6 +579,8 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
                     or "sale date" in header
                 ):
                     header_map["sale_date"] = index
+                elif header == "status date":
+                    header_map.setdefault("sale_date", index)
                 elif "plaintiff" in header:
                     header_map["plaintiff"] = index
                 elif "defendant" in header:
@@ -963,6 +971,7 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
             "%m-%d-%Y",
             "%Y-%m-%d",
             "%m/%d/%Y %I:%M:%S %p",
+            "%m/%d/%Y %I:%M %p",
         )
 
         for date_format in formats:

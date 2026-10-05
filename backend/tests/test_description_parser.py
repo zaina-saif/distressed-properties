@@ -137,3 +137,40 @@ def test_extracts_repeated_renumbered_tax_parcels() -> None:
         {"block": "110.20", "lot": "1", "qualifier": None},
         {"block": "110.21", "lot": "1", "qualifier": None},
     ]
+
+
+def test_civilview_structured_upset_and_judgment_labels():
+    from pipeline.parse_sale_description import parse_sale_description
+
+    camden = parse_sale_description("Address:\n14 CHAPEL CIRCLE\nApprox. Upset*:\n$112,977.80\nAttorney:\nX\n*Excludes Judgment Interest and Sheriff Fees.")
+    assert str(camden.alternate_upset_price) == "112977.80"
+    assert camden.judgment_amount is None
+
+    hudson = parse_sale_description("Judgment:\n$656,519.32\nGood Faith Upset*:\n$700,100.00\nAttorney:\nX")
+    assert str(hudson.judgment_amount) == "656519.32"
+    assert str(hudson.estimated_upset_price) == "700100.00"
+
+    cape_may = parse_sale_description("Approx. Judgment*:\n$159,883.61\nMinimum Bid:\n$174,053.01\nAttorney:")
+    assert str(cape_may.judgment_amount) == "159883.61"
+    assert str(cape_may.alternate_upset_price) == "174053.01"
+
+
+def test_structured_labels_need_an_adjacent_amount():
+    from pipeline.parse_sale_description import parse_sale_description
+
+    parsed = parse_sale_description("Approx. Upset*:\nAttorney:\nSmith LLC\nPhone 1-856-813-1700")
+
+    assert parsed.alternate_upset_price is None
+
+
+def test_dates_and_malformed_figures_are_not_money():
+    from pipeline.parse_sale_description import parse_sale_description
+
+    as_of = parse_sale_description("The Good Faith Estimate of the Upset Bid Amount as of 6/5/2026 is $254,045.67 PREMISES")
+    assert str(as_of.alternate_upset_price or as_of.estimated_upset_price) == "254045.67"
+
+    spaced = parse_sale_description("Estimated Upset Sheriff's Sale Bid Amount: $441 ,000.00 Subject to")
+    assert str(spaced.estimated_upset_price) == "441000.00"
+
+    malformed = parse_sale_description("PLAINTIFF'S UPSET BID IS $129,99.84 IN ACCORDANCE WITH")
+    assert malformed.alternate_upset_price is None

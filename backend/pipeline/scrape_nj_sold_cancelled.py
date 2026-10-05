@@ -41,11 +41,18 @@ def _classify(record: Any) -> Any:
     history = record.raw_payload.get("status_history", [])
     raw_values = [str(item.get("raw_status", "")).lower() for item in history]
     is_sold = any("purchas" in value or "sold" in value for value in raw_values)
-    status = "sold" if is_sold else "cancelled"
+    if is_sold:
+        status = "sold"
+    elif history:
+        status = "cancelled"
+    else:
+        # Some counties (e.g. Union) hide detail pages for past sales, so the
+        # search result alone can't tell a sale from a cancellation.
+        status = "sold_or_cancelled_unverified"
     return replace(record, status=status, raw_payload={**record.raw_payload, "historical_search_status": status})
 
 
-async def scrape(county: str, county_id: int, output: Path) -> Path:
+async def scrape(county: str, county_id: int, output: Path, all_history: bool = False) -> Path:
     search_url = f"https://salesweb.civilview.com/Sales/SalesSearch?countyId={county_id}"
     adapter = CountyCivilViewAdapter(county, county_id)
     records: dict[str, Any] = {}
@@ -73,16 +80,19 @@ async def scrape(county: str, county_id: int, output: Path) -> Path:
             rows = []
             for row in table.find_all("tr"):
                 record = adapter._parse_row(row, header_map)
-                if record is not None and record.sale_date is not None and start_date <= record.sale_date.date() <= end_date:
+                if record is None or record.sale_date is None:
+                    continue
+                if all_history or start_date <= record.sale_date.date() <= end_date:
                     rows.append(record)
-            print(f"{county} rolling 12-month history ({start_date} through {end_date}): {len(rows)} sold/cancelled listings")
+            window = "all available history" if all_history else f"rolling 12-month history ({start_date} through {end_date})"
+            print(f"{county} {window}: {len(rows)} sold/cancelled listings")
 
             for position, record in enumerate(rows, start=1):
                 if record.sheriff_number in records:
                     continue
                 try:
                     enriched = await adapter.enrich_record_from_detail_page(client, record)
-                    enriched.raw_payload["historical_search_month"] = "rolling-last-12-months"
+                    enriched.raw_payload["historical_search_month"] = "all-available" if all_history else "rolling-last-12-months"
                     records[record.sheriff_number] = _classify(enriched)
                     print(f"  {position}/{len(rows)} {record.sheriff_number} -> {records[record.sheriff_number].status}")
                 except Exception as exc:
@@ -103,8 +113,9 @@ def main() -> None:
     parser.add_argument("--county-id", required=True, type=int)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--load", action="store_true", help="Load the scraped records into Supabase")
+    parser.add_argument("--all-history", action="store_true", help="Keep every sold/cancelled listing the portal returns, not just the last 12 months")
     args = parser.parse_args()
-    path = asyncio.run(scrape(args.county, args.county_id, args.output))
+    path = asyncio.run(scrape(args.county, args.county_id, args.output, args.all_history))
     if args.load:
         load_into_supabase(path)
 
