@@ -12,8 +12,10 @@ import {
   Download,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
+import { DistressSaleLogo } from "@/components/brand-logo";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
 import { PropertyFocusPanel } from "@/components/property-focus-panel";
@@ -37,21 +39,15 @@ function wholeDollars(value: number | null | undefined): string {
   return value == null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
 
-function DistressSaleLogo() {
-  return (
-    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[14px] bg-slate-950 text-white shadow-[0_6px_18px_rgba(15,23,42,0.22)] ring-1 ring-slate-900/10">
-      <svg viewBox="0 0 48 48" className="h-10 w-10" aria-hidden="true">
-        <path d="M9 23.5 24 11l15 12.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M13.5 21.5V37h21V21.5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" />
-        <path d="m26 18-4 7h5l-4 8" fill="none" stroke="#2dd4bf" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M31.5 13.5 37 19" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
-      <span className="absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-slate-950" />
-    </div>
-  );
-}
-
-export default function PropertyDashboard() {
+export default function PropertyDashboard({
+  initialCounty = "",
+  initialQuery = "",
+  initialSpotlight = false,
+}: {
+  initialCounty?: string;
+  initialQuery?: string;
+  initialSpotlight?: boolean;
+}) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -62,15 +58,15 @@ export default function PropertyDashboard() {
   // Picked on the map; shown in the right panel instead of the list.
   const [focusedProperty, setFocusedProperty] = useState<Property | null>(null);
   const [salePageProperty, setSalePageProperty] = useState<Property | null>(null);
-  const [spotlight, setSpotlight] = useState(false);
+  const [spotlight, setSpotlight] = useState(initialSpotlight);
   const [spotlightSummary, setSpotlightSummary] = useState<SpotlightSummary | null>(null);
   const [selectedHistoryProperty, setSelectedHistoryProperty] = useState<Property | null>(null);
   const [selectedLienSummaryProperty, setSelectedLienSummaryProperty] = useState<Property | null>(null);
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
   const [selectedProbabilityReasonProperty, setSelectedProbabilityReasonProperty] = useState<Property | null>(null);
-  const [selectedCounty, setSelectedCounty] = useState("");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCounty, setSelectedCounty] = useState(initialCounty);
+  const [searchInput, setSearchInput] = useState(initialQuery);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedStatus, setSelectedStatus] = useState("scheduled-containing");
   const [sort, setSort] = useState("gross-equity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -212,11 +208,13 @@ export default function PropertyDashboard() {
     <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
       <header className="z-30 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
-          <DistressSaleLogo />
-          <div>
-            <h1 className="font-bold leading-tight tracking-tight text-slate-950">NJ Sheriff Sale Pro</h1>
-            <p className="hidden text-[11px] font-medium tracking-wide text-slate-500 sm:block">Distressed property intelligence</p>
-          </div>
+          <Link href="/" className="flex items-center gap-3" aria-label="NJ Sheriff Sale Pro home">
+            <DistressSaleLogo />
+            <div>
+              <h1 className="font-bold leading-tight tracking-tight text-slate-950">NJ Sheriff Sale Pro</h1>
+              <p className="hidden text-[11px] font-medium tracking-wide text-slate-500 sm:block">Distressed property intelligence</p>
+            </div>
+          </Link>
         </div>
 
         <button

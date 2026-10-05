@@ -843,6 +843,63 @@ def list_property_coverage():
     return {"items": items}
 
 
+@router.get("/facets/landing-summary")
+def landing_summary(state: str = "NJ"):
+    """Headline numbers for the landing page: upcoming scheduled sales, what
+    is new this week, and the equity sitting behind the debt."""
+    upcoming = (
+        "ss.property_id IS NOT NULL AND ss.state = :state "
+        "AND strpos(lower(ss.current_status), 'scheduled') > 0 "
+        "AND ss.current_sale_date >= CURRENT_DATE"
+    )
+    zestimate_join = """
+        LEFT JOIN LATERAL (
+            SELECT zestimate FROM apify_zillow_results
+            WHERE property_id = ss.property_id AND is_current = TRUE AND match_status <> 'invalid'
+            ORDER BY retrieved_at DESC, id DESC LIMIT 1
+        ) AS azr ON TRUE
+    """
+    equity = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+    with engine.connect() as connection:
+        totals = connection.execute(text(f"""
+            SELECT
+                COUNT(*) AS upcoming_sales,
+                COUNT(DISTINCT ss.county) AS counties,
+                COUNT(*) FILTER (WHERE ss.current_sale_date < CURRENT_DATE + 7) AS next_7_days,
+                COUNT(*) FILTER (WHERE ss.first_seen_at >= NOW() - INTERVAL '7 days') AS new_this_week,
+                COUNT(*) FILTER (WHERE {equity} > 0) AS sales_with_equity,
+                SUM({equity}) FILTER (WHERE {equity} > 0) AS equity_behind_debt,
+                MAX(ss.last_scraped_at) AS last_updated
+            FROM sheriff_sales AS ss
+            {zestimate_join}
+            WHERE {upcoming}
+        """), {"state": state.upper()}).mappings().one()
+        counties = connection.execute(text(f"""
+            SELECT ss.county, COUNT(*) AS upcoming_sales,
+                   SUM({equity}) FILTER (WHERE {equity} > 0) AS equity_behind_debt
+            FROM sheriff_sales AS ss
+            {zestimate_join}
+            WHERE {upcoming}
+            GROUP BY ss.county
+            ORDER BY COUNT(*) DESC, ss.county
+        """), {"state": state.upper()}).mappings().all()
+    return {
+        "state": state.upper(),
+        "upcoming_sales": totals["upcoming_sales"],
+        "counties": totals["counties"],
+        "next_7_days": totals["next_7_days"],
+        "new_this_week": totals["new_this_week"],
+        "sales_with_equity": totals["sales_with_equity"],
+        "equity_behind_debt": float(totals["equity_behind_debt"] or 0),
+        "last_updated": totals["last_updated"],
+        "county_counts": [
+            {"county": row["county"], "upcoming_sales": row["upcoming_sales"],
+             "equity_behind_debt": float(row["equity_behind_debt"] or 0)}
+            for row in counties
+        ],
+    }
+
+
 @router.get("/facets/nyc-auction-coverage")
 def nyc_auction_coverage():
     boroughs = ("New York", "Bronx", "Kings", "Queens", "Richmond")

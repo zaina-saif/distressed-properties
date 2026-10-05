@@ -274,3 +274,22 @@ export async function getSalePage(sheriffSaleId: string): Promise<SalePage> {
   }
   return response.json() as Promise<SalePage>;
 }
+
+export interface LandingSummary {
+  state: string;
+  upcoming_sales: number;
+  counties: number;
+  next_7_days: number;
+  new_this_week: number;
+  sales_with_equity: number;
+  equity_behind_debt: number;
+  last_updated: string | null;
+  county_counts: Array<{ county: string; upcoming_sales: number; equity_behind_debt: number }>;
+}
+
+/** Headline numbers for the landing page (upcoming NJ sales and equity). */
+export async function getLandingSummary(): Promise<LandingSummary> {
+  const response = await fetch(`${API_URL}/api/v1/properties/facets/landing-summary?state=NJ`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Landing summary request failed: ${response.status}`);
+  return response.json() as Promise<LandingSummary>;
+}

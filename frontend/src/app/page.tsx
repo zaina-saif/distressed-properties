@@ -1,5 +1,5 @@
-import PropertyDashboard from "@/components/property-dashboard";
+import { LandingPage } from "@/components/landing-page";
 
 export default function Home() {
-  return <PropertyDashboard />;
+  return <LandingPage />;
 }
