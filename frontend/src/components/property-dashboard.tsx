@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Search,
   SlidersHorizontal,
+  Sparkles,
   Download,
   X,
 } from "lucide-react";
@@ -15,20 +16,26 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
+import { PropertyFocusPanel } from "@/components/property-focus-panel";
 import { PropertyLienSummaryModal } from "@/components/property-lien-summary-modal";
 import { PropertyComplaintsModal } from "@/components/property-complaints-modal";
 import { PropertyStatusHistoryModal } from "@/components/property-status-history-modal";
 import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason-modal";
+import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
-import type { Property, PropertyCoverageItem } from "@/types/property";
+import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
 const PAGE_SIZE = 24;
 // The app shows New Jersey only; every request is pinned to this state.
 const STATE = "NJ";
 
 type SortDirection = "asc" | "desc";
+
+function wholeDollars(value: number | null | undefined): string {
+  return value == null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+}
 
 function DistressSaleLogo() {
   return (
@@ -52,6 +59,11 @@ export default function PropertyDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  // Picked on the map; shown in the right panel instead of the list.
+  const [focusedProperty, setFocusedProperty] = useState<Property | null>(null);
+  const [salePageProperty, setSalePageProperty] = useState<Property | null>(null);
+  const [spotlight, setSpotlight] = useState(false);
+  const [spotlightSummary, setSpotlightSummary] = useState<SpotlightSummary | null>(null);
   const [selectedHistoryProperty, setSelectedHistoryProperty] = useState<Property | null>(null);
   const [selectedLienSummaryProperty, setSelectedLienSummaryProperty] = useState<Property | null>(null);
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
@@ -71,16 +83,34 @@ export default function PropertyDashboard() {
     getPropertyCoverage().then(setCoverage).catch(() => setCoverage([]));
   }, [refreshKey]);
 
+  // Always-visible spotlight totals: one small request, independent of the list view.
+  useEffect(() => {
+    let active = true;
+    getProperties({
+      states: [STATE],
+      counties: selectedCounty ? [selectedCounty] : undefined,
+      investorSpotlight: true,
+      sort: "investor-spotlight",
+      sortDirection: "desc",
+      page: 1,
+      pageSize: 1,
+    })
+      .then((response) => { if (active) setSpotlightSummary(response.spotlight_summary ?? null); })
+      .catch(() => { if (active) setSpotlightSummary(null); });
+    return () => { active = false; };
+  }, [refreshKey, selectedCounty]);
+
   useEffect(() => {
     let active = true;
     getProperties({
       states: [STATE],
       counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
-      status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
-      statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
-      sort,
-      sortDirection,
+      status: !spotlight && selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
+      statusContains: !spotlight && selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
+      investorSpotlight: spotlight || undefined,
+      sort: spotlight ? "investor-spotlight" : sort,
+      sortDirection: spotlight ? "desc" : sortDirection,
       page,
       pageSize: PAGE_SIZE,
     })
@@ -97,7 +127,7 @@ export default function PropertyDashboard() {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedStatus, sort, sortDirection]);
+  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedStatus, sort, sortDirection, spotlight]);
 
   const counties = useMemo(
     () => coverage
@@ -122,6 +152,10 @@ export default function PropertyDashboard() {
   const mappedCount = properties.filter((property) => property.latitude != null && property.longitude != null).length;
 
   const chooseProperty = useCallback((property: Property) => setSelectedProperty(property), []);
+  const focusProperty = useCallback((property: Property) => {
+    setFocusedProperty(property);
+    setMobileView("list");
+  }, []);
   const chooseCounty = useCallback((state: string, county: string) => {
     if (state !== STATE) return;
     setSelectedCounty(county);
@@ -135,6 +169,8 @@ export default function PropertyDashboard() {
   }
 
   function resetFilters() {
+    setFocusedProperty(null);
+    setSpotlight(false);
     setSelectedCounty("");
     setSearchInput("");
     setSearchQuery("");
@@ -151,10 +187,11 @@ export default function PropertyDashboard() {
         states: [STATE],
         counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
-        status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
-        statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
-        sort,
-        sortDirection,
+        status: !spotlight && selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
+        statusContains: !spotlight && selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
+        investorSpotlight: spotlight || undefined,
+        sort: spotlight ? "investor-spotlight" : sort,
+        sortDirection: spotlight ? "desc" : sortDirection,
         page,
         pageSize: PAGE_SIZE,
       });
@@ -173,62 +210,73 @@ export default function PropertyDashboard() {
 
   return (
     <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
-      <header className="z-30 flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+      <header className="z-30 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
           <DistressSaleLogo />
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-bold leading-tight tracking-tight text-slate-950">NJ Sheriff Sale Pro</h1>
-              <span className="hidden rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-amber-700 ring-1 ring-inset ring-amber-200 md:inline">Distress sales</span>
-            </div>
+            <h1 className="font-bold leading-tight tracking-tight text-slate-950">NJ Sheriff Sale Pro</h1>
             <p className="hidden text-[11px] font-medium tracking-wide text-slate-500 sm:block">Distressed property intelligence</p>
           </div>
         </div>
-        <nav className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
-          <button
-            type="button"
-            onClick={() => { setLoading(true); setError(null); setDesktopView("dashboard"); }}
-            className={`hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            aria-current={desktopView === "dashboard" ? "page" : undefined}
-          >
-            <MapIcon className="h-4 w-4" />Dashboard
-          </button>
-          <button
-            type="button"
-            onClick={() => { setLoading(true); setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            aria-current={desktopView === "list" ? "page" : undefined}
-          >
-            <ListFilter className="h-4 w-4" />List View
-          </button>
-          <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
-        </nav>
-      </header>
 
-      <section className="z-20 shrink-0 border-b border-slate-200 bg-white px-4 py-3 shadow-sm sm:px-6">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-          <form onSubmit={submitSearch} className="flex min-w-0 flex-1 items-center rounded-xl border-2 border-slate-200 bg-white px-3 focus-within:border-teal-500">
-            <Search className="h-5 w-5 shrink-0 text-slate-400" />
-            <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search address, city, ZIP, sale ID, case, plaintiff…" className="min-w-0 flex-1 px-3 py-2.5 text-sm outline-none" />
-            {searchInput && <button type="button" onClick={() => { setSearchInput(""); if (searchQuery) { setSearchQuery(""); setPage(1); } }} className="rounded p-1 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>}
-            <button className="ml-1 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700">Search</button>
-          </form>
+        <button
+          type="button"
+          onClick={() => { setSpotlight((value) => !value); setFocusedProperty(null); setPage(1); }}
+          aria-pressed={spotlight}
+          className={`flex flex-col rounded-xl px-3 py-1.5 text-left ring-1 ring-inset transition ${spotlight ? "bg-amber-500 text-white ring-amber-500 shadow-sm" : "bg-amber-50 text-amber-900 ring-amber-200 hover:bg-amber-100"}`}
+        >
+          <span className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span className="leading-tight">
+              <span className="block text-sm font-bold">Investor Spotlight</span>
+              <span className={`block text-[10px] font-medium ${spotlight ? "text-amber-50" : "text-amber-700"}`}>(Highest equity / High probability to auction)</span>
+            </span>
+          </span>
+        </button>
 
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex flex-col items-end gap-1.5">
+          <nav className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
+            <button
+              type="button"
+              onClick={() => { setLoading(true); setError(null); setDesktopView("dashboard"); }}
+              className={`hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold sm:flex ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+              aria-current={desktopView === "dashboard" ? "page" : undefined}
+            >
+              <MapIcon className="h-4 w-4" />Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLoading(true); setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+              aria-current={desktopView === "list" ? "page" : undefined}
+            >
+              <ListFilter className="h-4 w-4" />List View
+            </button>
+            <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
+          </nav>
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            <form onSubmit={submitSearch} className="flex w-full min-w-0 items-center rounded-md border border-slate-300 bg-white pl-2 focus-within:border-teal-500 sm:w-64">
+              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search address, city, ZIP, case, plaintiff…" className="min-w-0 flex-1 px-1.5 py-1 text-xs outline-none" />
+              {searchInput && <button type="button" onClick={() => { setSearchInput(""); if (searchQuery) { setSearchQuery(""); setPage(1); } }} className="rounded p-1 text-slate-400 hover:bg-slate-100" aria-label="Clear search text"><X className="h-3.5 w-3.5" /></button>}
+              <button className="rounded-r-md bg-teal-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-teal-700">Search</button>
+            </form>
             <select
               aria-label="County"
               value={selectedCounty}
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
-              className="max-w-48 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
             >
               <option value="">All counties</option>
               {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
             </select>
             <select
               aria-label="Status"
-              value={selectedStatus}
+              value={spotlight ? "scheduled-containing" : selectedStatus}
+              disabled={spotlight}
+              title={spotlight ? "Investor Spotlight shows upcoming scheduled sales" : undefined}
               onChange={(event) => { setSelectedStatus(event.target.value); setPage(1); }}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-teal-500"
+              className="w-36 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
             >
               <option value="scheduled-containing">Status contains scheduled</option>
               <option value="">All statuses</option>
@@ -240,24 +288,40 @@ export default function PropertyDashboard() {
               <option value="sold_or_cancelled_unverified">Sold or cancelled (unverified)</option>
               <option value="date_passed_unverified">Date passed (unverified)</option>
             </select>
-            <button type="button" onClick={resetFilters} className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" />Clear</button>
+            <button type="button" onClick={resetFilters} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><X className="h-3 w-3" />Clear</button>
           </div>
+  
         </div>
+      </header>
 
-        <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
-          {searchQuery && <span className="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">Search: “{searchQuery}”</span>}
-        </div>
+      <section className="z-20 shrink-0 space-y-2 border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
+        {spotlight && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span className="font-semibold">Investor Spotlight:</span>
+            {spotlightSummary && (
+              <span className="flex flex-wrap items-center gap-1.5">
+                <span className="rounded-full bg-white px-2 py-0.5 font-bold ring-1 ring-amber-200">{spotlightSummary.count.toLocaleString()} properties{selectedCounty ? ` in ${selectedCounty}` : ""}</span>
+                <span className="rounded-full bg-white px-2 py-0.5 ring-1 ring-amber-200">Total gross equity <span className="font-bold">{wholeDollars(spotlightSummary.total_gross_equity)}</span></span>
+                <span className="rounded-full bg-white px-2 py-0.5 ring-1 ring-amber-200">Avg. gross equity <span className="font-bold">{wholeDollars(spotlightSummary.average_gross_equity)}</span></span>
+              </span>
+            )}
+            <span className="text-amber-800">Upcoming scheduled sales ranked by expected equity: gross equity (Zestimate minus minimum bid) × probability to auction at the next sale date.</span>
+            <button type="button" onClick={() => setSpotlight(false)} className="ml-auto font-semibold underline">Exit spotlight</button>
+          </div>
+        )}
+        {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         {countyCounts.length > 0 && (
-          <section className="mt-2 w-full rounded-lg border border-teal-200 bg-teal-50/60 px-2 py-1.5" aria-label="NJ county record counts">
+          <section className="w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2" aria-label="NJ county record counts">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-[10px] font-bold text-teal-950">NJ county coverage</h2>
-              <span className="text-[10px] text-teal-800">Counties with available listings</span>
+              <h2 className="text-xs font-bold text-teal-950">NJ county coverage</h2>
+              <span className="text-xs text-teal-800">Counties with available listings · click to filter</span>
             </div>
-            <div className="mt-1 flex max-h-10 w-full flex-wrap content-start overflow-hidden pb-0.5 pr-1 text-[10px] leading-5">
+            <div className="mt-1 flex w-full flex-wrap content-start text-xs leading-6">
               {countyCounts.map(({ county, count }, index, items) => (
                 <span key={county} className="flex shrink-0 items-center">
-                  <button type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className="flex items-center gap-1 rounded px-2 py-0.5 text-left hover:bg-white">
-                    <span className={count === 0 ? "text-slate-500" : "font-medium text-slate-800"}>{county}</span>
+                  <button type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className={`flex items-center gap-1 rounded px-2 py-0.5 text-left hover:bg-white ${selectedCounty === county ? "bg-white ring-1 ring-teal-300" : ""}`}>
+                    <span className={count === 0 ? "font-bold text-slate-500" : "font-bold text-slate-900"}>{county}</span>
                     <span className={`tabular-nums ${count === 0 ? "text-slate-400" : "font-bold text-teal-700"}`}>{count}</span>
                   </button>
                   {index < items.length - 1 && <span className="text-slate-300" aria-hidden="true">|</span>}
@@ -275,10 +339,10 @@ export default function PropertyDashboard() {
         </div>
       </div>
 
-      <div className={`grid min-h-0 flex-1 overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-2" : "grid-cols-1"}`}>
+      <div className={`grid min-h-0 flex-1 overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]" : "grid-cols-1"}`}>
         <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-full" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
           {desktopView === "dashboard" && (
-            <PropertyMap properties={properties} selectedPropertyId={selectedProperty?.property_id} onPropertyClick={chooseProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} />
+            <PropertyMap properties={properties} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={focusProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} />
           )}
         </div>
 
@@ -301,7 +365,9 @@ export default function PropertyDashboard() {
             {desktopView === "list" && <button type="button" onClick={exportProperties} disabled={exporting || loading} className="flex items-center gap-2 rounded-lg border border-teal-600 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 disabled:cursor-wait disabled:opacity-50"><Download className="h-4 w-4" />{exporting ? "Preparing Excel…" : "Download Excel"}</button>}
           </div>
 
-          {error ? (
+          {focusedProperty && desktopView === "dashboard" ? (
+            <PropertyFocusPanel property={focusedProperty} onBack={() => setFocusedProperty(null)} onOpenDetails={() => setSelectedProperty(focusedProperty)} onSalePageClick={() => setSalePageProperty(focusedProperty)} onProbabilityReasonClick={() => setSelectedProbabilityReasonProperty(focusedProperty)} />
+          ) : error ? (
             <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</div>
           ) : loading ? (
             <div className="grid gap-4 overflow-hidden p-4">
@@ -312,7 +378,7 @@ export default function PropertyDashboard() {
               <div><ListFilter className="mx-auto h-10 w-10 text-slate-300" /><h3 className="mt-3 font-semibold text-slate-900">No matching properties</h3><p className="mt-1 text-sm text-slate-500">Try clearing a filter or searching a broader location.</p></div>
             </div>
           ) : desktopView === "list" ? (
-            <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} onLienSummaryClick={setSelectedLienSummaryProperty} onAdditionalDetailsClick={setSelectedComplaintsProperty} onProbabilityReasonClick={setSelectedProbabilityReasonProperty} onStatusHistoryClick={setSelectedHistoryProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
+            <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} onLienSummaryClick={setSelectedLienSummaryProperty} onAdditionalDetailsClick={setSelectedComplaintsProperty} onProbabilityReasonClick={setSelectedProbabilityReasonProperty} onStatusHistoryClick={setSelectedHistoryProperty} onSalePageClick={setSalePageProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
               {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => chooseProperty(property)} />)}
@@ -327,7 +393,8 @@ export default function PropertyDashboard() {
         </section>
       </div>
 
-      {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} />}
+      {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} onSalePageClick={setSalePageProperty} />}
+      {salePageProperty && <SheriffSalePageModal key={salePageProperty.sheriff_sale_id} property={salePageProperty} onClose={() => setSalePageProperty(null)} />}
       {selectedLienSummaryProperty && <PropertyLienSummaryModal key={selectedLienSummaryProperty.property_id} property={selectedLienSummaryProperty} onClose={() => setSelectedLienSummaryProperty(null)} />}
       {selectedComplaintsProperty && <PropertyComplaintsModal key={selectedComplaintsProperty.property_id} property={selectedComplaintsProperty} onClose={() => setSelectedComplaintsProperty(null)} />}
       {selectedHistoryProperty && <PropertyStatusHistoryModal key={selectedHistoryProperty.property_id} property={selectedHistoryProperty} onClose={() => setSelectedHistoryProperty(null)} />}

@@ -1,17 +1,12 @@
 "use client";
 
-import { MapPin, Search, X } from "lucide-react";
 import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Property } from "@/types/property";
 
 type GeocodeResult = {
-  lat: number;
-  lon: number;
-  formatted: string;
   county?: string;
-  state?: string;
   state_code?: string;
 };
 
@@ -33,9 +28,6 @@ export function PropertyMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<GeocodeResult[]>([]);
-  const [searching, setSearching] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
@@ -157,9 +149,9 @@ export function PropertyMap({
             className: property.property_id === selectedPropertyId
               ? "property-map-marker property-map-marker-selected"
               : "property-map-marker",
-            html: "$",
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
+            html: "",
+            iconSize: [14, 14],
+            iconAnchor: [7, 7],
           }),
           keyboard: true,
           title: `View ${property.normalized_address}`,
@@ -179,32 +171,6 @@ export function PropertyMap({
     return () => { active = false; };
   }, [mapReady, onPropertyClick, properties, selectedPropertyId]);
 
-  async function searchMap(event: FormEvent) {
-    event.preventDefault();
-    if (!query.trim() || !GEOAPIFY_KEY) return;
-    setSearching(true);
-    try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(query)}&filter=countrycode:us&limit=5&apiKey=${GEOAPIFY_KEY}`,
-      );
-      if (!response.ok) throw new Error(`Map search failed: ${response.status}`);
-      const data = (await response.json()) as {
-        features?: Array<{ properties: GeocodeResult }>;
-      };
-      setResults((data.features ?? []).map((feature) => feature.properties));
-    } catch {
-      setResults([]);
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  function chooseResult(result: GeocodeResult) {
-    mapRef.current?.flyTo([result.lat, result.lon], 12, { duration: 0.9 });
-    setResults([]);
-    setQuery("");
-  }
-
   const mappedCount = properties.filter((property) =>
     property.latitude != null
       && property.longitude != null
@@ -221,37 +187,6 @@ export function PropertyMap({
           {mapError ?? "Loading map…"}
         </div>
       )}
-
-      <div className="absolute left-4 right-16 top-4 z-[1000] max-w-md">
-        <form onSubmit={searchMap} className="flex items-center rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg">
-          <Search className="ml-2 h-4 w-4 text-slate-400" aria-hidden="true" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={GEOAPIFY_KEY ? "Find a place on the map" : "Set Geoapify key for map search"}
-            disabled={!GEOAPIFY_KEY}
-            className="min-w-0 flex-1 bg-transparent px-2 py-2 text-sm outline-none disabled:cursor-not-allowed"
-          />
-          {query && (
-            <button type="button" onClick={() => { setQuery(""); setResults([]); }} className="rounded p-1 text-slate-400 hover:bg-slate-100">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-          <button disabled={!GEOAPIFY_KEY || searching || !query.trim()} className="rounded-lg bg-teal-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
-            {searching ? "Searching…" : "Search"}
-          </button>
-        </form>
-        {results.length > 0 && (
-          <div className="mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-            {results.map((result) => (
-              <button key={`${result.lat}-${result.lon}`} type="button" onClick={() => chooseResult(result)} className="flex w-full items-start gap-2 border-b border-slate-100 px-3 py-3 text-left text-sm hover:bg-teal-50 last:border-0">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
-                {result.formatted}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       <div className="absolute bottom-4 left-4 z-[1000] rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-600 shadow">
         <span className="font-semibold text-slate-900">{mappedCount}</span> of {properties.length} loaded properties have verified coordinates

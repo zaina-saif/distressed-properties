@@ -144,15 +144,19 @@ const apifyColumnKeys = [
   "homeType", "lastSoldPrice", "bedrooms", "bathrooms", "livingArea", "yearBuilt",
 ];
 
-function tableColumns(showOpeningBid: boolean, onLienSummaryClick: (property: Property) => void, onAdditionalDetailsClick: (property: Property) => void, onProbabilityReasonClick: (property: Property) => void): Column[] {
+function tableColumns(showOpeningBid: boolean, onLienSummaryClick: (property: Property) => void, onAdditionalDetailsClick: (property: Property) => void, onProbabilityReasonClick: (property: Property) => void, onSalePageClick: (property: Property) => void): Column[] {
   const equityColumns: Column[] = showOpeningBid
     ? [{ label: "Opening bid", value: (p: Property) => currency(p.opening_bid) }]
     : [];
   return [
     ...columns.slice(0, 4),
     ...equityColumns,
-    ...columns.slice(4).map((column) => column.label === "Probability to auction"
-      ? { ...column, value: (p: Property) => <span className="block">{percent(p.sale_probability)}<button type="button" onClick={() => onProbabilityReasonClick(p)} className="mt-1 block text-xs font-medium text-teal-700 underline hover:text-teal-900">Reason</button></span> }
+    ...columns.slice(4).map((column) => column.label === "Court case"
+      ? { ...column, value: (p: Property) => p.court_case_number
+          ? <button type="button" onClick={(event) => { event.stopPropagation(); onSalePageClick(p); }} className="font-semibold text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">{p.court_case_number}</button>
+          : "" }
+      : column.label === "Probability to auction"
+      ? { ...column, value: (p: Property) => <span className="inline-flex items-center gap-1.5 whitespace-nowrap">{percent(p.sale_probability)}{p.sale_probability != null && <button type="button" onClick={(event) => { event.stopPropagation(); onProbabilityReasonClick(p); }} className="text-xs font-medium text-teal-700 underline hover:text-teal-900">Reason</button>}</span> }
       : column),
     {
       label: "Lien risk summary",
@@ -192,6 +196,7 @@ export function PropertyTable({
   onAdditionalDetailsClick,
   onProbabilityReasonClick,
   onStatusHistoryClick,
+  onSalePageClick,
   sort,
   sortDirection,
   onSort,
@@ -202,11 +207,12 @@ export function PropertyTable({
   onAdditionalDetailsClick: (property: Property) => void;
   onProbabilityReasonClick: (property: Property) => void;
   onStatusHistoryClick: (property: Property) => void;
+  onSalePageClick: (property: Property) => void;
   sort: string;
   sortDirection: "asc" | "desc";
   onSort: (column: string) => void;
 }) {
-  const visibleColumns = tableColumns(properties.length > 0 && properties.every((property) => property.state === "IL"), onLienSummaryClick, onAdditionalDetailsClick, onProbabilityReasonClick);
+  const visibleColumns = tableColumns(properties.length > 0 && properties.every((property) => property.state === "IL"), onLienSummaryClick, onAdditionalDetailsClick, onProbabilityReasonClick, onSalePageClick);
   function sortIcon(column: string) {
     if (sort !== column) return <ChevronsUpDown className="h-3.5 w-3.5 text-slate-400" />;
     return sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5 text-teal-700" /> : <ArrowDown className="h-3.5 w-3.5 text-teal-700" />;

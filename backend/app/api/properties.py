@@ -1,9 +1,11 @@
 import json
+import os
 from io import BytesIO
 from typing import Literal, Optional
 
+import httpx
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from openpyxl import Workbook
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -121,6 +123,32 @@ def approve_parcel_candidate(property_id: str,approval: ParcelApproval):
     return {"status":"approved","property_id":property_id,"candidate_id":approval.candidate_id}
 
 
+# NJ minimum bid: the portal's "Approx. Upset*" (stored as upset_price), else
+# the judgment amount, else an upset figure quoted in the sale notice. Other
+# states keep the largest parsed upset.
+UPSET_SQL = (
+    "(CASE WHEN ss.state='NJ' THEN ss.upset_price "
+    "ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END)"
+)
+MINIMUM_BID_SQL = (
+    "(CASE WHEN ss.state='NJ' THEN COALESCE(ss.upset_price, ss.judgment_amount, "
+    "GREATEST(ss.estimated_upset_price, ss.alternate_upset_price)) "
+    "ELSE COALESCE(GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price), "
+    "ss.judgment_amount) END)"
+)
+MINIMUM_BID_BASIS_SQL = (
+    "(CASE WHEN ss.state<>'NJ' THEN NULL "
+    "WHEN ss.upset_price IS NOT NULL THEN 'approx_upset' "
+    "WHEN ss.judgment_amount IS NOT NULL THEN 'judgment' "
+    "WHEN COALESCE(ss.estimated_upset_price, ss.alternate_upset_price) IS NOT NULL THEN 'notice_estimate' END)"
+)
+
+# Investor Spotlight ranks by expected equity: gross equity (Zestimate minus the
+# minimum bid) weighted by the probability that the next sale date goes to auction.
+SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
+
+
 @router.get("")
 def list_properties(
     state: list[str] = Query(default=[]),
@@ -132,6 +160,7 @@ def list_properties(
     future_only: bool = False,
     min_equity: Optional[float] = None,
     max_risk: Optional[int] = None,
+    investor_spotlight: bool = False,
     sort: str = "sale-date",
     sort_direction: Literal["asc", "desc"] = "asc",
     page: int = Query(default=1, ge=1),
@@ -184,12 +213,19 @@ def list_properties(
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
 
     if min_equity is not None:
-        conditions.append("azr.zestimate - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END >= :min_equity")
+        conditions.append(f"azr.zestimate - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE {MINIMUM_BID_SQL} END >= :min_equity")
         parameters["min_equity"] = min_equity
 
     if max_risk is not None:
         conditions.append("ra.risk_score <= :max_risk")
         parameters["max_risk"] = max_risk
+
+    if investor_spotlight:
+        # Upcoming scheduled sales with positive gross equity and a probability score.
+        conditions.append(f"strpos({effective_status}, 'scheduled') > 0")
+        conditions.append("ss.current_sale_date >= CURRENT_DATE")
+        conditions.append(f"{SPOTLIGHT_GROSS_EQUITY} > 0")
+        conditions.append("sp.probability IS NOT NULL")
 
     where_clause = " AND ".join(conditions)
     sort_columns = {
@@ -205,7 +241,7 @@ def list_properties(
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
         "valuation-confidence": "valuation_confidence", "valuation-status": "valuation_status",
         "valuation-note": "valuation_pending_reason", "upset-price": "upset_price",
-        "minimum-bid-amount": "COALESCE(upset_price, ss.judgment_amount)",
+        "minimum-bid-amount": MINIMUM_BID_SQL,
         "opening-bid": "CASE WHEN ss.state='IL' THEN ss.upset_price END",
         "judgment-amount": "ss.judgment_amount", "starting-bid": "ss.starting_bid", "gross-equity": "gross_equity",
         "distress-duration": "COALESCE(status_dates.latest_scheduled_date, ss.distress_start_date, make_date(ss.distress_start_year, 1, 1))",
@@ -225,6 +261,7 @@ def list_properties(
         "coordinate-source": "coordinate_source", "valuation-retrieved": "valuation_retrieved_at",
         "lien-risk-calculated": "lien_risk_calculated_at", "lien-risk-summary": "lien_risk_calculated_at",
         "foreclosure-source": "ss.source_url",
+        "investor-spotlight": SPOTLIGHT_SCORE,
         # Backward-compatible values used by the existing sort menu.
         "value-desc": "market_value", "equity-desc": "gross_equity",
     }
@@ -254,9 +291,11 @@ def list_properties(
             COALESCE(canonical_parcel.block, p.block) AS block,
             COALESCE(canonical_parcel.lot, p.lot) AS lot,
             canonical_parcel.qualifier,
-            COALESCE(canonical_parcel.latitude, avm_subject.latitude, p.latitude)
+            COALESCE(canonical_parcel.latitude, avm_subject.latitude, p.latitude,
+                     (azr.raw_payload->'coordinates'->>'latitude')::DOUBLE PRECISION)
                 AS latitude,
-            COALESCE(canonical_parcel.longitude, avm_subject.longitude, p.longitude)
+            COALESCE(canonical_parcel.longitude, avm_subject.longitude, p.longitude,
+                     (azr.raw_payload->'coordinates'->>'longitude')::DOUBLE PRECISION)
                 AS longitude,
             CASE
                 WHEN canonical_parcel.latitude IS NOT NULL
@@ -268,6 +307,9 @@ def list_properties(
                 WHEN ss.source_system='nyc_nyctl_referee_sales'
                  AND p.latitude IS NOT NULL AND p.longitude IS NOT NULL
                     THEN 'nyc_planning_geosearch'
+                WHEN p.latitude IS NULL
+                 AND azr.raw_payload->'coordinates'->>'latitude' IS NOT NULL
+                    THEN 'zillow'
                 ELSE NULL
             END AS coordinate_source,
             ss.sheriff_number,
@@ -334,11 +376,9 @@ def list_properties(
             CASE WHEN ss.distress_start_date IS NULL AND ss.distress_start_year IS NOT NULL
                 THEN GREATEST(CURRENT_DATE - make_date(ss.distress_start_year, 1, 1), 0) END AS distress_duration_max_days,
             ss.notice_lien_amount,
-            GREATEST(
-                ss.estimated_upset_price,
-                ss.alternate_upset_price,
-                ss.upset_price
-            ) AS upset_price,
+            {UPSET_SQL} AS upset_price,
+            {MINIMUM_BID_SQL} AS minimum_bid_amount,
+            {MINIMUM_BID_BASIS_SQL} AS minimum_bid_basis,
             CASE WHEN ss.state='IL' THEN ss.upset_price END AS opening_bid,
             pv.estimated_value AS market_value,
             CASE WHEN pv.estimated_value IS NOT NULL AND ss.judgment_amount > 0
@@ -399,33 +439,11 @@ def list_properties(
                     THEN 'Ready for lower-confidence model scoring with imputed living area.'
                 ELSE 'Property is ready for local model scoring.'
             END AS valuation_pending_reason,
-            CASE
-                WHEN pv.estimated_value IS NOT NULL
-                 AND GREATEST(
-                    ss.estimated_upset_price,
-                    ss.alternate_upset_price,
-                    ss.upset_price
-                 ) IS NOT NULL
-                THEN pv.estimated_value - GREATEST(
-                    ss.estimated_upset_price,
-                    ss.alternate_upset_price,
-                    ss.upset_price
-                )
+            CASE WHEN pv.estimated_value IS NOT NULL AND {MINIMUM_BID_SQL} IS NOT NULL
+                THEN pv.estimated_value - {MINIMUM_BID_SQL}
             END AS gross_equity,
-            CASE
-                WHEN pv.estimated_value > 0
-                 AND GREATEST(
-                    ss.estimated_upset_price,
-                    ss.alternate_upset_price,
-                    ss.upset_price
-                 ) IS NOT NULL
-                THEN (
-                    pv.estimated_value - GREATEST(
-                        ss.estimated_upset_price,
-                        ss.alternate_upset_price,
-                        ss.upset_price
-                    )
-                ) / pv.estimated_value
+            CASE WHEN pv.estimated_value > 0 AND {MINIMUM_BID_SQL} IS NOT NULL
+                THEN (pv.estimated_value - {MINIMUM_BID_SQL}) / pv.estimated_value
             END AS gross_equity_percent,
             sp.probability AS sale_probability,
             sp.feature_values AS sale_probability_features,
@@ -460,6 +478,7 @@ def list_properties(
             FROM apify_zillow_results
             WHERE property_id = p.id
               AND is_current = TRUE
+              AND match_status <> 'invalid'
             ORDER BY retrieved_at DESC, id DESC
             LIMIT 1
         ) AS azr ON TRUE
@@ -602,9 +621,15 @@ def list_properties(
         """
     )
 
+    spotlight_aggregates = (
+        f", SUM({SPOTLIGHT_GROSS_EQUITY}) AS total_gross_equity"
+        f", AVG({SPOTLIGHT_GROSS_EQUITY}) AS average_gross_equity"
+        f", AVG({SPOTLIGHT_SCORE}) AS average_expected_equity"
+        ", AVG(sp.probability) AS average_probability"
+    ) if investor_spotlight else ""
     count_query = text(
         f"""
-        SELECT COUNT(*)
+        SELECT COUNT(*) AS total{spotlight_aggregates}
         FROM sheriff_sales AS ss
         JOIN properties AS p
             ON p.id = ss.property_id
@@ -621,6 +646,7 @@ def list_properties(
             FROM apify_zillow_results
             WHERE property_id = p.id
               AND is_current = TRUE
+              AND match_status <> 'invalid'
             ORDER BY retrieved_at DESC, id DESC
             LIMIT 1
         ) AS azr ON TRUE
@@ -638,6 +664,14 @@ def list_properties(
             ORDER BY calculated_at DESC
             LIMIT 1
         ) AS ra ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT probability
+            FROM sale_predictions
+            WHERE sheriff_sale_id = ss.id
+              AND prediction_target = 'reaches_auction'
+            ORDER BY predicted_at DESC
+            LIMIT 1
+        ) AS sp ON TRUE
         WHERE {where_clause}
         """
     )
@@ -652,24 +686,27 @@ def list_properties(
         ]
 
     for item in items:
-        item["minimum_asking_amount"] = item.get("upset_price") if item.get("upset_price") is not None else item.get("judgment_amount")
+        item["minimum_asking_amount"] = item.get("minimum_bid_amount")
         item["gross_equity"] = None
         item["gross_equity_percent"] = None
         zestimate = item.get("zestimate")
-        upset_price = item.get("upset_price")
-        judgment = item.get("judgment_amount")
         opening_bid = item.get("opening_bid")
         try:
             zestimate_value = float(zestimate)
             if item.get("state") == "IL":
                 basis_value = float(opening_bid) if opening_bid is not None else None
             else:
-                basis_value = float(upset_price) if upset_price is not None else float(judgment)
+                basis_value = float(item["minimum_asking_amount"])
         except (TypeError, ValueError):
             zestimate_value = basis_value = None
         if zestimate_value is not None and basis_value is not None and zestimate_value > 0:
             item["gross_equity"] = zestimate_value - basis_value
             item["gross_equity_percent"] = (zestimate_value - basis_value) / zestimate_value
+        probability = item.get("sale_probability")
+        item["expected_equity"] = (
+            float(item["gross_equity"]) * float(probability)
+            if item.get("gross_equity") is not None and probability is not None else None
+        )
 
     if sort in {"gross-equity", "gross-equity-percent"}:
         equity_field = "gross_equity" if sort == "gross-equity" else "gross_equity_percent"
@@ -686,17 +723,28 @@ def list_properties(
         items.sort(key=equity_sort_key)
 
     with engine.connect() as connection:
-        total = connection.execute(
+        counts = connection.execute(
             count_query,
             parameters,
-        ).scalar_one()
+        ).mappings().one()
+    total = counts["total"]
 
-    return {
+    response = {
         "items": items,
         "page": page,
         "page_size": page_size,
         "total": total,
     }
+    if investor_spotlight:
+        # Across every spotlight property matching the filters, not just this page.
+        response["spotlight_summary"] = {
+            "count": total,
+            "total_gross_equity": float(counts["total_gross_equity"]) if counts["total_gross_equity"] is not None else None,
+            "average_gross_equity": float(counts["average_gross_equity"]) if counts["average_gross_equity"] is not None else None,
+            "average_expected_equity": float(counts["average_expected_equity"]) if counts["average_expected_equity"] is not None else None,
+            "average_probability": float(counts["average_probability"]) if counts["average_probability"] is not None else None,
+        }
+    return response
 
 
 @router.get("/export.xlsx")
@@ -816,6 +864,46 @@ def nyc_auction_coverage():
             "coverage_note": "Includes address-indexed Kings court PDFs and NYCTL tax-lien referee listings, not a complete NYC foreclosure or Sheriff inventory. A calendar listing can be stayed or cancelled. Zero means no verified listing from these sources, not no auctions in the borough."}
 
 
+STREET_VIEW_API = "https://maps.googleapis.com/maps/api/streetview"
+
+
+@router.get("/{property_id}/street-view")
+def get_street_view(property_id: str):
+    """Street View photo for a property, fetched with our own Google key.
+
+    The key stays server-side and the location comes from our own property
+    record, so this is not an open proxy. Images are not stored; the browser
+    may cache them for a day."""
+    key = os.getenv("GOOGLE_MAPS_API_KEY")
+    if not key:
+        raise HTTPException(status_code=404, detail="Street View is not configured")
+    with engine.connect() as connection:
+        address = connection.execute(
+            text("SELECT normalized_address FROM properties WHERE id::text = :id"),
+            {"id": property_id},
+        ).scalar()
+    if not address:
+        raise HTTPException(status_code=404, detail="Property not found")
+    location = " ".join(address.replace(",", " ").split())
+    params = {"location": location, "source": "outdoor", "key": key}
+    try:
+        with httpx.Client(timeout=15) as client:
+            # The metadata request is free and tells us whether imagery exists.
+            metadata = client.get(f"{STREET_VIEW_API}/metadata", params=params).json()
+            if metadata.get("status") != "OK":
+                raise HTTPException(status_code=404, detail="No Street View imagery for this address")
+            image = client.get(STREET_VIEW_API, params={**params, "size": "640x480", "fov": "80", "return_error_code": "true"})
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Street View request failed") from exc
+    if image.status_code != 200 or not image.headers.get("content-type", "").startswith("image/"):
+        raise HTTPException(status_code=404, detail="No Street View image returned")
+    return Response(
+        content=image.content,
+        media_type=image.headers["content-type"],
+        headers={"Cache-Control": "private, max-age=86400"},
+    )
+
+
 @router.get("/{property_id}")
 def get_property(property_id: str):
     query = text(
@@ -842,11 +930,9 @@ def get_property(property_id: str):
             ss.judgment_amount,
             ss.judgment_amount_as_of_date,
             ss.judgment_source_url,
-            GREATEST(
-                ss.estimated_upset_price,
-                ss.alternate_upset_price,
-                ss.upset_price
-            ) AS upset_price,
+            """ + UPSET_SQL + """ AS upset_price,
+            """ + MINIMUM_BID_SQL + """ AS minimum_bid_amount,
+            """ + MINIMUM_BID_BASIS_SQL + """ AS minimum_bid_basis,
             ss.plaintiff,
             ss.defendant,
             ss.source_url

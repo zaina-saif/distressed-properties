@@ -3,11 +3,11 @@ import {
   BedDouble,
   CalendarDays,
   Gavel,
-  Home,
   MapPin,
   Ruler,
 } from "lucide-react";
 
+import { PropertyPhoto } from "@/components/property-photo";
 import type { Property } from "@/types/property";
 
 function currency(value: number | null | undefined): string {
@@ -47,8 +47,8 @@ export function PropertyCard({
       }`}
     >
       <div className="flex min-h-36">
-        <div className="flex w-32 shrink-0 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 sm:w-40">
-          <Home className="h-10 w-10 text-slate-400" aria-hidden="true" />
+        <div className="relative flex w-32 shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 sm:w-40">
+          <PropertyPhoto key={property.property_id} property={property} />
         </div>
 
         <div className="min-w-0 flex-1 p-4">

@@ -67,8 +67,12 @@ export interface Property {
   avm_judgment_spread_percent?: number | null;
   upset_price?: number | null;
   opening_bid?: number | null;
+  zestimate?: number | null;
+  minimum_asking_amount?: number | null;
+  minimum_bid_basis?: "approx_upset" | "judgment" | "notice_estimate" | null;
   gross_equity?: number | null;
   gross_equity_percent?: number | null;
+  expected_equity?: number | null;
 
   sale_probability?: number | null;
   sale_probability_features?: {
@@ -99,6 +103,16 @@ export interface Property {
     methodology?: string;
     target?: string;
     model_version?: string;
+    drivers?: Array<{ key: string; label: string; value: string; typical: string; impact: number }>;
+    drivers_method?: string;
+    model_quality?: {
+      holdout_rows?: number;
+      holdout_roc_auc?: number;
+      holdout_brier_score?: number;
+      holdout_mean_prediction?: number;
+      holdout_positive_rate?: number;
+      holdout_cutoff?: string;
+    };
   } | null;
   risk_score?: number | null;
   risk_level?: string | null;
@@ -232,11 +246,20 @@ export interface ProfessionalTitleSearch {
   relationship: "independent_third_party";
 }
 
+export interface SpotlightSummary {
+  count: number;
+  total_gross_equity: number | null;
+  average_gross_equity: number | null;
+  average_expected_equity: number | null;
+  average_probability: number | null;
+}
+
 export interface PropertyResponse {
   items: Property[];
   page: number;
   page_size: number;
   total: number;
+  spotlight_summary?: SpotlightSummary;
 }
 
 export interface PropertyCoverageItem {

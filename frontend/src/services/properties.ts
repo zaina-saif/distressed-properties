@@ -13,6 +13,11 @@ import type { WarehouseCoverage, WarehouseCursor, WarehouseMonthlyCoverage, Ware
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+/** Server-side Street View photo for a property (404 when none or not configured). */
+export function streetViewUrl(propertyId: string): string {
+  return `${API_URL}/api/v1/properties/${encodeURIComponent(propertyId)}/street-view`;
+}
+
 export interface PropertyFilters {
   states?: string[];
   counties?: string[];
@@ -22,6 +27,7 @@ export interface PropertyFilters {
   statusContains?: string;
   futureOnly?: boolean;
   minEquity?: number;
+  investorSpotlight?: boolean;
   sort?: string;
   sortDirection?: "asc" | "desc";
   page?: number;
@@ -63,6 +69,10 @@ export async function getProperties(
     params.set("min_equity", String(filters.minEquity));
   }
 
+  if (filters.investorSpotlight) {
+    params.set("investor_spotlight", "true");
+  }
+
   if (filters.sort) {
     params.set("sort", filters.sort);
   }
@@ -102,6 +112,7 @@ export async function downloadPropertiesXlsx(
   if (filters.statusContains) params.set("status_contains", filters.statusContains);
   if (filters.futureOnly !== undefined) params.set("future_only", String(filters.futureOnly));
   if (filters.minEquity !== undefined) params.set("min_equity", String(filters.minEquity));
+  if (filters.investorSpotlight) params.set("investor_spotlight", "true");
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.sortDirection) params.set("sort_direction", filters.sortDirection);
   params.set("page", String(filters.page ?? 1));
@@ -233,4 +244,33 @@ export async function getWarehouseMonthlyCoverage(state: string, county: string,
   const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/months?${params}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load monthly coverage: ${response.status}`);
   return response.json();
+}
+
+export interface SalePage {
+  title: string | null;
+  county: string;
+  sheriff_number: string;
+  listing: "open" | "sold_or_cancelled";
+  fields: Array<{ label: string; value: string }>;
+  status_history: Array<{ status: string; date: string }>;
+  notes: string[];
+  county_search_url: string;
+  fetched_at: string;
+  source: string;
+  sale_logistics: {
+    date: string | null;
+    time: string | null;
+    location: string | null;
+    basis: { time: "notice" | "county_typical" | null; location: "notice" | "county_typical" | null };
+  };
+}
+
+/** Live copy of the sale's CivilView detail page, looked up by sheriff number. */
+export async function getSalePage(sheriffSaleId: string): Promise<SalePage> {
+  const response = await fetch(`${API_URL}/api/v1/sale-pages/${encodeURIComponent(sheriffSaleId)}`, { cache: "no-store" });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "The sheriff sale page could not be loaded.");
+  }
+  return response.json() as Promise<SalePage>;
 }

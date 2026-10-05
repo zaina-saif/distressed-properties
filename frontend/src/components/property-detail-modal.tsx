@@ -12,7 +12,7 @@ import {
   ShieldAlert,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { getLienCoverage, getLiens, getProfessionalTitleSearch } from "@/services/properties";
 import type { LienCoverageItem, LienItem, ProfessionalTitleSearch, Property } from "@/types/property";
@@ -31,17 +31,20 @@ function percent(value: number | null | undefined): string {
   return `${Math.round(value * 100)}%`;
 }
 
-function date(value: string | null | undefined): string {
-  if (!value) return "Unavailable";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(value));
+/** dd/mm/yyyy, read in UTC so date-only values do not shift a day. */
+function ddmmyyyy(value: string | number | null | undefined): string | null {
+  if (value == null || value === "") return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${pad(parsed.getUTCDate())}/${pad(parsed.getUTCMonth() + 1)}/${parsed.getUTCFullYear()}`;
 }
 
-function Fact({ label, value }: { label: string; value: string | number }) {
+function date(value: string | null | undefined): string {
+  return ddmmyyyy(value) ?? "Unavailable";
+}
+
+function Fact({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-slate-100 py-2.5 last:border-0">
       <dt className="text-sm text-slate-500">{label}</dt>
@@ -61,11 +64,30 @@ function readable(value: unknown): string {
 const zillowDetailKeys = [
   "daysOnZillow", "pageViewCount", "favoriteCount", "rentZestimate",
   "lotArea", "pricePerSquareFoot", "taxAssessedValue", "onMarketDate",
-  "taxAnnualAmount", "parking", "dateSold", "priceChange", "priceChangedAt",
+  "taxAnnualAmount", "parking", "garageSpaces", "dateSold", "priceChange", "priceChangedAt",
   "monthlyHoaFee", "hoa", "propertyTaxRate", "listingMortgageRates",
 ];
 
-function readableZillowValue(key: string, value: unknown): string {
+const ZILLOW_DATE_KEYS = new Set(["onMarketDate", "dateSold", "priceChangedAt"]);
+
+function parkingInfo(value: unknown): { hasGarage: boolean; spaces: number | null } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const parking = value as { hasGarage?: boolean; hasAttachedGarage?: boolean; totalSpaces?: number; features?: unknown[] };
+  const featureGarage = Array.isArray(parking.features) && parking.features.some((feature) => /garage/i.test(String(feature)));
+  const hasGarage = Boolean(parking.hasGarage || parking.hasAttachedGarage || featureGarage);
+  return { hasGarage, spaces: typeof parking.totalSpaces === "number" && parking.totalSpaces > 0 ? parking.totalSpaces : null };
+}
+
+function readableZillowValue(key: string, value: unknown, data?: Record<string, unknown> | null): string {
+  if (key === "parking") {
+    const parking = parkingInfo(value);
+    return parking ? (parking.hasGarage ? "Garage" : "No garage") : "Unavailable";
+  }
+  if (key === "garageSpaces") {
+    const parking = parkingInfo(data?.parking);
+    return parking?.hasGarage ? (parking.spaces != null ? String(parking.spaces) : "Not stated") : "";
+  }
+  if (ZILLOW_DATE_KEYS.has(key)) return ddmmyyyy(value as string) ?? "Unavailable";
   if (key === "lotArea" && typeof value === "object" && value !== null && "value" in value && typeof value.value === "number") {
     const unit = "unit" in value && typeof value.unit === "string" ? value.unit.toLowerCase() : "";
     const acres = unit.includes("acre") ? value.value : value.value / 43560;
@@ -75,7 +97,56 @@ function readableZillowValue(key: string, value: unknown): string {
 }
 
 function zillowLabel(key: string): string {
+  if (key === "garageSpaces") return "Garage spaces";
+  if (key === "zpid") return "Zillow ID";
   return key.replaceAll(/([A-Z])/g, " $1").replace(/^./, (character) => character.toUpperCase());
+}
+
+const MONEY_KEYS = new Set(["price", "value", "taxPaid", "pricePerSquareFoot"]);
+const HIDDEN_TABLE_KEYS = new Set(["propertyUrl", "link"]);
+
+function titleCase(value: string): string {
+  return value.toLowerCase().replaceAll("_", " ").replace(/^./, (character) => character.toUpperCase());
+}
+
+/** Flatten nested values a reader would want as their own columns. */
+function tableRow(row: Record<string, unknown>): Record<string, unknown> {
+  const flat: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (HIDDEN_TABLE_KEYS.has(key)) continue;
+    if (key === "coordinates" && typeof value === "object" && value !== null) {
+      const coordinates = value as { latitude?: unknown; longitude?: unknown };
+      flat.latitude = coordinates.latitude;
+      flat.longitude = coordinates.longitude;
+      continue;
+    }
+    flat[key] = value;
+  }
+  return flat;
+}
+
+function tableCell(key: string, value: unknown): ReactNode {
+  if (value == null || value === "") return "";
+  if (key === "date" || key.endsWith("Date") || key.endsWith("At")) return ddmmyyyy(value as string) ?? readable(value);
+  if (key === "year" || key === "zpid") return String(value);
+  if (key === "latitude" || key === "longitude") return String(value);
+  if (key === "mainImage") {
+    // Zillow-hosted photos only; Street View links carry Zillow's own Google key.
+    return typeof value === "string" && value.startsWith("https://photos.zillowstatic.com/")
+      // eslint-disable-next-line @next/next/no-img-element -- remote Zillow photo, shown as-is
+      ? <img src={value} alt="" loading="lazy" className="h-14 w-20 rounded object-cover" />
+      : "No photo";
+  }
+  if (key === "address" && typeof value === "object") {
+    const address = value as { street?: string; city?: string; state?: string; zipCode?: string };
+    return [address.street, address.city, [address.state, address.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  }
+  if (typeof value === "number" && MONEY_KEYS.has(key)) return currency(value);
+  if (typeof value === "number" && key.endsWith("Rate")) return `${(value * 100).toFixed(1)}%`;
+  if (key === "livingArea" && typeof value === "number") return `${value.toLocaleString("en-US")} sqft`;
+  if (key === "distance" && typeof value === "number") return `${value} mi`;
+  if ((key === "homeType" || key === "homeStatus" || key === "event") && typeof value === "string") return titleCase(value);
+  return readable(value);
 }
 
 function propertyFactValue(primary: unknown, zillowValue: unknown, key?: string): string | number {
@@ -87,7 +158,9 @@ function propertyFactValue(primary: unknown, zillowValue: unknown, key?: string)
 
 function ApifyTable({ title, value }: { title: string; value: unknown }) {
   if (!Array.isArray(value) || value.length === 0) return null;
-  const rows = value.filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item));
+  const rows = value
+    .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null && !Array.isArray(item))
+    .map(tableRow);
   if (rows.length === 0) return null;
   const keys = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
   return (
@@ -95,8 +168,8 @@ function ApifyTable({ title, value }: { title: string; value: unknown }) {
       <h3 className="mb-3 font-bold text-slate-900">{title}</h3>
       <div className="overflow-x-auto">
         <table className="w-full min-w-max border-collapse text-left text-xs">
-          <thead><tr className="border-b border-slate-200 bg-slate-50">{keys.map((key) => <th key={key} className="whitespace-nowrap px-3 py-2 font-semibold text-slate-600">{key}</th>)}</tr></thead>
-          <tbody>{rows.map((row, index) => <tr key={index} className="border-b border-slate-100 last:border-0">{keys.map((key) => <td key={key} className="max-w-72 px-3 py-2 align-top text-slate-700">{readable(row[key])}</td>)}</tr>)}</tbody>
+          <thead><tr className="border-b border-slate-200 bg-slate-50">{keys.map((key) => <th key={key} className="whitespace-nowrap px-3 py-2 font-semibold text-slate-600">{zillowLabel(key)}</th>)}</tr></thead>
+          <tbody>{rows.map((row, index) => <tr key={index} className="border-b border-slate-100 last:border-0">{keys.map((key) => <td key={key} className="max-w-72 px-3 py-2 align-top text-slate-700">{tableCell(key, row[key])}</td>)}</tr>)}</tbody>
         </table>
       </div>
     </section>
@@ -106,9 +179,11 @@ function ApifyTable({ title, value }: { title: string; value: unknown }) {
 export function PropertyDetailModal({
   property,
   onClose,
+  onSalePageClick,
 }: {
   property: Property;
   onClose: () => void;
+  onSalePageClick: (property: Property) => void;
 }) {
   const [coverage, setCoverage] = useState<LienCoverageItem[]>([]);
   const [coverageLoading, setCoverageLoading] = useState(true);
@@ -174,8 +249,14 @@ export function PropertyDetailModal({
               <p className="mt-1 text-xs text-slate-500">{percent(property.gross_equity_percent)} of estimated value</p>
             </div>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Judgment amount</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.judgment_amount)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Minimum Bid / Upset amount</p>
+              <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.minimum_asking_amount ?? property.upset_price ?? property.judgment_amount)}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {property.minimum_bid_basis === "approx_upset" ? "Upset amount from the sheriff's listing"
+                  : property.minimum_bid_basis === "judgment" ? "No upset amount published; judgment amount shown"
+                  : property.minimum_bid_basis === "notice_estimate" ? "Upset estimate from the sale notice"
+                  : property.upset_price != null ? "Upset amount" : "Judgment amount"}
+              </p>
               <p className="mt-1 text-xs text-slate-500">Judgment: {currency(property.judgment_amount)}{property.judgment_amount_as_of_date ? ` (as of ${date(property.judgment_amount_as_of_date)}; not current payoff)` : ""}</p>
               {property.judgment_source_url && <a href={property.judgment_source_url} target="_blank" rel="noreferrer" className="text-xs font-medium text-teal-700 underline">View judgment source</a>}
             </div>
@@ -212,14 +293,20 @@ export function PropertyDetailModal({
                 <Fact label="Sale date" value={date(property.current_sale_date)} />
                 <Fact label="Upset price" value={currency(property.upset_price)} />
                 <Fact label={property.sale_type === "Sheriff sale" ? "Sheriff number" : "Auction ID"} value={property.sheriff_number} />
-                <Fact label="Court case" value={property.court_case_number ?? "Unavailable"} />
+                <Fact label="Court case" value={property.court_case_number
+                  ? <button type="button" onClick={() => onSalePageClick(property)} className="text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">{property.court_case_number}</button>
+                  : "Unavailable"} />
                 <Fact label="Parcel / tax ID" value={property.bbl ?? "Unavailable"} />
                 <Fact label="Plaintiff" value={property.plaintiff ?? "Unavailable"} />
                 <Fact label="Defendant" value={property.defendant ?? "Unavailable"} />
                 {property.notice_lien_amount != null && <Fact label="Approx. lien amount (notice)" value={currency(property.notice_lien_amount)} />}
               </dl>
               {property.notice_details && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-700">{property.notice_details}</p>}
-              {property.foreclosure_source_url && (
+              {property.state === "NJ" ? (
+                <button type="button" onClick={() => onSalePageClick(property)} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
+                  View sheriff sale page <ExternalLink className="h-3.5 w-3.5" />
+                </button>
+              ) : property.foreclosure_source_url && (
                 <a href={property.foreclosure_source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
                   Open source record <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -321,11 +408,13 @@ export function PropertyDetailModal({
           )}
 
           <section className="mt-5 rounded-xl border border-slate-200 p-4">
-            <h3 className="mb-3 font-bold text-slate-900">Zillow listing details</h3>
+            <h3 className="mb-3 font-bold text-slate-900">Listing Details</h3>
             <dl className="grid gap-x-6 sm:grid-cols-2">
-              {zillowDetailKeys.map((key) => (
-                <Fact key={key} label={zillowLabel(key)} value={readableZillowValue(key, property.apify_data?.[key])} />
-              ))}
+              {zillowDetailKeys
+                .filter((key) => key !== "garageSpaces" || parkingInfo(property.apify_data?.parking)?.hasGarage)
+                .map((key) => (
+                  <Fact key={key} label={zillowLabel(key)} value={readableZillowValue(key, property.apify_data?.[key], property.apify_data)} />
+                ))}
             </dl>
           </section>
 
