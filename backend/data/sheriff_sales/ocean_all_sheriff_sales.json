@@ -4,22 +4,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "248 SECOND AVENUE BERKELEY NJ 08757",
     "judgment_amount": null,
-    "upset_price": "223641.60",
+    "upset_price": "224433.95",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEW JERSEY HOUSING AND MORTGAGE FIN",
       "defendant": "ALICIA R. GREEN, ET VIR",
       "raw_status": "Scheduled",
-      "description_text": "CH   773241\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $223,641.60\n   F05389214       DEFENDANT   ALICIA R. GREEN, ET VIR\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n                                                     KRISTINA MURTHA\n       SEQ   001     248 SECOND AVENUE                                                       BERKELEY   NJ  08757\n                     Lot: 1098 - 1102                                 Block: 42",
+      "description_text": "CH   773241\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $224,433.95                               1\n   F05389214       DEFENDANT   ALICIA R. GREEN, ET VIR\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n                                                     KRISTINA MURTHA\n       SEQ   001     248 SECOND AVENUE                                                       BERKELEY   NJ  08757\n                     Lot: 1098 - 1102                                 Block: 42",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -31,404 +31,404 @@
     }
   },
   {
-    "sheriff_number": "CH-773712",
+    "sheriff_number": "CH-776240",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "455 MATTHEWS LANE JACKSON NJ 08527",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "1158 CECIL COURT LAKEWOOD NJ 08701",
     "judgment_amount": null,
-    "upset_price": "1509203.10",
+    "upset_price": "1465250.57",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "HSBC BANK USA, NATIONAL ASSOCAITON",
-      "defendant": "STEVEN GRAFFEO, ET ALS",
+      "plaintiff": "HSBC BANK, USA NATIONAL ASSOCIATION",
+      "defendant": "ZEEV RAFAILOV, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   773712\n                   PLAINTIFF    HSBC BANK USA, NATIONAL ASSOCAITON           $1,509,203.10                              1\n   F01102415       DEFENDANT   STEVEN GRAFFEO, ET ALS\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               118.142220-1          LUCAS ANDERSON\n\n       SEQ   001     455 MATTHEWS LANE                                                       JACKSON   NJ  08527\n                     Lot: 15                                          Block: 1503",
+      "description_text": "CH   776240\n                   PLAINTIFF    HSBC BANK, USA NATIONAL ASSOCIATION          $1,465,250.57                              2\n   F01403814       DEFENDANT   ZEEV RAFAILOV, ET ALS\n                   ATTORNEY    FRENKEL LAMBERT WEISS WEISMAN & GORDON, LLP              973-325-8800\n                               03-011835-F00         BRIAN GILBERT\n\n       SEQ   001     1158 CECIL COURT                                                        LAKEWOOD   NJ  08701\n                     Lot: 49.07                                       Block: 1051",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01102415",
-        "block": "1503",
-        "lot": "15",
+        "docket_number": "F01403814",
+        "block": "1051",
+        "lot": "49.07",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-779179",
+    "sheriff_number": "CH-777028",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "1223 SYLVANIA PLACE FORKED RIVER NJ 08731",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "634 CAMPBELL PLACE BRICK NJ 08724",
     "judgment_amount": null,
-    "upset_price": "312286.79",
+    "upset_price": "626130.67",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "U.S. BANK NATIONAL ASSOCIATION",
-      "defendant": "SUSAN E. DIMARIA, ETC, ET AL",
+      "plaintiff": "DEUTSCHE BANK NATIONAL TRUST COMPAN",
+      "defendant": "KEITH WOLFSOHN, ET UX, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   779179\n                   PLAINTIFF    U.S. BANK NATIONAL ASSOCIATION                $312,286.79                               2\n   F00336820       DEFENDANT   SUSAN E. DIMARIA, ETC, ET AL\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                               19-385177             DORI SCOVISH, ESQ.\n\n       SEQ   001     1223 SYLVANIA PLACE                                                     FORKED RIVER    NJ  08731\n                     Lot: 17,18,19,20,21                              Block: 1125 FKA 10",
+      "description_text": "CH   777028\n                   PLAINTIFF    DEUTSCHE BANK NATIONAL TRUST COMPAN           $626,130.67                               2\n   F02718814       DEFENDANT   KEITH WOLFSOHN, ET UX, ET ALS\n                   ATTORNEY    ECKERT SEAMANS ATTORNEYS AT LAW            215-851-8429\n                                                     RICHARD J. NALBANDIAN\n\n       SEQ   001     634 CAMPBELL PLACE                                                      BRICK  NJ   08724\n                     Lot: 4                                           Block: 1421.09",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F00336820",
-        "block": "1125 FKA 10",
-        "lot": "17,18,19,20,21",
+        "docket_number": "F02718814",
+        "block": "1421.09",
+        "lot": "4",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-779734",
+    "sheriff_number": "CH-777893",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "24 COMPASS LANE BARNEGAT NJ 08005",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "225 MEDJAY LANE TOMS RIVER NJ 08755",
     "judgment_amount": null,
-    "upset_price": "314560.77",
+    "upset_price": "752026.18",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "NATIONSTAR MORTGAGE LLC",
-      "defendant": "ANTHONY VINCENT FERRANTE, ETC., ET ALS",
+      "plaintiff": "DEUTSCHE BANK NATIONAL TRUST COMPAN",
+      "defendant": "JOANNE A. RAIMONDI, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   779734\n                   PLAINTIFF    NATIONSTAR MORTGAGE LLC                       $314,560.77\n   F00094523       DEFENDANT   ANTHONY VINCENT FERRANTE, ETC., ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                               22-088132             JOHN KUNDRAT, ESQ.\n       SEQ   001     24 COMPASS LANE                                                         BARNEGAT   NJ  08005\n                     Lot: 19                                          Block: 114.06",
+      "description_text": "CH   777893\n                   PLAINTIFF    DEUTSCHE BANK NATIONAL TRUST COMPAN           $752,026.18                               2\n   F01301317       DEFENDANT   JOANNE A. RAIMONDI, ET ALS\n                   ATTORNEY    MCCALLA RAYMER LEIBERT PIERCE, LLP           732-902-5399\n                               21-04544NJ            MACY ROBINSON\n       SEQ   001     225 MEDJAY LANE                                                         TOMS RIVER    NJ  08755\n                     Lot: 45.16                                       Block: 298",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F00094523",
-        "block": "114.06",
-        "lot": "19",
+        "docket_number": "F01301317",
+        "block": "298",
+        "lot": "45.16",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-779761",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "bankruptcy",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "152 NAUTILUS DRIVE BARNEGAT NJ 08005",
-    "judgment_amount": null,
-    "upset_price": "636920.05",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "AJAX MORTGAGE LOAN TRUST 2021-F, MO",
-      "defendant": "HOLLY A. DAUBER, ET ALS",
-      "raw_status": "Bankruptcy",
-      "description_text": "CH   779761\n                   PLAINTIFF    AJAX MORTGAGE LOAN TRUST 2021-F, MO           $636,920.05      BANKRUPTCY               1\n   F01059322       DEFENDANT   HOLLY A. DAUBER, ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               222506-1              ADAM FRIEDMAN, ESQ.\n       SEQ   001     152 NAUTILUS DRIVE                                                      BARNEGAT   NJ  08005\n                     Lot: 6                                           Block: 92.40",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "bankruptcy",
-          "raw_status": "Bankruptcy",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01059322",
-        "block": "92.40",
-        "lot": "6",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780230",
+    "sheriff_number": "CH-778965",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "61 PASADENA ROAD WHITING NJ 08759",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "1008 HALLIARD AVENUE BEACHWOOD NJ 08722",
     "judgment_amount": null,
-    "upset_price": "661175.90",
+    "upset_price": "302814.03",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
-      "defendant": "KENNETH WICKHAM JR",
+      "plaintiff": "US BANK TRUST N.A., NOT IN IT INDIV",
+      "defendant": "ROBERT J. DI BELLA, ETC, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780230\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $661,175.90                               1\n   F01181123       DEFENDANT   KENNETH WICKHAM JR\n                   ATTORNEY    MCCALLA RAYMER LEIBERT PIERCE, LLP           732-902-5399\n                               23-09991NJ            PAOLA ODRIOZOLA , LEGAL\n\n       SEQ   001     61 PASADENA ROAD                                                        WHITING   NJ  08759\n                     Lot: 1                                           Block: 99.346",
+      "description_text": "CH   778965\n                   PLAINTIFF    US BANK TRUST N.A., NOT IN IT INDIV           $302,814.03\n   F01882019       DEFENDANT   ROBERT J. DI BELLA, ETC, ET ALS\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               NJ202000000421        LUCAS M. ANDERSON, ESQ.\n       SEQ   001     1008 HALLIARD AVENUE                                                    BEACHWOOD   NJ   08722\n                     Lot: 10                                          Block: 5.26",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01181123",
-        "block": "99.346",
-        "lot": "1",
+        "docket_number": "F01882019",
+        "block": "5.26",
+        "lot": "10",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-780274",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "719 LINCOLN AVENUE PINE BEACH NJ 08741",
-    "judgment_amount": null,
-    "upset_price": "494519.95",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "U.S. BANK TRUST, NATIONAL ASSOCIATI",
-      "defendant": "JODI FACKENTHAL, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780274\n                   PLAINTIFF    U.S. BANK TRUST, NATIONAL ASSOCIATI           $494,519.95                               2\n   F00657623       DEFENDANT   JODI FACKENTHAL, ET ALS\n                   ATTORNEY    HILL WALLACK LLP                           609-924-0808\n                               22706-253/KLD         MICHAEL KAHME, ESQ.\n       SEQ   001     719 LINCOLN AVENUE                                                      PINE BEACH    NJ  08741\n                     Lot: 19 & 21                                     Block: 24",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00657623",
-        "block": "24",
-        "lot": "19 & 21",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780306",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "832 CHELSEA STREET FORKED RIVER NJ 08731",
-    "judgment_amount": null,
-    "upset_price": "550294.53",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "HSBC BANK USA, NATIONAL ASSOCIATION",
-      "defendant": "ANGELO APPOLONIA, ET AL",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780306\n                   PLAINTIFF    HSBC BANK USA, NATIONAL ASSOCIATION           $550,294.53                               1\n   F00418121       DEFENDANT   ANGELO APPOLONIA, ET AL\n                   ATTORNEY    PARKER MCCAY P.A.                          856-596-8900\n                               13424-18-34269        SHANNON BRANAM, LEGAL ASST.\n\n       SEQ   001     832 CHELSEA STREET                                                      FORKED RIVER    NJ  08731\n                     Lot: 26.02                                       Block: 1548",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00418121",
-        "block": "1548",
-        "lot": "26.02",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780381",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "25 WEST DELAWARE DRIVE LITTLE EGG HARB NJ 08087",
-    "judgment_amount": null,
-    "upset_price": "498332.10",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "HSBC BANK USA, N.A.",
-      "defendant": "SIU PING PAMELA YUEN, ETC., ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780381\n                   PLAINTIFF    HSBC BANK USA, N.A.                           $498,332.10                               1\n   F2179818        DEFENDANT   SIU PING PAMELA YUEN, ETC., ET ALS\n                   ATTORNEY    FEIN, SUCH, KAHN & SHEPARD, PC             973-538-4700\n                               DHJ008                NICHOLAS J. CANOVA, ESQ.\n\n       SEQ   001     25 WEST DELAWARE DRIVE                                                  LITTLE EGG HARB     NJ  08087\n                     Lot: 14                                          Block: 325.92",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F2179818",
-        "block": "325.92",
-        "lot": "14",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780492",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "195 PARKERTOWN DRIVE LITTLE EGG HARB NJ 08087",
-    "judgment_amount": null,
-    "upset_price": "371597.66",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "WILMINGTON TRUST, NATIONAL ASSOCIAT",
-      "defendant": "STACY MURPHY, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780492\n                   PLAINTIFF    WILMINGTON TRUST, NATIONAL ASSOCIAT           $371,597.66\n   F00687324       DEFENDANT   STACY MURPHY, ET ALS\n                   ATTORNEY    FRENKEL LAMBERT WEISS WEISMAN & GORDON, LLP              973-325-8800\n                               03-021794-F00         TIMOTHY ZIEGLER, ESQ.\n       SEQ   001     195 PARKERTOWN DRIVE                                                    LITTLE EGG HARB     NJ  08087\n                     Lot: 1                                           Block: 171",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00687324",
-        "block": "171",
-        "lot": "1",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780493",
+    "sheriff_number": "CH-779072",
     "state": "NJ",
     "county": "Ocean",
     "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "12 B INLET DRIVE POINT PLEASANT NJ 08742",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "592 KINGFISHER CIRCLE BRICK NJ 08723",
     "judgment_amount": null,
-    "upset_price": "344363.65",
+    "upset_price": "964145.08",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "WILMINGTON SAVINGS FUND SOCIETY, FS",
-      "defendant": "ERIKA M. CAPONE, ET ALS",
+      "defendant": "GARY BEYERS, ET UX, ET ALS",
       "raw_status": "Cancellation",
-      "description_text": "CH   780493\n                   PLAINTIFF    WILMINGTON SAVINGS FUND SOCIETY, FS           $344,363.65      CANCELLATION\n   F00151624       DEFENDANT   ERIKA M. CAPONE, ET ALS\n                   ATTORNEY    GREENSPOON MARDER LLP                      954-491-1120\n\n\n       SEQ   001     12 B INLET DRIVE                                                        POINT PLEASANT     NJ  08742\n                     Lot: 40.02                                       Block: 176",
+      "description_text": "CH   779072\n                   PLAINTIFF    WILMINGTON SAVINGS FUND SOCIETY, FS           $964,145.08     CANCELLATION              2\n   F00991320       DEFENDANT   GARY BEYERS, ET UX, ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               114094                ROBERT F. THOMAS, ESQ.\n\n       SEQ   001     592 KINGFISHER CIRCLE                                                   BRICK  NJ   08723\n                     Lot: 3                                           Block: 160",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "cancelled",
           "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F00151624",
-        "block": "176",
-        "lot": "40.02",
+        "docket_number": "F00991320",
+        "block": "160",
+        "lot": "3",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-780514",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "315 PARISEN AVE BAYVILLE NJ 08721",
-    "judgment_amount": null,
-    "upset_price": "583892.62",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "PHH MORTGAGE CORPORATION",
-      "defendant": "JACK HOWARD BULSON III, ET UX",
-      "raw_status": "Cancellation",
-      "description_text": "CH   780514\n                   PLAINTIFF    PHH MORTGAGE CORPORATION                      $583,892.62      CANCELLATION\n   F00353225       DEFENDANT   JACK HOWARD BULSON III, ET UX\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                               25-292037             DORI SCOVISH ESQ.\n\n       SEQ   001     315 PARISEN AVE                                                         BAYVILLE   NJ  08721\n                     Lot: 7 AKA 7,8,9,10                              Block: 1642",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "cancelled",
-          "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00353225",
-        "block": "1642",
-        "lot": "7 AKA 7,8,9,10",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780667",
+    "sheriff_number": "CH-779164",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "530 EASTERN BLVD BAYVILLE NJ 08721",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "12 DAYTON AVENUE TOMS RIVER NJ 08753",
     "judgment_amount": null,
-    "upset_price": "576783.54",
+    "upset_price": "275135.68",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "AMERICAN NEIGHBORHOOD MORTGAGE ACCE",
-      "defendant": "MATTHEW STERN, ET ALS",
+      "plaintiff": "MATRIX FINANCIAL SERVICES CORPORATI",
+      "defendant": "CARYN ANN ESPOSITO, ET VIR",
       "raw_status": "Scheduled",
-      "description_text": "CH   780667\n                   PLAINTIFF    AMERICAN NEIGHBORHOOD MORTGAGE ACCE           $576,783.54                               2\n   F01183725       DEFENDANT   MATTHEW STERN, ET ALS\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n\n\n       SEQ   001     530 EASTERN BLVD                                                        BAYVILLE   NJ  08721\n                     Lot: 5,6,7,8,9,10                                Block: 730",
+      "description_text": "CH   779164\n                   PLAINTIFF    MATRIX FINANCIAL SERVICES CORPORATI           $275,135.68                               2\n   F01733219       DEFENDANT   CARYN ANN ESPOSITO, ET VIR\n                   ATTORNEY    FEIN, SUCH, KAHN & SHEPARD, PC             973-538-4700\n                               ZSPSJ006              NICHOLAS J. CANOVA\n       SEQ   001     12 DAYTON AVENUE                                                        TOMS RIVER    NJ  08753\n                     Lot: 13                                          Block: 614",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01183725",
-        "block": "730",
-        "lot": "5,6,7,8,9,10",
+        "docket_number": "F01733219",
+        "block": "614",
+        "lot": "13",
         "parser_version": "ocean-pdf-v1"
       }
     }
   },
   {
-    "sheriff_number": "CH-780668",
+    "sheriff_number": "CH-779448",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "58 HOMESTEAD ROAD TOMS RIVER NJ 08753",
+    "judgment_amount": null,
+    "upset_price": "364416.08",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "MORTGAGE ASSETS MANAGEMENT, LLC",
+      "defendant": "EILEEN M. RAUM, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   779448\n                   PLAINTIFF    MORTGAGE ASSETS MANAGEMENT, LLC               $364,416.08                               1\n   F00014822       DEFENDANT   EILEEN M. RAUM, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                               21-068394             DORI SCOVISH, ESQ.\n\n       SEQ   001     58 HOMESTEAD ROAD                                                       TOMS RIVER    NJ  08753\n                     Lot: 36 FKA 20                                   Block: 236.02 FKA",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00014822",
+        "block": "236.02 FKA",
+        "lot": "36 FKA 20",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-779963",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-11-17T00:00:00",
+    "address": "59 NEWELL AVENUE WEST CREEK NJ 08092",
+    "judgment_amount": null,
+    "upset_price": "274452.26",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "LEGACY MORTGAGE ASSET TRUST 2021-GS",
+      "defendant": "ANGELA L. KROLICZAK, ET VIR, ET AL                              11/17/2026",
+      "raw_status": "Adjourned until 11/17/2026",
+      "description_text": "CH   779963\n                   PLAINTIFF    LEGACY MORTGAGE ASSET TRUST 2021-GS           $274,452.26      ADJOURNED UNTIL          2\n   F00861623       DEFENDANT   ANGELA L. KROLICZAK, ET VIR, ET AL                              11/17/2026\n                   ATTORNEY    MCCABE, WEISBERG & CONWAY, LLC             856-858-7080\n                               23-200025             BERNADETTE FOLENO, LEGAL\n\n       SEQ   001     59 NEWELL AVENUE                                                        WEST CREEK    NJ  08092\n                     Lot: 10                                          Block: 142",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 11/17/2026",
+          "sale_date": "2026-11-17T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00861623",
+        "block": "142",
+        "lot": "10",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780309",
     "state": "NJ",
     "county": "Ocean",
     "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "1875 HIDDEN BROOK COURT TOMS RIVER NJ 08753",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "535 EAST POINT PLEASANT AVENUE OCEAN GATE NJ 08740",
     "judgment_amount": null,
-    "upset_price": "431941.66",
+    "upset_price": "176070.90",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "PENNYMAC LOAN SERVICES, LLC",
-      "defendant": "ESTHER S. NOTIS",
+      "plaintiff": "FEDERAL HOME LOAN MORTGAGE CORPORAT",
+      "defendant": "JULIE A. TROVATO, ET ALS",
       "raw_status": "Cancellation",
-      "description_text": "CH   780668\n                   PLAINTIFF    PENNYMAC LOAN SERVICES, LLC                   $431,941.66     CANCELLATION              1\n   F01368625       DEFENDANT   ESTHER S. NOTIS\n                   ATTORNEY    POWERS KIRN, LLC                           856-802-1000\n                               2025-0705             SARAH E. POWERS, LEGAL\n\n       SEQ   001     1875 HIDDEN BROOK COURT                                                 TOMS RIVER    NJ  08753\n                     Lot: 20.01                                       Block: 394",
+      "description_text": "CH   780309\n                   PLAINTIFF    FEDERAL HOME LOAN MORTGAGE CORPORAT           $176,070.90      CANCELLATION             2\n   F00675124       DEFENDANT   JULIE A. TROVATO, ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               113992                ROBERT F. THOMAS, ESQ.\n       SEQ   001     535 EAST POINT PLEASANT AVENUE                                          OCEAN GATE    NJ  08740\n                     Lot: 10                                          Block: 63",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "cancelled",
           "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01368625",
-        "block": "394",
-        "lot": "20.01",
+        "docket_number": "F00675124",
+        "block": "63",
+        "lot": "10",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780451",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "613 BRANCH DRIVE TOMS RIVER NJ 08755",
+    "judgment_amount": null,
+    "upset_price": "630973.61",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
+      "defendant": "JAMES HOLMES, ET AL",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780451\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $630,973.61                               2\n   F01079522       DEFENDANT   JAMES HOLMES, ET AL\n                   ATTORNEY    GROSS POLOWY LLC                           716-204-1700\n                                                     DIANA DASH, LEGAL ASST. 3\n       SEQ   001     613 BRANCH DRIVE                                                        TOMS RIVER    NJ  08755\n                     Lot: 49                                          Block: 411.02",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01079522",
+        "block": "411.02",
+        "lot": "49",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780473",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "13 HAMPSHIRE LANE MANCHESTER NJ 08759",
+    "judgment_amount": null,
+    "upset_price": "94252.52",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "NEWREZ LLC D/B/A SHELLPOINT MORTGAG",
+      "defendant": "JOSEPHINE GANT, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780473\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG            $94,252.52\n   F00234025       DEFENDANT   JOSEPHINE GANT, ET ALS\n                   ATTORNEY    PARKER, MC CAY                             856-596-8900\n                               15486-25-52697        SHANNON BRANAM, LEGAL ASST.\n\n       SEQ   001     13 HAMPSHIRE LANE                                                       MANCHESTER    NJ  08759\n                     Lot: 48                                          Block: 102.15",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00234025",
+        "block": "102.15",
+        "lot": "48",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780619",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-12-01T00:00:00",
+    "address": "4 CHIPPEWA RD TOMS RIVER NJ 08753",
+    "judgment_amount": null,
+    "upset_price": "383210.99",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "U.S. BANK NATIONAL ASSOCIATION, AS",
+      "defendant": "ELIZABETH KRALJEV-VARELLAS, ETC., ET ALS                        12/01/2026",
+      "raw_status": "Adjourned until 12/01/2026",
+      "description_text": "CH   780619\n                   PLAINTIFF    U.S. BANK NATIONAL ASSOCIATION, AS            $383,210.99      ADJOURNED UNTIL          1\n   F01122024       DEFENDANT   ELIZABETH KRALJEV-VARELLAS, ETC., ET ALS                        12/01/2026\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH, ESQ.\n       SEQ   001     4 CHIPPEWA RD                                                           TOMS RIVER    NJ  08753\n                     Lot: 2                                           Block: 443.32",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 12/01/2026",
+          "sale_date": "2026-12-01T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01122024",
+        "block": "443.32",
+        "lot": "2",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780662",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "2287 MAPLE MANOR COURT TOMS RIVER NJ 08755",
+    "judgment_amount": null,
+    "upset_price": "944380.31",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "CITIMORTGAGE, INC.",
+      "defendant": "AVINOAM RUDICH, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780662\n                   PLAINTIFF    CITIMORTGAGE, INC.                            $944,380.31                               1\n   F00563525       DEFENDANT   AVINOAM RUDICH, ET ALS\n                   ATTORNEY    POWERS KIRN, LLC                           856-802-1000\n                               2025-0075             ANDREA GHEGAN, LEGAL ASST.\n\n       SEQ   001     2287 MAPLE MANOR COURT                                                  TOMS RIVER    NJ  08755\n                     Lot: 11.03                                       Block: 167",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00563525",
+        "block": "167",
+        "lot": "11.03",
         "parser_version": "ocean-pdf-v1"
       }
     }
@@ -438,22 +438,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "606 BOWSPRIT POINT LACEY TOWNSHIP NJ 08734",
     "judgment_amount": null,
-    "upset_price": "370070.64",
+    "upset_price": "371756.73",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEW JERSEY HOUSING AND MORTGAGE FIN",
       "defendant": "MARISSA SANTIAGO, ET AL",
       "raw_status": "Scheduled",
-      "description_text": "CH   780674\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $370,070.64\n   F00958624       DEFENDANT   MARISSA SANTIAGO, ET AL\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               114352_ST_1           ROBERT F. THOMAS, ESQ.\n\n       SEQ   001     606 BOWSPRIT POINT                                                      LACEY TOWNSHIP     NJ  08734\n                     Lot: 17,18                                       Block: 802",
+      "description_text": "CH   780674\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $371,756.73\n   F00958624       DEFENDANT   MARISSA SANTIAGO, ET AL\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               114352_ST_1           ROBERT F. THOMAS, ESQ.\n\n       SEQ   001     606 BOWSPRIT POINT                                                      LACEY TOWNSHIP     NJ  08734\n                     Lot: 17,18                                       Block: 802",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -465,63 +465,32 @@
     }
   },
   {
-    "sheriff_number": "CH-780677",
+    "sheriff_number": "CH-780676",
     "state": "NJ",
     "county": "Ocean",
     "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "895 NEVILLE STREET TOMS RIVER NJ 08753",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "14 ROYCE COURT STAFFORD TWP. NJ 08092",
     "judgment_amount": null,
-    "upset_price": "273778.13",
+    "upset_price": "68295.67",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "NEW JERSEY HOUSING AND MORTGAGE FIN",
-      "defendant": "KEVIN C. CLEAVER, ETC., ET ALS",
+      "plaintiff": "FEDERAL HOME LOAN MORTGAGE CORPORAT",
+      "defendant": "MARC M. FESSLER, ET ALS",
       "raw_status": "Cancellation",
-      "description_text": "CH   780677\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $273,778.13     CANCELLATION              1\n   F01067225       DEFENDANT   KEVIN C. CLEAVER, ETC., ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               117445                ROBERT F. THOMAS, ESQ.\n       SEQ   001     895 NEVILLE STREET                                                      TOMS RIVER    NJ  08753\n                     Lot: 23                                          Block: 1501.10",
+      "description_text": "CH   780676\n                   PLAINTIFF    FEDERAL HOME LOAN MORTGAGE CORPORAT            $68,295.67      CANCELLATION             2\n   F00752625       DEFENDANT   MARC M. FESSLER, ET ALS\n                   ATTORNEY    HLADIK, ONORATO & FEDERMAN LLP             609-840-5001\n                               25-01240              JEFFREY RAPPAPORT, ESQ.\n       SEQ   001     14 ROYCE COURT                                                          STAFFORD TWP.    NJ   08092\n                     Lot: 10                                          Block: 128.03",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "cancelled",
           "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01067225",
-        "block": "1501.10",
-        "lot": "23",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780678",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "17 GRASSMERE ST LAKEWOOD NJ 08701",
-    "judgment_amount": null,
-    "upset_price": "242992.36",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "CITIBANK, N.A., NOT IN ITS INDIVIDU",
-      "defendant": "YOEL A. BERKOVIC, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780678\n                   PLAINTIFF    CITIBANK, N.A., NOT IN ITS INDIVIDU           $242,992.36                               2\n   F00881525       DEFENDANT   YOEL A. BERKOVIC, ET ALS\n                   ATTORNEY    PINCUS & TARAB\n                               08042025.67950        CAITLIN DARK, SENIOR\n       SEQ   001     17 GRASSMERE ST                                                         LAKEWOOD   NJ  08701\n                     Lot: 28.08                                       Block: 782",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00881525",
-        "block": "782",
-        "lot": "28.08",
+        "docket_number": "F00752625",
+        "block": "128.03",
+        "lot": "10",
         "parser_version": "ocean-pdf-v1"
       }
     }
@@ -531,22 +500,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "54 TIMBERLINE ROAD BAYVILLE NJ 08721",
     "judgment_amount": null,
-    "upset_price": "376235.27",
+    "upset_price": "378008.68",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "LAKEVIEW LOAN SERVICING, LLC",
       "defendant": "JESSE C. GEORGAKLIS, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780679\n                   PLAINTIFF    LAKEVIEW LOAN SERVICING, LLC                  $376,235.27                               1\n   F00710725       DEFENDANT   JESSE C. GEORGAKLIS, ET ALS\n                   ATTORNEY    STERN, LAVINTHAL & FRANKENBERG, LLC.            973-797-1100\n                               202500301             KARA VININSKI, PARALEGAL\n\n       SEQ   001     54 TIMBERLINE ROAD                                                      BAYVILLE   NJ  08721\n                     Lot: 7                                           Block: 939.05",
+      "description_text": "CH   780679\n                   PLAINTIFF    LAKEVIEW LOAN SERVICING, LLC                  $378,008.68                               2\n   F00710725       DEFENDANT   JESSE C. GEORGAKLIS, ET ALS\n                   ATTORNEY    STERN, LAVINTHAL & FRANKENBERG, LLC.            973-797-1100\n                               202500301             KARA VININSKI, PARALEGAL\n       SEQ   001     54 TIMBERLINE ROAD                                                      BAYVILLE   NJ  08721\n                     Lot: 7                                           Block: 939.05",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -558,125 +527,32 @@
     }
   },
   {
-    "sheriff_number": "CH-780680",
+    "sheriff_number": "CH-780691",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "288 THOMAS AVENUE LITTLE EGG HARB NJ 08087",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "160 FIRST AVENUE BERKELEY NJ 08757",
     "judgment_amount": null,
-    "upset_price": "129697.78",
+    "upset_price": "98410.03",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "JPMORGAN CHASE BANK, NATIONAL ASSOC",
-      "defendant": "GREGG J. JUSZCZAK, ETC., ET ALS",
+      "plaintiff": "NEW JERSEY HOUSING AND MORTGAGE FIN",
+      "defendant": "BLONDELL M. MILLIGAN, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780680\n                   PLAINTIFF    JPMORGAN CHASE BANK, NATIONAL ASSOC           $129,697.78                               2\n   F01235825       DEFENDANT   GREGG J. JUSZCZAK, ETC., ET ALS\n                   ATTORNEY    MCCALLA RAYMER LEIBERT PIERCE, LLP           732-902-5399\n                               22-07650NJ            STEPHANIE TORRES, LEGAL\n       SEQ   001     288 THOMAS AVENUE                                                       LITTLE EGG HARB     NJ  08087\n                     Lot: 17                                          Block: 126",
+      "description_text": "CH   780691\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN            $98,410.03                               2\n   F01060125       DEFENDANT   BLONDELL M. MILLIGAN, ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               113798_ST_1           ROBERT F. THOMAS, ESQ.\n\n       SEQ   001     160 FIRST AVENUE                                                        BERKELEY   NJ  08757\n                     Lot: 76.02                                       Block: 30",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01235825",
-        "block": "126",
-        "lot": "17",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780681",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "56 SIDNEY COURT BRICK NJ 08724",
-    "judgment_amount": null,
-    "upset_price": "478931.69",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "US BANK TRUST NATIONAL ASSOCIATION,",
-      "defendant": "ANNE BETTE CHAMBERLAIN, ETC., ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780681\n                   PLAINTIFF    US BANK TRUST NATIONAL ASSOCIATION,           $478,931.69                               2\n   F00650725       DEFENDANT   ANNE BETTE CHAMBERLAIN, ETC., ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               250769-2              PERRY RUSSELL, ESQ.\n\n       SEQ   001     56 SIDNEY COURT                                                         BRICK  NJ   08724\n                     Lot: 77                                          Block: 1192.08",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00650725",
-        "block": "1192.08",
-        "lot": "77",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780683",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "122 TAYLOR BOULEVARD BRICK NJ 08724",
-    "judgment_amount": null,
-    "upset_price": "392801.20",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
-      "defendant": "MARK NALDUCCI, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780683\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $392,801.20                               1\n   F01176323       DEFENDANT   MARK NALDUCCI, ET ALS\n                   ATTORNEY    HILL WALLACK LLP                           609-924-0808\n                               22746-75/KLD          MICHAEL KAHME, ESQ\n\n       SEQ   001     122 TAYLOR BOULEVARD                                                    BRICK  NJ   08724\n                     Lot: 13,14                                       Block: 869.06",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01176323",
-        "block": "869.06",
-        "lot": "13,14",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780687",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "503 MAPLE STREET LAKEHURST NJ 08733",
-    "judgment_amount": null,
-    "upset_price": "272832.88",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "FREEDOM MORTGAGE CORPORATION",
-      "defendant": "JONATHAN SPEAR, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780687\n                   PLAINTIFF    FREEDOM MORTGAGE CORPORATION                  $272,832.88\n   F00858625       DEFENDANT   JONATHAN SPEAR, ET ALS\n                   ATTORNEY    PARKER, MC CAY                             856-596-8900\n                               30290-25-53417        NICOLE CIPRIAN, LEGAL ASST.\n       SEQ   001     503 MAPLE STREET                                                        LAKEHURST   NJ   08733\n                     Lot: 9.03                                        Block: 37",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00858625",
-        "block": "37",
-        "lot": "9.03",
+        "docket_number": "F01060125",
+        "block": "30",
+        "lot": "76.02",
         "parser_version": "ocean-pdf-v1"
       }
     }
@@ -693,14 +569,14 @@
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEWREZ LLC D/B/A SHELLPOINT MORTGAG",
-      "defendant": "MARIE E. NIMETH, ET ALS                                         10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780693\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG           $241,757.84      ADJOURNED UNTIL\n   F00784525       DEFENDANT   MARIE E. NIMETH, ET ALS                                         10/06/2026\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               253642-1              PERRY RUSSELL, ESQ.\n       SEQ   001     104 MORNING GLORY LANE                                                  MANCHESTER    NJ  08759\n                     Lot: 34                                          Block: 98.02",
+      "defendant": "MARIE E. NIMETH, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780693\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG           $241,757.84\n   F00784525       DEFENDANT   MARIE E. NIMETH, ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               253642-1              PERRY RUSSELL, ESQ.\n       SEQ   001     104 MORNING GLORY LANE                                                  MANCHESTER    NJ  08759\n                     Lot: 34                                          Block: 98.02",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
         }
       ],
@@ -717,22 +593,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "220 DOGWOOD DRIVE BAYVILLE NJ 08721",
     "judgment_amount": null,
-    "upset_price": "268542.62",
+    "upset_price": "269824.19",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEW SILVER LENDING LLC",
       "defendant": "AKL HOME MANAGEMENT LLC, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780695\n                   PLAINTIFF    NEW SILVER LENDING LLC                        $268,542.62                               1\n   F1174425        DEFENDANT   AKL HOME MANAGEMENT LLC, ET ALS\n                   ATTORNEY    FEIN, SUCH, KAHN & SHEPARD, PC             973-538-4700\n                               END-005               NICHOLAS J. CANOVA, ESQ.\n\n       SEQ   001     220 DOGWOOD DRIVE                                                       BAYVILLE   NJ  08721\n                     Lot: 10                                          Block: 1559",
+      "description_text": "CH   780695\n                   PLAINTIFF    NEW SILVER LENDING LLC                        $269,824.19                               2\n   F1174425        DEFENDANT   AKL HOME MANAGEMENT LLC, ET ALS\n                   ATTORNEY    FEIN, SUCH, KAHN & SHEPARD, PC             973-538-4700\n                               END-005               NICHOLAS J. CANOVA, ESQ.\n\n       SEQ   001     220 DOGWOOD DRIVE                                                       BAYVILLE   NJ  08721\n                     Lot: 10                                          Block: 1559",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -744,57 +620,26 @@
     }
   },
   {
-    "sheriff_number": "CH-780696",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "670 A NEW CASTLE COURT LAKEWOOD NJ 08701",
-    "judgment_amount": null,
-    "upset_price": "54626.96",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "M&T BANK",
-      "defendant": "ANGELA R. CALDWELL, ETC., ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780696\n                   PLAINTIFF    M&T BANK                                       $54,626.96                               1\n   F00560625       DEFENDANT   ANGELA R. CALDWELL, ETC., ET ALS\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n\n\n       SEQ   001     670 A NEW CASTLE COURT                                                  LAKEWOOD   NJ  08701\n                     Lot: 670.01                                      Block: 1248",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00560625",
-        "block": "1248",
-        "lot": "670.01",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
     "sheriff_number": "CH-780697",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "24 BAY AVE MANAHAWKIN NJ 08050",
     "judgment_amount": null,
-    "upset_price": "74919.27",
+    "upset_price": "78544.25",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEWREZ LLC D/B/A SHELLPOINT MORTGAG",
       "defendant": "DAVID F. MANSFIELD, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780697\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG            $74,919.27                               1\n   F00021226       DEFENDANT   DAVID F. MANSFIELD, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH ESQ.\n\n       SEQ   001     24 BAY AVE                                                              MANAHAWKIN    NJ  08050\n                     Lot: 22                                          Block: 300",
+      "description_text": "CH   780697\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG            $78,544.25                               2\n   F00021226       DEFENDANT   DAVID F. MANSFIELD, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH ESQ.\n\n       SEQ   001     24 BAY AVE                                                              MANAHAWKIN    NJ  08050\n                     Lot: 22                                          Block: 300",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -817,14 +662,14 @@
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "DEUTSCHE BANK NATIONAL TRUST COMPAN",
-      "defendant": "ANNA MAY CARMEL, ET AL                                          10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780698\n                   PLAINTIFF    DEUTSCHE BANK NATIONAL TRUST COMPAN           $305,375.86      ADJOURNED UNTIL          2\n   F01354225       DEFENDANT   ANNA MAY CARMEL, ET AL                                          10/06/2026\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH ESQ.\n\n       SEQ   001     2O SOUTH DAYTON DRIVE                                                   LITTLE EGG HARB     NJ  08087\n                     Lot: 11                                          Block: 325.308",
+      "defendant": "ANNA MAY CARMEL, ET AL",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780698\n                   PLAINTIFF    DEUTSCHE BANK NATIONAL TRUST COMPAN           $305,375.86                               2\n   F01354225       DEFENDANT   ANNA MAY CARMEL, ET AL\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH ESQ.\n       SEQ   001     2O SOUTH DAYTON DRIVE                                                   LITTLE EGG HARB     NJ  08087\n                     Lot: 11                                          Block: 325.308",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
         }
       ],
@@ -841,22 +686,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "10 LAKEWOOD ROAD NEW EGYPT NJ 08533",
     "judgment_amount": null,
-    "upset_price": "423440.81",
+    "upset_price": "425494.69",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "NEW JERSEY HOUSING AND MORTGAGE FIN",
       "defendant": "KATRINA BROOKS, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780699\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $423,440.81\n   F01301625       DEFENDANT   KATRINA BROOKS, ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               117833                ROBERT F. THOMAS, ESQ.\n       SEQ   001     10 LAKEWOOD ROAD                                                        NEW EGYPT   NJ   08533\n                     Lot: 24                                          Block: 13",
+      "description_text": "CH   780699\n                   PLAINTIFF    NEW JERSEY HOUSING AND MORTGAGE FIN           $425,494.69\n   F01301625       DEFENDANT   KATRINA BROOKS, ET ALS\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               117833                ROBERT F. THOMAS, ESQ.\n       SEQ   001     10 LAKEWOOD ROAD                                                        NEW EGYPT   NJ   08533\n                     Lot: 24                                          Block: 13",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -868,63 +713,63 @@
     }
   },
   {
-    "sheriff_number": "CH-780701",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "2527 LEXINGTON COURT JACKSON NJ 08527",
-    "judgment_amount": null,
-    "upset_price": "230382.46",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "TOWD POINT MORTGAGE TRUST 2019-4, U",
-      "defendant": "MICHAEL AUSTIN, ET ALS",
-      "raw_status": "Cancellation",
-      "description_text": "CH   780701\n                   PLAINTIFF    TOWD POINT MORTGAGE TRUST 2019-4, U           $230,382.46      CANCELLATION\n   F00023626       DEFENDANT   MICHAEL AUSTIN, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH ESQ.\n       SEQ   001     2527 LEXINGTON COURT                                                    JACKSON   NJ  08527\n                     Lot: 24 FKA 25.27                                Block: 21801 FKA 5",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "cancelled",
-          "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00023626",
-        "block": "21801 FKA 5",
-        "lot": "24 FKA 25.27",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780703",
+    "sheriff_number": "CH-780702",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "201 GILFORD AVENUE ISLAND HEIGHTS NJ 08732",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "23 ANCHOR ROAD BARNEGAT NJ 08005",
     "judgment_amount": null,
-    "upset_price": "203230.20",
+    "upset_price": "263617.33",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "SANTANDER BANK, N.A.",
-      "defendant": "THOMAS C KOCH, ET ALS",
+      "plaintiff": "U.S. BANK NATIONAL ASSOCIATION, AS",
+      "defendant": "MELISSA DEPINTO, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780703\n                   PLAINTIFF    SANTANDER BANK, N.A.                          $203,230.20                               1\n   F01336125       DEFENDANT   THOMAS C KOCH, ET ALS\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               22-01163 FC03         MICHELLE MCGOVERN, LEGAL\n\n       SEQ   001     201 GILFORD AVENUE                                                      ISLAND HEIGHTS     NJ  08732\n                     Lot: 10                                          Block: 43",
+      "description_text": "CH   780702\n                   PLAINTIFF    U.S. BANK NATIONAL ASSOCIATION, AS            $263,617.33                               1\n   F01235725       DEFENDANT   MELISSA DEPINTO, ET ALS\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               118.042262            LUCAS M. ANDERSON, ESQ.\n\n       SEQ   001     23 ANCHOR ROAD                                                          BARNEGAT   NJ  08005\n                     Lot: 34                                          Block: 114.27",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
-        "docket_number": "F01336125",
-        "block": "43",
-        "lot": "10",
+        "docket_number": "F01235725",
+        "block": "114.27",
+        "lot": "34",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780704",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "43 CENTRAL BLVD BRICK NJ 08724",
+    "judgment_amount": null,
+    "upset_price": "176085.73",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "SANTANDER BANK, N.A.",
+      "defendant": "JEANETTE M. STRATTON",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780704\n                   PLAINTIFF    SANTANDER BANK, N.A.                          $176,085.73                              1\n   F01335625       DEFENDANT   JEANETTE M. STRATTON\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               25-31371 FC01         MICHELLE MCGOVERN, LEGAL\n       SEQ   001     43 CENTRAL BLVD                                                         BRICK  NJ   08724\n                     Lot: 53                                          Block: 1192.08",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01335625",
+        "block": "1192.08",
+        "lot": "53",
         "parser_version": "ocean-pdf-v1"
       }
     }
@@ -941,14 +786,14 @@
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "UNITY BANK",
-      "defendant": "GEORGE LAROSA, ET ALS                                           10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780705\n                   PLAINTIFF    UNITY BANK                                    $338,784.88      ADJOURNED UNTIL          2\n   F01099924       DEFENDANT   GEORGE LAROSA, ET ALS                                           10/06/2026\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               24-26896 FC01         MICHELLE MCGOVERN, LEGAL\n       SEQ   001     69 CHESTNUT WAY CIRCLE                                                  BARNEGAT   NJ  08005\n                     Lot: 22                                          Block: 116.35",
+      "defendant": "GEORGE LAROSA, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780705\n                   PLAINTIFF    UNITY BANK                                    $338,784.88                              2\n   F01099924       DEFENDANT   GEORGE LAROSA, ET ALS\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               24-26896 FC01         MICHELLE MCGOVERN, LEGAL\n\n       SEQ   001     69 CHESTNUT WAY CIRCLE                                                  BARNEGAT   NJ  08005\n                     Lot: 22                                          Block: 116.35",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
         }
       ],
@@ -961,26 +806,57 @@
     }
   },
   {
-    "sheriff_number": "CH-780725",
+    "sheriff_number": "CH-780709",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
     "sale_date": "2026-10-06T00:00:00",
-    "address": "84 VACARI WAY LITTLE EGG HARB NJ 08087",
+    "address": "1239A HAMILTON COURT LAKEWOOD NJ 08701",
     "judgment_amount": null,
-    "upset_price": "216731.64",
+    "upset_price": "11087.66",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
-      "plaintiff": "SELECT PORTFOLIO SERVICING, INC.",
-      "defendant": "MICHELLE A. NUGENT, ET ALS                                      10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780725\n                   PLAINTIFF    SELECT PORTFOLIO SERVICING, INC.              $216,731.64      ADJOURNED UNTIL\n   F00044626       DEFENDANT   MICHELLE A. NUGENT, ET ALS                                      10/06/2026\n                   ATTORNEY    FRENKEL LAMBERT WEISS WEISMAN & GORDON, LLP              973-325-8800\n                               03-023052-F00         TIMOTHY ZIEGLER, ESQ.\n\n       SEQ   001     84 VACARI WAY                                                           LITTLE EGG HARB     NJ  08087\n                     Lot: 1.61                                        Block: 282",
+      "plaintiff": "LEISURE VILLAGE EAST ASSOCIATION, I",
+      "defendant": "JUDITH KONECNY, ETC., ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780709\n                   PLAINTIFF    LEISURE VILLAGE EAST ASSOCIATION, I            $11,087.66                              1\n   F01388323       DEFENDANT   JUDITH KONECNY, ETC., ET ALS\n                   ATTORNEY    MCGOVERN LEGAL SERVICES, LLC.              732-246-1221\n                                                     WILLIAM H. BROSHA, ESQ.\n\n       SEQ   001     1239A HAMILTON COURT                                                    LAKEWOOD   NJ  08701\n                     Lot: 1239.01                                     Block: 1587",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01388323",
+        "block": "1587",
+        "lot": "1239.01",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780725",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-11-17T00:00:00",
+    "address": "84 VACARI WAY LITTLE EGG HARB NJ 08087",
+    "judgment_amount": null,
+    "upset_price": "218312.86",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "SELECT PORTFOLIO SERVICING, INC.",
+      "defendant": "MICHELLE A. NUGENT, ET ALS                                     11/17/2026",
+      "raw_status": "Adjourned until 11/17/2026",
+      "description_text": "CH   780725\n                   PLAINTIFF    SELECT PORTFOLIO SERVICING, INC.              $218,312.86     ADJOURNED UNTIL          1\n   F00044626       DEFENDANT   MICHELLE A. NUGENT, ET ALS                                     11/17/2026\n                   ATTORNEY    FRENKEL LAMBERT WEISS WEISMAN & GORDON, LLP              973-325-8800\n                               03-023052-F00         TIMOTHY ZIEGLER, ESQ.\n       SEQ   001     84 VACARI WAY                                                           LITTLE EGG HARB     NJ  08087\n                     Lot: 1.61                                        Block: 282",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 11/17/2026",
+          "sale_date": "2026-11-17T00:00:00"
         }
       ],
       "parsed_description": {
@@ -992,218 +868,32 @@
     }
   },
   {
-    "sheriff_number": "CH-780726",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "1820 BAY TERRACE, BEACH HAVEN SHIP BOTTOM-LBI NJ 08008",
-    "judgment_amount": null,
-    "upset_price": "1235932.15",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "HOMEXPRESS MORTGAGE CORPORATION",
-      "defendant": "SEALS HOMES LLC, ET AL",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780726\n                   PLAINTIFF    HOMEXPRESS MORTGAGE CORPORATION              $1,235,932.15\n   F00020126       DEFENDANT   SEALS HOMES LLC, ET AL\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               NJ202500000714        LUCAS M. ANDERSON, ESQ.\n\n       SEQ   001     1820 BAY TERRACE, BEACH HAVEN                                           SHIP BOTTOM-LBI     NJ  08008\n                     Lot: 15                                          Block: 53",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00020126",
-        "block": "53",
-        "lot": "15",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
     "sheriff_number": "CH-780727",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "603 MISSISSIPPI STREET TOMS RIVER NJ 08755",
     "judgment_amount": null,
-    "upset_price": "267638.80",
+    "upset_price": "268921.24",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "MIDFIRST BANK",
       "defendant": "PRECINA T. RADDER, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780727\n                   PLAINTIFF    MIDFIRST BANK                                 $267,638.80\n   F01004125       DEFENDANT   PRECINA T. RADDER, ET ALS\n                   ATTORNEY    GROSS POLOWY                               716-204-1700\n                                                     AMBER D. LEVINESS, LEGAL\n       SEQ   001     603 MISSISSIPPI STREET                                                  TOMS RIVER    NJ  08755\n                     Lot: 3.01                                        Block: 166",
+      "description_text": "CH   780727\n                   PLAINTIFF    MIDFIRST BANK                                 $268,921.24                              1\n   F01004125       DEFENDANT   PRECINA T. RADDER, ET ALS\n                   ATTORNEY    GROSS POLOWY                               716-204-1700\n                                                     AMBER D. LEVINESS, LEGAL\n       SEQ   001     603 MISSISSIPPI STREET                                                  TOMS RIVER    NJ  08755\n                     Lot: 3.01                                        Block: 166",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
         "docket_number": "F01004125",
         "block": "166",
         "lot": "3.01",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780728",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "bankruptcy",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "389 HOPEDALE DRIVE SE BERKELEY TWP. NJ 08721",
-    "judgment_amount": null,
-    "upset_price": "399824.04",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "FREEDOM MORTGAGE CORPORATION",
-      "defendant": "ANGELO DEVITO, ET ALS",
-      "raw_status": "Bankruptcy",
-      "description_text": "CH   780728\n                   PLAINTIFF    FREEDOM MORTGAGE CORPORATION                  $399,824.04      BANKRUPTCY\n   F01184625       DEFENDANT   ANGELO DEVITO, ET ALS\n                   ATTORNEY    GROSS POLOWY                               716-204-1700\n                                                     DIANA DASH, LEGAL ASST.\n       SEQ   001     389 HOPEDALE DRIVE SE                                                   BERKELEY TWP.    NJ   08721\n                     Lot: 5.08                                        Block: 257.01",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "bankruptcy",
-          "raw_status": "Bankruptcy",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01184625",
-        "block": "257.01",
-        "lot": "5.08",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780729",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "223 HAMILTON AVENUE SEASIDE HEIGHTS NJ 08751",
-    "judgment_amount": null,
-    "upset_price": "940575.08",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "LOAN FUNDER LLC, SERIES 76539",
-      "defendant": "223 HAMILTON AVE LLC, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780729\n                   PLAINTIFF    LOAN FUNDER LLC, SERIES 76539                 $940,575.08\n   F01339625       DEFENDANT   223 HAMILTON AVE LLC, ET ALS\n                   ATTORNEY    WEBER GALLAGHER                            215-972-7900\n                                                     SARAH A. ELIA\n\n       SEQ   001     223 HAMILTON AVENUE                                                     SEASIDE HEIGHTS     NJ  08751\n                     Lot: 23                                          Block: 20",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01339625",
-        "block": "20",
-        "lot": "23",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780730",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "16 CRESTVIEW COURT LITTLE EGG HARB NJ 08087",
-    "judgment_amount": null,
-    "upset_price": "155930.01",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
-      "defendant": "LUCILLE I. VAZZANO, ETC., ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780730\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $155,930.01\n   F01416225       DEFENDANT   LUCILLE I. VAZZANO, ETC., ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               230533-4              PERRY RUSSELL, ESQ. `\n       SEQ   001     16 CRESTVIEW COURT                                                      LITTLE EGG HARB     NJ  08087\n                     Lot: 6.29                                        Block: 282",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01416225",
-        "block": "282",
-        "lot": "6.29",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780731",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "cancelled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "187 COMPASS ROAD STAFFORD TWP. NJ 08050",
-    "judgment_amount": null,
-    "upset_price": "464274.99",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "NEWREZ LLC D/B/A SHELLPOINT MORTGAG",
-      "defendant": "PAUL SANGIULIANO, ET ALS",
-      "raw_status": "Cancellation",
-      "description_text": "CH   780731\n                   PLAINTIFF    NEWREZ LLC D/B/A SHELLPOINT MORTGAG           $464,274.99      CANCELLATION\n   F01388225       DEFENDANT   PAUL SANGIULIANO, ET ALS\n                   ATTORNEY    PARKER, MC CAY                             856-596-8900\n                               15486-25-52722        NICOLE CIPRIAN, LEGAL ASST.\n\n       SEQ   001     187 COMPASS ROAD                                                        STAFFORD TWP.    NJ   08050\n                     Lot: 12                                          Block: 44.188",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "cancelled",
-          "raw_status": "Cancellation",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01388225",
-        "block": "44.188",
-        "lot": "12",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
-    "sheriff_number": "CH-780732",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-11-17T00:00:00",
-    "address": "164 WALNUT CREEK LANE TOMS RIVER NJ 08753",
-    "judgment_amount": null,
-    "upset_price": "299331.76",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
-      "defendant": "ANNA M. NOGIEWICH, ET ALS                                       11/17/2026",
-      "raw_status": "Adjourned until 11/17/2026",
-      "description_text": "CH   780732\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $299,331.76      ADJOURNED UNTIL          1\n   F01372623       DEFENDANT   ANNA M. NOGIEWICH, ET ALS                                       11/17/2026\n                   ATTORNEY    PLUESE, BECKER, SALTZMAN & THOMAS, LLC.             856-813-1700\n                               112124                ROBERT F. THOMAS, ESQ.\n\n       SEQ   001     164 WALNUT CREEK LANE                                                   TOMS RIVER    NJ  08753\n                     Lot: 53,54,55                                    Block: 232.12",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Adjourned until 11/17/2026",
-          "sale_date": "2026-11-17T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F01372623",
-        "block": "232.12",
-        "lot": "53,54,55",
         "parser_version": "ocean-pdf-v1"
       }
     }
@@ -1220,14 +910,14 @@
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "ARCPE 1 LLC",
-      "defendant": "CAROL PATER, ET ALS                                             10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780733\n                   PLAINTIFF    ARCPE 1 LLC                                    $76,279.01      ADJOURNED UNTIL          1\n   F00962323       DEFENDANT   CAROL PATER, ET ALS                                             10/06/2026\n                   ATTORNEY    BERG & DAVID                               718-989-1392\n                                                     ROSS EISENBERG, ESQ.\n       SEQ   001     13 STARBOARD WAY                                                        OCEAN TOWNSHIP     NJ  08758\n                     Lot: 12                                          Block: 120",
+      "defendant": "CAROL PATER, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780733\n                   PLAINTIFF    ARCPE 1 LLC                                    $76,279.01                              1\n   F00962323       DEFENDANT   CAROL PATER, ET ALS\n                   ATTORNEY    BERG & DAVID                               718-989-1392\n                                                     ROSS EISENBERG, ESQ.\n\n       SEQ   001     13 STARBOARD WAY                                                        OCEAN TOWNSHIP     NJ  08758\n                     Lot: 12                                          Block: 120",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
         }
       ],
@@ -1244,22 +934,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "2425 MINERVA STREET POINT PLEASANT NJ 08742",
     "judgment_amount": null,
-    "upset_price": "185938.37",
+    "upset_price": "186834.10",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "WILMINGTON SAVINGS FUND SOCIETY, FS",
       "defendant": "ERIN KATE NIELSEN, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780734\n                   PLAINTIFF    WILMINGTON SAVINGS FUND SOCIETY, FS           $185,938.37\n   F01219925       DEFENDANT   ERIN KATE NIELSEN, ET ALS\n                   ATTORNEY    HILL WALLACK LLP                           609-924-0808\n                               20021-1602/KLD        MICHAEL KAHME, ESQ.\n       SEQ   001     2425 MINERVA STREET                                                     POINT PLEASANT     NJ  08742\n                     Lot: 11.01                                       Block: 316",
+      "description_text": "CH   780734\n                   PLAINTIFF    WILMINGTON SAVINGS FUND SOCIETY, FS           $186,834.10                              1\n   F01219925       DEFENDANT   ERIN KATE NIELSEN, ET ALS\n                   ATTORNEY    HILL WALLACK LLP                           609-924-0808\n                               20021-1602/KLD        MICHAEL KAHME, ESQ.\n       SEQ   001     2425 MINERVA STREET                                                     POINT PLEASANT     NJ  08742\n                     Lot: 11.01                                       Block: 316",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -1271,57 +961,26 @@
     }
   },
   {
-    "sheriff_number": "CH-780735",
-    "state": "NJ",
-    "county": "Ocean",
-    "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
-    "address": "477 ADMIRAL ROAD LACEY TOWNSHIP NJ 08731",
-    "judgment_amount": null,
-    "upset_price": "293818.45",
-    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-    "raw_payload": {
-      "plaintiff": "PHH MORTGAGE CORPORATION",
-      "defendant": "WAYNE WEDDERMAN JR.,ETC., ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780735\n                   PLAINTIFF    PHH MORTGAGE CORPORATION                      $293,818.45\n   F00100326       DEFENDANT   WAYNE WEDDERMAN JR.,ETC., ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH, ESQ.\n\n       SEQ   001     477 ADMIRAL ROAD                                                        LACEY TOWNSHIP     NJ  08731\n                     Lot: 3                                           Block: 226.02",
-      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
-      "status_history": [
-        {
-          "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
-        }
-      ],
-      "parsed_description": {
-        "docket_number": "F00100326",
-        "block": "226.02",
-        "lot": "3",
-        "parser_version": "ocean-pdf-v1"
-      }
-    }
-  },
-  {
     "sheriff_number": "CH-780736",
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "103 GEORGETOWN ROAD BERKELEY NJ 08757",
     "judgment_amount": null,
-    "upset_price": "160045.29",
+    "upset_price": "162002.49",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "AMERICAN NEIGHBORHOOD MORTGAGE ACCE",
       "defendant": "JOAN A. BOOS, ET AL",
       "raw_status": "Scheduled",
-      "description_text": "CH   780736\n                   PLAINTIFF    AMERICAN NEIGHBORHOOD MORTGAGE ACCE           $160,045.29\n   F00251426       DEFENDANT   JOAN A. BOOS, ET AL\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n\n\n       SEQ   001     103 GEORGETOWN ROAD                                                     BERKELEY   NJ  08757\n                     Lot: 2                                           Block: 9.15",
+      "description_text": "CH   780736\n                   PLAINTIFF    AMERICAN NEIGHBORHOOD MORTGAGE ACCE           $162,002.49\n   F00251426       DEFENDANT   JOAN A. BOOS, ET AL\n                   ATTORNEY    KML LAW GROUP, P.C.                        215-627-1322\n\n\n       SEQ   001     103 GEORGETOWN ROAD                                                     BERKELEY   NJ  08757\n                     Lot: 2                                           Block: 9.15",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -1344,14 +1003,14 @@
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "WELLS FARGO BANK, N.A.",
-      "defendant": "ELIZABETH GIANANTONIO, ET ALS                                  10/06/2026",
-      "raw_status": "Adjourned until 10/06/2026",
-      "description_text": "CH   780737\n                   PLAINTIFF    WELLS FARGO BANK, N.A.                        $114,948.64     ADJOURNED UNTIL           1\n   F01301125       DEFENDANT   ELIZABETH GIANANTONIO, ET ALS                                  10/06/2026\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               25-31587 FC01         MICHELLE MCGOVERN, LEGAL\n\n       SEQ   001     8 BRISTOL TERRACE                                                       LITTLE EGG HARB     NJ  08087\n                     Lot: 4                                           Block: 326.20",
+      "defendant": "ELIZABETH GIANANTONIO, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780737\n                   PLAINTIFF    WELLS FARGO BANK, N.A.                        $114,948.64                              1\n   F01301125       DEFENDANT   ELIZABETH GIANANTONIO, ET ALS\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               25-31587 FC01         MICHELLE MCGOVERN, LEGAL\n\n       SEQ   001     8 BRISTOL TERRACE                                                       LITTLE EGG HARB     NJ  08087\n                     Lot: 4                                           Block: 326.20",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Adjourned until 10/06/2026",
+          "raw_status": "Scheduled",
           "sale_date": "2026-10-06T00:00:00"
         }
       ],
@@ -1368,22 +1027,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-12-01T00:00:00",
     "address": "56 CAREY STREET LAKEWOOD NJ 08701",
     "judgment_amount": null,
-    "upset_price": "190840.24",
+    "upset_price": "193612.22",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "THE BANK OF NEW YORK MELLON F/K/A T",
-      "defendant": "GARY MILLER, ET ALS",
-      "raw_status": "Scheduled",
-      "description_text": "CH   780738\n                   PLAINTIFF    THE BANK OF NEW YORK MELLON F/K/A T           $190,840.24\n   F00781625       DEFENDANT   GARY MILLER, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS\n                                                     DORI SCOVISH, ESQ.\n\n       SEQ   001     56 CAREY STREET                                                         LAKEWOOD   NJ  08701\n                     Lot: 25                                          Block: 150.06",
+      "defendant": "GARY MILLER, ET ALS                                            12/01/2026",
+      "raw_status": "Adjourned until 12/01/2026",
+      "description_text": "CH   780738\n                   PLAINTIFF    THE BANK OF NEW YORK MELLON F/K/A T           $193,612.22     ADJOURNED UNTIL          1\n   F00781625       DEFENDANT   GARY MILLER, ET ALS                                            12/01/2026\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS\n                                                     DORI SCOVISH, ESQ.\n       SEQ   001     56 CAREY STREET                                                         LAKEWOOD   NJ  08701\n                     Lot: 25                                          Block: 150.06",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
-          "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "raw_status": "Adjourned until 12/01/2026",
+          "sale_date": "2026-12-01T00:00:00"
         }
       ],
       "parsed_description": {
@@ -1399,22 +1058,22 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "948 BRIGHTWOOD DR TOMS RIVER NJ 08753",
     "judgment_amount": null,
-    "upset_price": "362793.26",
+    "upset_price": "364557.64",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
       "defendant": "TRACEE DUBEK, ET AL",
       "raw_status": "Scheduled",
-      "description_text": "CH   780739\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $362,793.26\n   F00787925       DEFENDANT   TRACEE DUBEK, ET AL\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               NJ202500000014        LUCAS M. ANDERSON, ESQ.\n       SEQ   001     948 BRIGHTWOOD DR                                                       TOMS RIVER    NJ  08753\n                     Lot: 7                                           Block: 394.04\n\n\n L    780740\n                   PLAINTIFF    THRIFT INVESTMENT CORPORATION                 $192,685.76\n   L144917         DEFENDANT   ROBERT DIBELLA\n                   ATTORNEY    DONNA L. THOMPSON, ESQ                     732-292-3000\n                               6922-C                DONNA L. THOMPSON, ESQ.\n       SEQ   001     1008 HALLIARD AVENUE                                                    BEACHWOOD   NJ   08722\n                     Lot: 10                                          Block: 5.26",
+      "description_text": "CH   780739\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $364,557.64                              1\n   F00787925       DEFENDANT   TRACEE DUBEK, ET AL\n                   ATTORNEY    STERN & EISENBERG, PC                      609-397-9200\n                               NJ202500000014        LUCAS M. ANDERSON, ESQ.\n       SEQ   001     948 BRIGHTWOOD DR                                                       TOMS RIVER    NJ  08753\n                     Lot: 7                                           Block: 394.04\n\n\n L    780740\n                   PLAINTIFF    THRIFT INVESTMENT CORPORATION                 $193,357.56                              1\n   L144917         DEFENDANT   ROBERT DIBELLA\n                   ATTORNEY    DONNA L. THOMPSON, ESQ                     732-292-3000\n                               6922-C                DONNA L. THOMPSON, ESQ.\n\n       SEQ   001     1008 HALLIARD AVENUE                                                    BEACHWOOD   NJ   08722\n                     Lot: 10                                          Block: 5.26",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
@@ -1430,28 +1089,431 @@
     "state": "NJ",
     "county": "Ocean",
     "status": "scheduled",
-    "sale_date": "2026-09-08T00:00:00",
+    "sale_date": "2026-10-06T00:00:00",
     "address": "74 MILL POND ROAD JACKSON NJ 08527",
     "judgment_amount": null,
-    "upset_price": "1181688.59",
+    "upset_price": "1187410.96",
     "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
     "raw_payload": {
       "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
       "defendant": "TBZ LLC, ET ALS",
       "raw_status": "Scheduled",
-      "description_text": "CH   780741\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO          $1,181,688.59\n   F00330625       DEFENDANT   TBZ LLC, ET ALS\n                   ATTORNEY    GREENSPOON MARDER LLP                      954-491-1120\n                               24-002635-01\n\n       SEQ   001     74 MILL POND ROAD                                                       JACKSON   NJ  08527\n                     Lot: 84                                          Block: 10101",
+      "description_text": "CH   780741\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO          $1,187,410.96                              1\n   F00330625       DEFENDANT   TBZ LLC, ET ALS\n                   ATTORNEY    GREENSPOON MARDER LLP                      954-491-1120\n                               24-002635-01\n       SEQ   001     74 MILL POND ROAD                                                       JACKSON   NJ  08527\n                     Lot: 84                                          Block: 10101",
       "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
       "status_history": [
         {
           "status": "scheduled",
           "raw_status": "Scheduled",
-          "sale_date": "2026-09-08T00:00:00"
+          "sale_date": "2026-10-06T00:00:00"
         }
       ],
       "parsed_description": {
         "docket_number": "F00330625",
         "block": "10101",
         "lot": "84",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780752",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "93 CLUB HOUSE ROAD BRICK NJ 08723",
+    "judgment_amount": null,
+    "upset_price": "690450.56",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "LOAN FUNDER LLC, SERIES 65922",
+      "defendant": "INFINITY REAL ESTATE INVESTMENTS LIMITED LIABILIT",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780752\n                   PLAINTIFF    LOAN FUNDER LLC, SERIES 65922                 $690,450.56\n   F00163926       DEFENDANT   INFINITY REAL ESTATE INVESTMENTS LIMITED LIABILIT\n                   ATTORNEY    WEBER GALLAGHER                            215-972-7900\n                                                     SARAH A. ELIA, ESQ.\n\n       SEQ   001     93 CLUB HOUSE ROAD                                                      BRICK  NJ   08723\n                     Lot: 4                                           Block: 324.23",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00163926",
+        "block": "324.23",
+        "lot": "4",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780753",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-11-17T00:00:00",
+    "address": "110 STARC ROAD TOMS RIVER NJ 08755",
+    "judgment_amount": null,
+    "upset_price": "563920.68",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "U.S. BANK NATIONAL ASSOCIATION, NOT",
+      "defendant": "CHANAN PASHKUS, ET ALS                                          11/17/2026",
+      "raw_status": "Adjourned until 11/17/2026",
+      "description_text": "CH   780753\n                   PLAINTIFF    U.S. BANK NATIONAL ASSOCIATION, NOT           $563,920.68      ADJOURNED UNTIL          1\n   F00088426       DEFENDANT   CHANAN PASHKUS, ET ALS                                          11/17/2026\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               243378-5              PERRY RUSSELL, ESQ.\n\n       SEQ   001     110 STARC ROAD                                                          TOMS RIVER    NJ  08755\n                     Lot: 5                                           Block: 165.01",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 11/17/2026",
+          "sale_date": "2026-11-17T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00088426",
+        "block": "165.01",
+        "lot": "5",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780754",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "101 PKWY PT.PLEASANT BCH NJ 08742",
+    "judgment_amount": null,
+    "upset_price": "349784.08",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "WELLS FARGO BANK, N.A. SBM TO WELLS",
+      "defendant": "ANTHONY DIPASTINA, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780754\n                   PLAINTIFF    WELLS FARGO BANK, N.A. SBM TO WELLS           $349,784.08\n   F00275026       DEFENDANT   ANTHONY DIPASTINA, ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                                                     DORI SCOVISH, ESQ.\n       SEQ   001     101 PKWY                                                                PT.PLEASANT BCH     NJ  08742\n                     Lot: 1                                           Block: 102",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00275026",
+        "block": "102",
+        "lot": "1",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780755",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "450 GODFREY LAKE DR BRICK NJ 08724",
+    "judgment_amount": null,
+    "upset_price": "278272.28",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "PENNYMAC LOAN SERVICES, LLC",
+      "defendant": "ISMAEL RIBOY, ET AL",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780755\n                   PLAINTIFF    PENNYMAC LOAN SERVICES, LLC                   $278,272.28\n   F01364225       DEFENDANT   ISMAEL RIBOY, ET AL\n                   ATTORNEY    FRENKEL LAMBERT WEISS WEISMAN & GORDON, LLP              973-325-8800\n                               03-023116-F00         TIMOTHY ZIEGLER, ESQ.\n       SEQ   001     450 GODFREY LAKE DR                                                     BRICK  NJ   08724\n                     Lot: 305                                         Block: 1233",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01364225",
+        "block": "1233",
+        "lot": "305",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780756",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "58 INNSBRUCK DRIVE TOMS RIVER NJ 08757",
+    "judgment_amount": null,
+    "upset_price": "385409.16",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "U.S. BANK TRUST NATIONAL ASSOCIATIO",
+      "defendant": "FRANK MONTICELLO, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780756\n                   PLAINTIFF    U.S. BANK TRUST NATIONAL ASSOCIATIO           $385,409.16\n   F00365625       DEFENDANT   FRANK MONTICELLO, ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               245278-1              PERRY RUSSELL, ESQ.\n\n       SEQ   001     58 INNSBRUCK DRIVE                                                      TOMS RIVER    NJ  08757\n                     Lot: 65                                          Block: 4.217",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00365625",
+        "block": "4.217",
+        "lot": "65",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780757",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "cancelled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "901B DUMBARTON DRIVE LAKEWOOD NJ 08701",
+    "judgment_amount": null,
+    "upset_price": "10389.50",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "LEISURE VILLAGE EAST ASSOCIATION, I",
+      "defendant": "JOHN YAMAN, ETC., ET AL",
+      "raw_status": "Cancellation",
+      "description_text": "CH   780757\n                   PLAINTIFF    LEISURE VILLAGE EAST ASSOCIATION, I            $10,389.50      CANCELLATION\n   F00937525       DEFENDANT   JOHN YAMAN, ETC., ET AL\n                   ATTORNEY    MCGOVERN LEGAL SERVICES, LLC.              732-246-1221\n                                                     WILLIAM H. BROSHA, ESQ.\n       SEQ   001     901B DUMBARTON DRIVE                                                    LAKEWOOD   NJ  08701\n                     Lot: 901.02                                      Block: 1587",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "cancelled",
+          "raw_status": "Cancellation",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00937525",
+        "block": "1587",
+        "lot": "901.02",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780758",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "15 NORTH NEW PROSPECT ROAD JACKSON NJ 08527",
+    "judgment_amount": null,
+    "upset_price": "411258.20",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "WILMINGTON SAVINGS FUND SOCIETY, FS",
+      "defendant": "SUNIL G. SINGH, ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780758\n                   PLAINTIFF    WILMINGTON SAVINGS FUND SOCIETY, FS           $411,258.20\n   F00810825       DEFENDANT   SUNIL G. SINGH, ET ALS\n                   ATTORNEY    FRIEDMAN VARTOLO LLP                       212-471-5100\n                               252503-1              PERRY RUSSELL, ESQ.\n\n       SEQ   001     15 NORTH NEW PROSPECT ROAD                                              JACKSON   NJ  08527\n                     Lot: 8                                           Block: 5901",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00810825",
+        "block": "5901",
+        "lot": "8",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780759",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "87 FOXWOOD ROAD LAKEWOOD NJ 08701",
+    "judgment_amount": null,
+    "upset_price": "10944.02",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "FAIRWAYS AT LAKE RIDGE HOMEOWNERS A",
+      "defendant": "JOSEPH J. KULBACKY, ETC., ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780759\n                   PLAINTIFF    FAIRWAYS AT LAKE RIDGE HOMEOWNERS A            $10,944.02\n   F01083923       DEFENDANT   JOSEPH J. KULBACKY, ETC., ET ALS\n                   ATTORNEY    MCGOVERN LEGAL SERVICES, LLC.              732-246-1221\n                                                     WILLIAM H. BROSHA, ESQ.\n\n       SEQ   001     87 FOXWOOD ROAD                                                         LAKEWOOD   NJ  08701\n                     Lot: 16                                          Block: 524.03",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01083923",
+        "block": "524.03",
+        "lot": "16",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780760",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "cancelled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "100 ROANOKE AVE SEASIDE HEIGHTS NJ 08751",
+    "judgment_amount": null,
+    "upset_price": "303109.97",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "ONSLOW BAY FINANCIAL LLC",
+      "defendant": "MICHAEL P. AGUGLIARO, ET AL",
+      "raw_status": "Cancellation",
+      "description_text": "CH   780760\n                   PLAINTIFF    ONSLOW BAY FINANCIAL LLC                      $303,109.97      CANCELLATION\n   F00226226       DEFENDANT   MICHAEL P. AGUGLIARO, ET AL\n                   ATTORNEY    BROCK & SCOTT PLLC                         844-856-6646\n                               25-37172 FC01         MICHELLE MCGOVERN, LEGAL\n       SEQ   001     100 ROANOKE AVE                                                         SEASIDE HEIGHTS     NJ  08751\n                     Lot: 45,46,47,48                                 Block: 1681",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "cancelled",
+          "raw_status": "Cancellation",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00226226",
+        "block": "1681",
+        "lot": "45,46,47,48",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780761",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "1704 FLEETWOOD DRIVE FORKED RIVER NJ 08731",
+    "judgment_amount": null,
+    "upset_price": "96587.71",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "JPMORGAN CHASE BANK, NATIONAL ASSOC",
+      "defendant": "1704 FLEETWOOD, L.L.C., ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780761\n                   PLAINTIFF    JPMORGAN CHASE BANK, NATIONAL ASSOC            $96,587.71\n   F01031025       DEFENDANT   1704 FLEETWOOD, L.L.C., ET ALS\n                   ATTORNEY    ROBERTSON ANSCHUTZ SCHNEID CRANE & PARTNERS PLLC.               973-575-0707\n                               25-334425             DORIS SCOVISH, ESQ.\n       SEQ   001     1704 FLEETWOOD DRIVE                                                    FORKED RIVER    NJ  08731\n                     Lot: 11 & 12                                     Block: 1282",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01031025",
+        "block": "1282",
+        "lot": "11 & 12",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780762",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-11-17T00:00:00",
+    "address": "1713 WATERS EDGE DRIVE TOMS RIVER NJ 08753",
+    "judgment_amount": null,
+    "upset_price": "7734.80",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "WATERS EDGE AT TOMS RIVER CONDOMINI",
+      "defendant": "MARY ELLEN LOPEZ                                                11/17/2026",
+      "raw_status": "Adjourned until 11/17/2026",
+      "description_text": "CH   780762\n                   PLAINTIFF    WATERS EDGE AT TOMS RIVER CONDOMINI            $7,734.80       ADJOURNED UNTIL          1\n   F00066126       DEFENDANT   MARY ELLEN LOPEZ                                                11/17/2026\n                   ATTORNEY    CUTOLO BARROS                              732-414-1170\n                                                     JENNIFER M. KURTZ, ESQ.\n\n       SEQ   001     1713 WATERS EDGE DRIVE                                                  TOMS RIVER    NJ  08753\n                     Lot: 8 QUAL. C1713                               Block: 442.15",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 11/17/2026",
+          "sale_date": "2026-11-17T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00066126",
+        "block": "442.15",
+        "lot": "8 QUAL. C1713",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780763",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-10-06T00:00:00",
+    "address": "104 BOWLINE ROAD MANAHAWKIN NJ 08050",
+    "judgment_amount": null,
+    "upset_price": "406893.16",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "CITIZENS BANK, N.A.",
+      "defendant": "JAMES AMBROSE MORAN, ETC., ET ALS",
+      "raw_status": "Scheduled",
+      "description_text": "CH   780763\n                   PLAINTIFF   CITIZENS BANK, N.A.                            $406,893.16\n   F01420225       DEFENDANT   JAMES AMBROSE MORAN, ETC., ET ALS\n                   ATTORNEY    MCCABE, WEISBERG & CONWAY, LLC             856-858-7080\n                                                     BERNADETTE FOLENO\n       SEQ   001     104 BOWLINE ROAD                                                       MANAHAWKIN    NJ  08050\n                     Lot: 44.132                                      Block: 23",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Scheduled",
+          "sale_date": "2026-10-06T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F01420225",
+        "block": "23",
+        "lot": "44.132",
+        "parser_version": "ocean-pdf-v1"
+      }
+    }
+  },
+  {
+    "sheriff_number": "CH-780764",
+    "state": "NJ",
+    "county": "Ocean",
+    "status": "scheduled",
+    "sale_date": "2026-11-17T00:00:00",
+    "address": "2609 CEDAR STREET POINT PLEASANT NJ 08742",
+    "judgment_amount": null,
+    "upset_price": "293717.07",
+    "source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+    "raw_payload": {
+      "plaintiff": "LAKEVIEW LOAN SERVICING, LLC",
+      "defendant": "TERENCE TRYON, ET ALS                                          11/17/2026",
+      "raw_status": "Adjourned until 11/17/2026",
+      "description_text": "CH   780764\n                   PLAINTIFF   LAKEVIEW LOAN SERVICING, LLC                   $293,717.07     ADJOURNED UNTIL\n   F00098326       DEFENDANT   TERENCE TRYON, ET ALS                                          11/17/2026\n                   ATTORNEY    MCCABE, WEISBERG & CONWAY, LLC             856-858-7080\n                                                     BERNADETTE FOLENO, LEGAL\n\n       SEQ   001     2609 CEDAR STREET                                                      POINT PLEASANT     NJ  08742\n                     Lot: 6                                           Block: 194",
+      "description_source_url": "https://co.ocean.nj.us/WebContentFiles/3ec14ac4-25a1-41cd-8c8b-d9996a9d686c.pdf",
+      "status_history": [
+        {
+          "status": "scheduled",
+          "raw_status": "Adjourned until 11/17/2026",
+          "sale_date": "2026-11-17T00:00:00"
+        }
+      ],
+      "parsed_description": {
+        "docket_number": "F00098326",
+        "block": "194",
+        "lot": "6",
         "parser_version": "ocean-pdf-v1"
       }
     }
