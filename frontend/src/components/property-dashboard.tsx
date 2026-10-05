@@ -21,21 +21,12 @@ import { PropertyStatusHistoryModal } from "@/components/property-status-history
 import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
-import { downloadPropertiesXlsx, getNycAuctionCoverage, getProperties, getPropertyCoverage } from "@/services/properties";
-import type { NycAuctionCoverage } from "@/services/properties";
+import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem } from "@/types/property";
 
 const PAGE_SIZE = 24;
-const NYC_COUNTIES = ["New York", "Bronx", "Kings", "Queens", "Richmond"];
-const FLORIDA_COUNTIES = [
-  "Alachua", "Baker", "Bay", "Bradford", "Brevard", "Broward", "Calhoun", "Charlotte", "Citrus", "Clay",
-  "Collier", "Columbia", "DeSoto", "Dixie", "Duval", "Escambia", "Flagler", "Franklin", "Gadsden", "Gilchrist",
-  "Glades", "Gulf", "Hamilton", "Hardee", "Hendry", "Hernando", "Highlands", "Hillsborough", "Holmes", "Indian River",
-  "Jackson", "Jefferson", "Lafayette", "Lake", "Lee", "Leon", "Levy", "Liberty", "Madison", "Manatee",
-  "Marion", "Martin", "Miami-Dade", "Monroe", "Nassau", "Okaloosa", "Okeechobee", "Orange", "Osceola", "Palm Beach",
-  "Pasco", "Pinellas", "Polk", "Putnam", "Santa Rosa", "Sarasota", "Seminole", "St. Johns", "St. Lucie", "Sumter",
-  "Suwannee", "Taylor", "Union", "Volusia", "Wakulla", "Walton", "Washington",
-];
+// The app shows New Jersey only; every request is pinned to this state.
+const STATE = "NJ";
 
 type SortDirection = "asc" | "desc";
 
@@ -56,7 +47,6 @@ function DistressSaleLogo() {
 export default function PropertyDashboard() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
-  const [nycCoverage, setNycCoverage] = useState<NycAuctionCoverage | null>(null);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -66,7 +56,6 @@ export default function PropertyDashboard() {
   const [selectedLienSummaryProperty, setSelectedLienSummaryProperty] = useState<Property | null>(null);
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
   const [selectedProbabilityReasonProperty, setSelectedProbabilityReasonProperty] = useState<Property | null>(null);
-  const [selectedState, setSelectedState] = useState("");
   const [selectedCounty, setSelectedCounty] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,14 +69,13 @@ export default function PropertyDashboard() {
 
   useEffect(() => {
     getPropertyCoverage().then(setCoverage).catch(() => setCoverage([]));
-    getNycAuctionCoverage().then(setNycCoverage).catch(() => setNycCoverage(null));
   }, [refreshKey]);
 
   useEffect(() => {
     let active = true;
     getProperties({
-      states: selectedState ? [selectedState] : undefined,
-      counties: selectedCounty === "__NYC__" ? NYC_COUNTIES : selectedCounty ? [selectedCounty] : undefined,
+      states: [STATE],
+      counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
       status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
       statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
@@ -109,41 +97,22 @@ export default function PropertyDashboard() {
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, selectedStatus, sort, sortDirection]);
+  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedStatus, sort, sortDirection]);
 
-  const states = useMemo(() => {
-    const values = new Set(coverage.map((item) => item.state));
-    if (values.size === 0) ["NJ", "NY", "PA"].forEach((state) => values.add(state));
-    return Array.from(values).sort();
-  }, [coverage]);
-
-  const counties = useMemo(() => {
-    if (selectedState === "FL") {
-      const counts = new Map(coverage.filter((item) => item.state === "FL").map((item) => [item.county.toLowerCase(), item.property_count]));
-      return FLORIDA_COUNTIES.map((county) => ({ state: "FL", county, property_count: counts.get(county.toLowerCase()) ?? 0 }));
-    }
-    return coverage
-      .filter((item) => !selectedState || item.state === selectedState)
-      .sort((left, right) => left.county.localeCompare(right.county));
-  }, [coverage, selectedState]);
+  const counties = useMemo(
+    () => coverage
+      .filter((item) => item.state === STATE)
+      .sort((left, right) => left.county.localeCompare(right.county)),
+    [coverage],
+  );
 
   const sortedProperties = properties;
-  const floridaCountyCounts = useMemo(() => {
-    const counts = new Map(
-      coverage.filter((item) => item.state === "FL").map((item) => [item.county.toLowerCase(), item.property_count]),
-    );
-    return FLORIDA_COUNTIES
-      .map((county) => ({ county, count: counts.get(county.toLowerCase()) ?? 0 }))
-      .filter(({ count }) => count > 0);
-  }, [coverage]);
-
-  const selectedStateCountyCounts = useMemo(() => {
-    if (!selectedState || selectedState === "FL") return [];
-    return coverage
-      .filter((item) => item.state === selectedState && item.property_count > 0)
-      .map((item) => ({ county: item.county, count: item.property_count }))
-      .sort((left, right) => left.county.localeCompare(right.county));
-  }, [coverage, selectedState]);
+  const countyCounts = useMemo(
+    () => counties
+      .filter((item) => item.property_count > 0)
+      .map((item) => ({ county: item.county, count: item.property_count })),
+    [counties],
+  );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const averageEquity = useMemo(() => {
@@ -154,7 +123,7 @@ export default function PropertyDashboard() {
 
   const chooseProperty = useCallback((property: Property) => setSelectedProperty(property), []);
   const chooseCounty = useCallback((state: string, county: string) => {
-    setSelectedState(state);
+    if (state !== STATE) return;
     setSelectedCounty(county);
     setPage(1);
   }, []);
@@ -166,7 +135,6 @@ export default function PropertyDashboard() {
   }
 
   function resetFilters() {
-    setSelectedState("");
     setSelectedCounty("");
     setSearchInput("");
     setSearchQuery("");
@@ -180,8 +148,8 @@ export default function PropertyDashboard() {
     setExporting(true);
     try {
       const blob = await downloadPropertiesXlsx({
-        states: selectedState ? [selectedState] : undefined,
-        counties: selectedCounty === "__NYC__" ? NYC_COUNTIES : selectedCounty ? [selectedCounty] : undefined,
+        states: [STATE],
+        counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
         status: selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
         statusContains: selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
@@ -193,7 +161,7 @@ export default function PropertyDashboard() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "sheriff-properties.xlsx";
+      anchor.download = "nj-sheriff-properties.xlsx";
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -210,7 +178,7 @@ export default function PropertyDashboard() {
           <DistressSaleLogo />
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-bold leading-tight tracking-tight text-slate-950">Sheriff Sale Pro</h1>
+              <h1 className="font-bold leading-tight tracking-tight text-slate-950">NJ Sheriff Sale Pro</h1>
               <span className="hidden rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-amber-700 ring-1 ring-inset ring-amber-200 md:inline">Distress sales</span>
             </div>
             <p className="hidden text-[11px] font-medium tracking-wide text-slate-500 sm:block">Distressed property intelligence</p>
@@ -248,23 +216,13 @@ export default function PropertyDashboard() {
 
           <div className="flex flex-wrap items-center gap-2">
             <select
-              aria-label="State"
-              value={selectedState}
-              onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setPage(1); }}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-teal-500"
-            >
-              <option value="">All states</option>
-              {states.map((state) => <option key={state} value={state}>{state}</option>)}
-            </select>
-            <select
               aria-label="County"
               value={selectedCounty}
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
               className="max-w-48 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-teal-500"
             >
               <option value="">All counties</option>
-              {selectedState === "NY" && <option value="__NYC__">NYC — all five boroughs</option>}
-              {counties.map((item) => <option key={`${item.state}-${item.county}`} value={item.county}>{item.county}, {item.state} ({item.property_count})</option>)}
+              {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
             </select>
             <select
               aria-label="Status"
@@ -279,6 +237,7 @@ export default function PropertyDashboard() {
               <option value="adjourned">Adjourned</option>
               <option value="cancelled">Cancelled</option>
               <option value="sold">Sold</option>
+              <option value="sold_or_cancelled_unverified">Sold or cancelled (unverified)</option>
               <option value="date_passed_unverified">Date passed (unverified)</option>
             </select>
             <button type="button" onClick={resetFilters} className="flex items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-100"><X className="h-4 w-4" />Clear</button>
@@ -288,29 +247,14 @@ export default function PropertyDashboard() {
         <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
           {searchQuery && <span className="whitespace-nowrap rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         </div>
-        {selectedState === "NY" && nycCoverage && (
-          <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-semibold">NYC court foreclosure and tax-lien auctions:</span>
-              {nycCoverage.boroughs.map((item) => (
-                <button key={item.county} type="button" onClick={() => { setSelectedCounty(item.county); setPage(1); }}
-                  className="rounded-full border border-sky-200 bg-white px-2 py-0.5 hover:border-sky-500">
-                  {item.county} {item.upcoming}
-                </button>
-              ))}
-              <button type="button" onClick={() => { setSelectedCounty("__NYC__"); setPage(1); }} className="font-semibold underline">Show all five</button>
-            </div>
-            <p className="mt-1 text-sky-800">{nycCoverage.coverage_note} <a href={nycCoverage.source_url} target="_blank" rel="noreferrer" className="underline">Source</a>{nycCoverage.last_checked_at ? ` · Checked ${new Date(nycCoverage.last_checked_at).toLocaleDateString()}` : ""}</p>
-          </div>
-        )}
-        {selectedState && (
-          <section className="mt-2 w-full rounded-lg border border-teal-200 bg-teal-50/60 px-2 py-1.5" aria-label={`${selectedState} county record counts`}>
+        {countyCounts.length > 0 && (
+          <section className="mt-2 w-full rounded-lg border border-teal-200 bg-teal-50/60 px-2 py-1.5" aria-label="NJ county record counts">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-[10px] font-bold text-teal-950">{selectedState} county coverage</h2>
+              <h2 className="text-[10px] font-bold text-teal-950">NJ county coverage</h2>
               <span className="text-[10px] text-teal-800">Counties with available listings</span>
             </div>
             <div className="mt-1 flex max-h-10 w-full flex-wrap content-start overflow-hidden pb-0.5 pr-1 text-[10px] leading-5">
-              {(selectedState === "FL" ? floridaCountyCounts : selectedStateCountyCounts).map(({ county, count }, index, items) => (
+              {countyCounts.map(({ county, count }, index, items) => (
                 <span key={county} className="flex shrink-0 items-center">
                   <button type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className="flex items-center gap-1 rounded px-2 py-0.5 text-left hover:bg-white">
                     <span className={count === 0 ? "text-slate-500" : "font-medium text-slate-800"}>{county}</span>

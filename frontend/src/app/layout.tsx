@@ -3,8 +3,8 @@ import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Sheriff Sale Pro",
-  description: "Search and analyze sheriff-sale properties across supported markets.",
+  title: "NJ Sheriff Sale Pro",
+  description: "Search and analyze New Jersey sheriff-sale properties.",
 };
 
 export default function RootLayout({

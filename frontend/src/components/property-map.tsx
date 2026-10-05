@@ -50,7 +50,7 @@ export function PropertyMap({
 
         const map = L.map(containerRef.current, {
           zoomControl: true,
-        }).setView([40.4, -77.2], 5);
+        }).setView([40.1, -74.6], 8);
         mapRef.current = map;
 
         const tiles = L.tileLayer(
