@@ -13,6 +13,11 @@ import type { WarehouseCoverage, WarehouseCursor, WarehouseMonthlyCoverage, Ware
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
 
+/** Aerial photo centred on the property, from NJ's 2020 orthoimagery (404 outside NJ). */
+export function aerialPhotoUrl(propertyId: string): string {
+  return `${API_URL}/api/v1/properties/${encodeURIComponent(propertyId)}/aerial`;
+}
+
 /** Server-side Street View photo for a property (404 when none or not configured). */
 export function streetViewUrl(propertyId: string): string {
   return `${API_URL}/api/v1/properties/${encodeURIComponent(propertyId)}/street-view`;

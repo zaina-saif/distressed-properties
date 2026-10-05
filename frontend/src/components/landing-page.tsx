@@ -58,7 +58,8 @@ function EquityCard({ property }: { property: Property }) {
         <p className="text-2xl font-bold tabular-nums text-slate-950">{dollars(property.gross_equity)}</p>
         <p className="mt-2 flex items-start gap-1.5 text-sm text-slate-700">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-          <span>{property.street_address}, {property.city}</span>
+          <span className="select-none blur-[5px]" aria-hidden="true">{property.street_address}, {property.city}</span>
+          <span className="sr-only">Address hidden</span>
         </p>
         <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs">
           <div><dt className="text-slate-500">Est. value</dt><dd className="font-semibold text-slate-900">{dollars(property.zestimate ?? property.market_value)}</dd></div>

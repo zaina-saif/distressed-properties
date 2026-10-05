@@ -1,4 +1,5 @@
 import json
+import math
 import os
 from io import BytesIO
 from typing import Literal, Optional
@@ -919,6 +920,56 @@ def nyc_auction_coverage():
             "last_checked_at": checked.isoformat() if checked else None,
             "boroughs": [{"county": county, "upcoming": counts.get(county, 0)} for county in boroughs],
             "coverage_note": "Includes address-indexed Kings court PDFs and NYCTL tax-lien referee listings, not a complete NYC foreclosure or Sheriff inventory. A calendar listing can be stayed or cancelled. Zero means no verified listing from these sources, not no auctions in the borough."}
+
+
+NJ_ORTHO_EXPORT = (
+    "https://maps.nj.gov/arcgis/rest/services/Basemap/Orthos_Natural_2020_NJ_WM/MapServer/export"
+)
+_aerial_cache: dict[str, bytes] = {}
+
+
+@router.get("/{property_id}/aerial")
+def get_aerial_photo(property_id: str):
+    """Aerial photo centred on the property, from the NJ Office of GIS 2020
+    natural-color orthoimagery (public state service). Cached in memory."""
+    if property_id in _aerial_cache:
+        return Response(content=_aerial_cache[property_id], media_type="image/jpeg",
+                        headers={"Cache-Control": "public, max-age=604800"})
+    with engine.connect() as connection:
+        row = connection.execute(text("""
+            SELECT p.state,
+                   COALESCE(p.latitude, (azr.raw_payload->'coordinates'->>'latitude')::DOUBLE PRECISION) AS latitude,
+                   COALESCE(p.longitude, (azr.raw_payload->'coordinates'->>'longitude')::DOUBLE PRECISION) AS longitude
+            FROM properties p
+            LEFT JOIN LATERAL (
+                SELECT raw_payload FROM apify_zillow_results
+                WHERE property_id = p.id AND is_current AND match_status <> 'invalid'
+                ORDER BY retrieved_at DESC, id DESC LIMIT 1
+            ) azr ON TRUE
+            WHERE p.id::text = :id
+        """), {"id": property_id}).mappings().first()
+    if not row or row["state"] != "NJ" or row["latitude"] is None or row["longitude"] is None:
+        raise HTTPException(status_code=404, detail="No NJ coordinates for this property")
+    latitude, longitude = float(row["latitude"]), float(row["longitude"])
+    # About 120 m x 90 m around the point, matching the 4:3 image.
+    half_height = 45 / 111_320
+    half_width = 60 / (111_320 * math.cos(math.radians(latitude)))
+    params = {
+        "bbox": f"{longitude - half_width},{latitude - half_height},{longitude + half_width},{latitude + half_height}",
+        "bboxSR": "4326", "imageSR": "3857", "size": "640,480", "format": "jpg", "f": "image",
+    }
+    try:
+        image = httpx.get(NJ_ORTHO_EXPORT, params=params, timeout=20,
+                          headers={"User-Agent": "NJSheriffSalePro/1.0"})
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="NJ imagery service unavailable") from exc
+    if image.status_code != 200 or not image.headers.get("content-type", "").startswith("image/"):
+        raise HTTPException(status_code=404, detail="No aerial image returned")
+    if len(_aerial_cache) > 2000:
+        _aerial_cache.clear()
+    _aerial_cache[property_id] = image.content
+    return Response(content=image.content, media_type="image/jpeg",
+                    headers={"Cache-Control": "public, max-age=604800"})
 
 
 STREET_VIEW_API = "https://maps.googleapis.com/maps/api/streetview"
