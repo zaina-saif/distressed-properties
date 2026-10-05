@@ -174,3 +174,36 @@ def test_dates_and_malformed_figures_are_not_money():
 
     malformed = parse_sale_description("PLAINTIFF'S UPSET BID IS $129,99.84 IN ACCORDANCE WITH")
     assert malformed.alternate_upset_price is None
+
+
+def test_statute_numbers_are_not_money():
+    from pipeline.parse_sale_description import parse_sale_description
+
+    parsed = parse_sale_description(
+        "THE ESTIMATED GOOD FAITH UPSET AMOUNT PURSUANT TO NJSA 2A:50-64(12)(5)(A) IS $264,831.71. (BASED UPON"
+    )
+
+    assert str(parsed.estimated_upset_price) == "264831.71"
+    assert parsed.alternate_upset_price is None
+
+
+def test_portal_amounts_read_the_listed_fields_not_the_notice():
+    from pipeline.parse_sale_description import portal_amounts
+
+    page = (
+        "Description:\nTHE ESTIMATED GOOD FAITH UPSET AMOUNT ... IS $264,831.71.\n"
+        "Approx. Upset*:\n$241,726.98\nAttorney:\nMARTONE & UHLMANN PC\n"
+    )
+    assert portal_amounts(page) == {"upset": Decimal("241726.98"), "judgment": None}
+
+    monmouth = "Approx. Judgment*:\n$318,038.53\nAttorney:\nX\n"
+    assert portal_amounts(monmouth) == {"upset": None, "judgment": Decimal("318038.53")}
+
+    cumberland = "Approx. Judgment*:\n$202,962.74\nUpset Amount:\n$100.00\n"
+    assert portal_amounts(cumberland) == {"upset": None, "judgment": Decimal("202962.74")}
+
+
+def test_zero_portal_upset_means_not_published():
+    from pipeline.parse_sale_description import portal_amounts
+
+    assert portal_amounts("Approx. Upset*:\n$0.00\nAttorney:\nX\n")["upset"] is None

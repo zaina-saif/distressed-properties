@@ -377,15 +377,16 @@ def load_into_supabase(json_file: Path=JSON_FILE) -> None:
                                 defendant = :defendant,
                                 current_sale_date = :current_sale_date,
                                 current_status = :current_status,
+                                -- The latest scrape's figures win (upsets change
+                                -- with each adjournment); keep the stored value
+                                -- only when this scrape has none.
                                 judgment_amount = COALESCE(
-                                    judgment_amount,
-                                    :judgment_amount
+                                    :judgment_amount,
+                                    judgment_amount
                                 ),
-                                upset_price = GREATEST(
-                                    upset_price,
+                                upset_price = COALESCE(
                                     :upset_price,
-                                    :estimated_upset_price,
-                                    :alternate_upset_price
+                                    upset_price
                                 ),
                                 docket_number = COALESCE(
                                     docket_number,

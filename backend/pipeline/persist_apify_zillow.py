@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -21,6 +22,43 @@ def parse_time(value: str | None, fallback: datetime) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def _house_number(street: str | None) -> str | None:
+    match = re.match(r"\s*(\d+)", street or "")
+    return match.group(1) if match else None
+
+
+def _zillow_address(item: dict) -> dict:
+    listing = item.get("listingAddress") or {}
+    legacy = item.get("address") if isinstance(item.get("address"), dict) else {}
+    return {
+        "street": listing.get("street") or legacy.get("streetAddress"),
+        "city": listing.get("city") or legacy.get("city"),
+        "state": listing.get("state") or legacy.get("state"),
+        "zip": listing.get("zipCode") or legacy.get("zipcode"),
+    }
+
+
+def mismatch_reason(row: dict, item: dict) -> str | None:
+    """Why a Zillow result is not the submitted property, or None if it plausibly is.
+
+    Messy court addresses ("A/K/A", missing house numbers) sometimes make
+    Zillow return a different house, even in another state."""
+    found = _zillow_address(item)
+    if found["state"] and row.get("state") and found["state"].upper() != row["state"].upper():
+        return f"state {found['state']} != {row['state']}"
+    submitted_number = _house_number(row.get("street_address") or row.get("normalized_address"))
+    found_number = _house_number(found["street"])
+    if found_number and not submitted_number:
+        return "submitted address has no house number"
+    if found_number and submitted_number and found_number != submitted_number:
+        return f"house number {found_number} != {submitted_number}"
+    zip_differs = bool(found["zip"] and row.get("zip_code") and found["zip"][:5] != str(row["zip_code"])[:5])
+    city_differs = bool(found["city"] and row.get("city") and found["city"].strip().lower() != str(row["city"]).strip().lower())
+    if zip_differs and city_differs:
+        return f"ZIP and city differ ({found['city']} {found['zip']})"
+    return None
+
+
 def persist(output_dir: Path) -> dict[str, int]:
     manifest = json.loads((output_dir / "manifest.json").read_text())
     dataset = json.loads((output_dir / "dataset.json").read_text())
@@ -35,7 +73,7 @@ def persist(output_dir: Path) -> dict[str, int]:
         for item in dataset
         if str(item.get("addressOrUrlFromInput", "")).strip()
     }
-    matched = no_match = 0
+    matched = no_match = invalid = 0
     with engine.begin() as connection:
         db_run_id = connection.execute(text("""INSERT INTO apify_zillow_runs
             (apify_run_id,actor,dataset_id,submitted_at,retrieved_at,status,
@@ -60,13 +98,16 @@ def persist(output_dir: Path) -> dict[str, int]:
         for row in manifest:
             address = row["input_address"].strip()
             item = by_address.get(address)
-            status = "matched" if item else "no_match"
-            if item:
+            reason = mismatch_reason(row, item) if item else None
+            status = "no_match" if not item else "invalid" if reason else "matched"
+            if status == "matched":
                 matched += 1
+            elif status == "invalid":
+                invalid += 1
             else:
                 no_match += 1
             zestimate = item.get("zestimate") if item else None
-            payload = json.dumps(item or {})
+            payload = json.dumps({**item, "_mismatch_reason": reason} if reason else (item or {}))
             connection.execute(text("""INSERT INTO apify_zillow_results
                 (run_id,property_id,submitted_address,match_status,zillow_id,zestimate,
                  raw_payload,retrieved_at,is_current)
@@ -82,7 +123,7 @@ def persist(output_dir: Path) -> dict[str, int]:
                     "zpid": str(item["zpid"]) if item and item.get("zpid") is not None else None,
                     "zestimate": zestimate, "payload": payload, "retrieved_at": retrieved_at,
                 })
-            if item and zestimate is not None:
+            if status == "matched" and zestimate is not None:
                 connection.execute(text("""UPDATE property_valuations SET is_current=FALSE
                     WHERE property_id=:property_id AND provider='zillow_apify' AND is_current=TRUE"""),
                     {"property_id": row["property_id"]})
@@ -97,7 +138,7 @@ def persist(output_dir: Path) -> dict[str, int]:
                     "retrieved_at": retrieved_at,
                 })
     return {"run_id": run["id"], "submitted": len(manifest), "returned": len(dataset),
-            "matched": matched, "no_match": no_match}
+            "matched": matched, "no_match": no_match, "invalid": invalid}
 
 
 def main() -> None:

@@ -19,6 +19,7 @@ from pipeline.adapters.base import (
 from pipeline.parse_sale_description import (
     parse_sale_description,
     parsed_to_json_dict,
+    portal_amounts,
 )
 
 class MonmouthCivilViewAdapter(CivilViewAdapter):
@@ -257,32 +258,15 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
         )
         parsed_dict = parsed_to_json_dict(parsed)
 
-        upset_candidates = [
-            getattr(parsed, "estimated_upset_price", None),
-            getattr(parsed, "alternate_upset_price", None),
-            self._find_money_field(
-                structured_fields,
-                [
-                    "estimated upset",
-                    "approximate upset",
-                    "upset sheriff",
-                    "upset price",
-                    "upset amount",
-                ],
-            ),
-            record.upset_price,
-        ]
-        upset_price = max(
-            (value for value in upset_candidates if value is not None),
-            default=None,
-        )
-
+        # Minimum bid rule: the portal's own "Approx. Upset*" (or the
+        # county's equivalent label) is the upset price; otherwise the
+        # judgment amount applies. Figures quoted inside the legal notice
+        # stay in the parsed description as estimated/alternate upsets.
+        portal = portal_amounts(description_text)
+        upset_price = portal["upset"]
         judgment_amount = (
-            getattr(
-                parsed,
-                "judgment_amount",
-                None,
-            )
+            portal["judgment"]
+            or getattr(parsed, "judgment_amount", None)
             or self._find_money_field(
                 structured_fields,
                 [
@@ -293,6 +277,9 @@ class MonmouthCivilViewAdapter(CivilViewAdapter):
                 ],
             )
         )
+        record.raw_payload["portal_amounts"] = {
+            key: str(value) if value is not None else None for key, value in portal.items()
+        }
 
         plaintiff_attorney = (
             getattr(

@@ -49,7 +49,8 @@ def prepare(only_missing=False):
                 THEN 'date_passed_unverified' ELSE ss.current_status END), 'scheduled') > 0
               AND (NOT :only_missing OR NOT EXISTS (
                 SELECT 1 FROM apify_zillow_results z
-                WHERE z.property_id=p.id AND z.is_current AND z.match_status='matched'))
+                WHERE z.property_id=p.id AND z.is_current
+                  AND z.match_status IN ('matched','invalid')))
             ORDER BY p.normalized_address, ss.id
         """), {"state": TARGET_STATE, "only_missing": only_missing}).mappings().all()
     manifest = [dict(row) for row in rows]

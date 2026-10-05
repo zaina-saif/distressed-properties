@@ -6,14 +6,17 @@ from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 
-# The lookarounds stop dates ("as of 6/5/2026") and malformed figures
-# ("$129,99.84") from being read as dollar amounts. " ,000" spacing occurs in
+# The lookarounds stop dates ("as of 6/5/2026"), statute numbers ("NJSA
+# 2A:50-64") and malformed figures ("$129,99.84") from being read as dollar
+# amounts. " ,000" spacing occurs in
 # some notices ("$441 ,000.00").
 MONEY_VALUE = (
-    r"\$?\s*(?<![\d,./])("
+    # Either a "$" amount, or a bare figure that looks like money on its own
+    # (thousands separators or cents). Bare small integers are rejected.
+    r"(?:\$\s*|(?<![\d,./:A-Za-z$-])(?=\d{1,3}(?:\s*,\s*\d{3})+|\d+\.\d{2}))("
     r"(?:\d{1,3}(?:\s*,\s*\d{3})+|\d+)"
     r"(?:\.\d{1,2})?"
-    r")(?![\d/]|\s*,\s*\d|\.\d)"
+    r")(?![\d/A-Za-z]|\s*,\s*\d|\.\d|-\d)"
 )
 
 
@@ -192,6 +195,7 @@ def parse_sale_description(
             r"estimated\s+upset\s+bid\s+amount",
             r"estimated\s+upset\s+sheriff(?:['’]s?)?\s+(?:sale\s+)?bid\s+amount",
             r"good\s+faith\s+estimated\s+upset",
+            r"estimated\s+good\s+faith\s+upset\s+(?:amount|price|bid)",
             r"plaintiff(?:['’]s?)?\s+upset\s+bid(?:\s+amount)?\s+"
             r"(?:presently\s+)?approximates?",
             r"estimated\s+amount\s+required\s+to\s+satisfy",
@@ -355,3 +359,37 @@ def parsed_to_json_dict(
             result[key] = str(value)
 
     return result
+
+
+# CivilView's own summary fields, as they appear on the detail page: a label
+# line followed by the amount on the next line.
+# Atlantic and Cumberland also show an "Upset Amount:" field; it often holds a
+# nominal $100 plaintiff bid, so it is not treated as the upset price.
+PORTAL_UPSET_LABELS = (
+    "approx. upset", "approx upset", "approximate upset", "good faith upset",
+    "minimum bid", "upset price",
+)
+PORTAL_JUDGMENT_LABELS = ("approx. judgment", "approx judgment", "approximate judgment", "judgment")
+
+
+def portal_amounts(page_text: str | None) -> dict[str, Optional[Decimal]]:
+    """The portal's "Approx. Upset*" (or equivalent) and judgment fields.
+
+    These are the sheriff's listed figures. Amounts quoted inside the legal
+    notice are parsed separately and are not used here."""
+    found: dict[str, Optional[Decimal]] = {"upset": None, "judgment": None}
+    lines = [line.strip() for line in (page_text or "").splitlines()]
+    for index, line in enumerate(lines[:-1]):
+        if not line.endswith(":"):
+            continue
+        label = line.rstrip(":").rstrip("*").strip().lower()
+        match = re.fullmatch(MONEY_VALUE, lines[index + 1])
+        amount = money_to_decimal(match.group(1)) if match else None
+        # "$0.00" is a placeholder for "not published".
+        if amount is None or amount <= 0:
+            continue
+        if found["upset"] is None and label in PORTAL_UPSET_LABELS:
+            found["upset"] = amount
+        elif found["judgment"] is None and label in PORTAL_JUDGMENT_LABELS:
+            found["judgment"] = amount
+    return found
