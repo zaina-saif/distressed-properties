@@ -1,0 +1,47 @@
+{
+  "model_version": "sale_probability_gradient_boosting_v2",
+  "model_name": "sale_probability_gradient_boosting",
+  "target": "reaches_auction",
+  "training_rows": 3468,
+  "holdout_rows": 877,
+  "positive_rows": 1231,
+  "negative_rows": 3114,
+  "holdout_roc_auc": 0.8045,
+  "holdout_pr_auc": 0.6293,
+  "holdout_brier_score": 0.1567,
+  "holdout_mean_prediction": 0.3519,
+  "holdout_positive_rate": 0.2737,
+  "calibration": "sigmoid, fit on the most recent 20% of events after fitting on the older 80%",
+  "holdout_cutoff": "2026-07-08T00:00:00",
+  "feature_columns": [
+    "state",
+    "county",
+    "prior_event_count",
+    "prior_scheduled_count",
+    "adjournment_count",
+    "plaintiff_adjournment_count",
+    "defendant_adjournment_count",
+    "court_adjournment_count",
+    "bankruptcy_count",
+    "distinct_status_count",
+    "days_in_process",
+    "days_since_previous_event",
+    "days_until_sale",
+    "sale_month",
+    "minimum_bid",
+    "has_upset_price"
+  ],
+  "hyperparameters": {
+    "n_estimators": 250,
+    "learning_rate": 0.08,
+    "max_depth": 3,
+    "min_samples_leaf": 8
+  },
+  "tuning": {
+    "validation_rows": 700,
+    "validation_cutoff": "2026-04-08T00:00:00",
+    "best_validation_roc_auc": 0.7353,
+    "default_validation_roc_auc": 0.6789
+  },
+  "trained_at": "2026-10-05T01:32:51.985439+00:00"
+}

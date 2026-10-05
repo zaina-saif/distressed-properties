@@ -23,6 +23,7 @@ import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.frozen import FrozenEstimator
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -31,7 +32,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-MODEL_VERSION = "sale_probability_gradient_boosting_v1"
+MODEL_VERSION = "sale_probability_gradient_boosting_v2"
 MODEL_NAME = "sale_probability_gradient_boosting"
 TARGET = "reaches_auction"
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
@@ -72,6 +73,9 @@ def _is_scheduled(event: dict[str, Any]) -> bool:
 
 def _terminal_label(event: dict[str, Any]) -> int | None:
     value = f"{_norm(event.get('status'))} {_norm(event.get('raw_status'))}"
+    # e.g. "sold_or_cancelled_unverified": the outcome is unknown, not a sale.
+    if "unverified" in value:
+        return None
     if any(token in value for token in POSITIVE_TERMINAL):
         return 1
     if any(token in value for token in NEGATIVE_TERMINAL):
@@ -140,9 +144,7 @@ def build_training_rows(sales: list[dict[str, Any]], histories: dict[str, list[d
                 if outcome is not None:
                     break
             if outcome is None:
-                current = _norm(sale.get("current_status"))
-                if current in {"sold", "cancelled"}:
-                    outcome = 1 if current == "sold" else 0
+                outcome = _terminal_label({"status": sale.get("current_status")})
             if outcome is None:
                 continue
             row = build_features(sale, prior, event_date)
@@ -158,8 +160,10 @@ def _load_db_rows() -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]
         sales = [dict(row) for row in connection.execute(text("""
             SELECT id,state,county,current_status,current_sale_date,upset_price,judgment_amount
             FROM sheriff_sales
-            WHERE lower(current_status) IN ('sold','cancelled','scheduled')
+            WHERE lower(current_status) NOT LIKE '%unverified%'
         """ )).mappings()]
+        sales = [sale for sale in sales if _norm(sale.get("current_status")) == "scheduled"
+                 or _terminal_label({"status": sale.get("current_status")}) is not None]
         history_rows = connection.execute(text("""
             SELECT id,sheriff_sale_id,status,raw_status,sale_date,observed_at
             FROM sheriff_sale_status_history
@@ -172,7 +176,14 @@ def _load_db_rows() -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]
     return sales, histories
 
 
-def _make_estimator():
+DEFAULT_PARAMS = {"n_estimators": 120, "learning_rate": 0.04, "max_depth": 2, "min_samples_leaf": 8}
+PARAM_GRID = [
+    {"n_estimators": n, "learning_rate": lr, "max_depth": depth, "min_samples_leaf": leaf}
+    for n in (120, 250) for lr in (0.04, 0.08) for depth in (2, 3) for leaf in (8, 20)
+]
+
+
+def _make_estimator(params: dict[str, Any] | None = None):
     categorical = ["state", "county"]
     numeric = [
         "prior_event_count", "prior_scheduled_count", "adjournment_count",
@@ -186,10 +197,7 @@ def _make_estimator():
     ])
     base = Pipeline([
         ("preprocess", preprocess),
-        ("classifier", GradientBoostingClassifier(
-            n_estimators=120, learning_rate=0.04, max_depth=2,
-            min_samples_leaf=8, random_state=42,
-        )),
+        ("classifier", GradientBoostingClassifier(random_state=42, **(params or DEFAULT_PARAMS))),
     ])
     return base
 
@@ -210,10 +218,13 @@ def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
         test_mask.iloc[test_idx] = True
     train_frame = frame.loc[~test_mask]
     test_frame = frame.loc[test_mask]
-    estimator = _make_estimator()
-    calibrated = CalibratedClassifierCV(estimator=estimator, method="sigmoid", cv=3)
-    calibrated.fit(train_frame[feature_columns], train_frame["label"])
-    probabilities = calibrated.predict_proba(test_frame[feature_columns])[:, 1]
+    params, tuning = _select_params(train_frame, feature_columns)
+    evaluated = _fit_time_calibrated(train_frame, feature_columns, params)
+    probabilities = evaluated.predict_proba(test_frame[feature_columns])[:, 1]
+    # The deployed model is refit the same way on every labeled event, so the
+    # newest outcomes inform live scores; the metrics above describe the
+    # evaluated model, which never saw the holdout.
+    calibrated = _fit_time_calibrated(frame, feature_columns, params)
     metrics = {
         "model_version": MODEL_VERSION,
         "model_name": MODEL_NAME,
@@ -225,11 +236,51 @@ def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
         "holdout_roc_auc": round(float(roc_auc_score(test_frame["label"], probabilities)), 4),
         "holdout_pr_auc": round(float(average_precision_score(test_frame["label"], probabilities)), 4),
         "holdout_brier_score": round(float(brier_score_loss(test_frame["label"], probabilities)), 4),
+        "holdout_mean_prediction": round(float(probabilities.mean()), 4),
+        "holdout_positive_rate": round(float(test_frame["label"].mean()), 4),
+        "calibration": "sigmoid, fit on the most recent 20% of events after fitting on the older 80%",
         "holdout_cutoff": cutoff.isoformat() if cutoff is not None else None,
         "feature_columns": feature_columns,
+        "hyperparameters": params,
+        "tuning": tuning,
         "trained_at": datetime.now(timezone.utc).isoformat(),
     }
     return (calibrated, metrics)
+
+
+def _time_split(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, Any]:
+    dates = pd.to_datetime(frame["event_date"], errors="coerce")
+    cutoff = dates.quantile(0.8) if dates.notna().any() else None
+    recent = dates >= cutoff if cutoff is not None else pd.Series(False, index=frame.index)
+    return frame.loc[~recent], frame.loc[recent], cutoff
+
+
+def _fit_time_calibrated(frame: pd.DataFrame, feature_columns: list[str], params: dict[str, Any]):
+    """Fit on older events and calibrate on the newest ones, so probabilities
+    track the recent auction rate rather than the historical average."""
+    older, recent, _ = _time_split(frame)
+    if len(recent) < 30 or older["label"].nunique() < 2 or recent["label"].nunique() < 2:
+        model = CalibratedClassifierCV(estimator=_make_estimator(params), method="sigmoid", cv=3)
+        return model.fit(frame[feature_columns], frame["label"])
+    base = _make_estimator(params).fit(older[feature_columns], older["label"])
+    return CalibratedClassifierCV(FrozenEstimator(base), method="sigmoid").fit(recent[feature_columns], recent["label"])
+
+
+def _select_params(train_frame: pd.DataFrame, feature_columns: list[str]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Pick hyperparameters on a time-ordered split of the training data only,
+    so the final holdout stays untouched by model selection."""
+    fit, valid, cutoff = _time_split(train_frame)
+    if len(valid) < 30 or fit["label"].nunique() < 2 or valid["label"].nunique() < 2:
+        return DEFAULT_PARAMS, {"skipped": "validation split too small"}
+    results = []
+    for params in PARAM_GRID:
+        model = _make_estimator(params).fit(fit[feature_columns], fit["label"])
+        probabilities = model.predict_proba(valid[feature_columns])[:, 1]
+        results.append((round(float(roc_auc_score(valid["label"], probabilities)), 4), params))
+    best_auc, best = max(results, key=lambda pair: pair[0])
+    default_auc = next(auc for auc, params in results if params == DEFAULT_PARAMS)
+    return best, {"validation_rows": int(len(valid)), "validation_cutoff": cutoff.isoformat(),
+                  "best_validation_roc_auc": best_auc, "default_validation_roc_auc": default_auc}
 
 
 def _json_safe(value: Any) -> Any:
