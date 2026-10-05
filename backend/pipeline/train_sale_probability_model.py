@@ -32,7 +32,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-MODEL_VERSION = "sale_probability_gradient_boosting_v2"
+MODEL_VERSION = "sale_probability_gradient_boosting_v3"
 MODEL_NAME = "sale_probability_gradient_boosting"
 TARGET = "reaches_auction"
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
@@ -124,19 +124,30 @@ def build_features(sale: dict[str, Any], prior_events: list[dict[str, Any]], eve
         "days_in_process": max(0, days_in_process),
         "days_since_previous_event": max(0, days_since_previous),
         "days_until_sale": days_until_sale,
-        "sale_month": sale_date.month if sale_date else (event_date.month if event_date else 0),
+        # Month of the scheduled date being predicted. The sale's final date
+        # (current_sale_date) would reveal later adjournments during training.
+        "sale_month": event_date.month if event_date else (sale_date.month if sale_date else 0),
         "minimum_bid": minimum_bid,
         "has_upset_price": int(upset is not None),
     }
 
 
-def build_training_rows(sales: list[dict[str, Any]], histories: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
+def build_training_rows(
+    sales: list[dict[str, Any]],
+    histories: dict[str, list[dict[str, Any]]],
+    as_of: date | None = None,
+) -> list[dict[str, Any]]:
+    """Labeled scheduled events. With ``as_of``, only events whose sale date
+    has passed are kept: before the date a sale can only have been cancelled,
+    so unmatured events would bias the labels toward "no auction"."""
     rows: list[dict[str, Any]] = []
     for sale in sales:
         events = _sorted_events(histories.get(str(sale["id"]), []))
         schedule_indexes = [i for i, event in enumerate(events) if _is_scheduled(event)]
         for index in schedule_indexes:
             event_date = _as_date(events[index].get("sale_date"))
+            if as_of is not None and (event_date is None or event_date >= as_of):
+                continue
             prior = events[:index]
             outcome: int | None = None
             for later in events[index + 1:]:
@@ -176,6 +187,11 @@ def _load_db_rows() -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]
     return sales, histories
 
 
+# days_until_sale is measured to the sale's final date, which during training
+# reveals whether this scheduled date was later adjourned; for live sales it is
+# always 0. Built for reference only, never trained on.
+LEAKY_FEATURES = {"days_until_sale"}
+
 DEFAULT_PARAMS = {"n_estimators": 120, "learning_rate": 0.04, "max_depth": 2, "min_samples_leaf": 8}
 PARAM_GRID = [
     {"n_estimators": n, "learning_rate": lr, "max_depth": depth, "min_samples_leaf": leaf}
@@ -189,7 +205,7 @@ def _make_estimator(params: dict[str, Any] | None = None):
         "prior_event_count", "prior_scheduled_count", "adjournment_count",
         "plaintiff_adjournment_count", "defendant_adjournment_count", "court_adjournment_count",
         "bankruptcy_count", "distinct_status_count", "days_in_process",
-        "days_since_previous_event", "days_until_sale", "sale_month", "minimum_bid", "has_upset_price",
+        "days_since_previous_event", "sale_month", "minimum_bid", "has_upset_price",
     ]
     preprocess = ColumnTransformer([
         ("categorical", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical),
@@ -206,7 +222,7 @@ def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
     if len(rows) < 30 or len({row["label"] for row in rows}) < 2:
         raise ValueError(f"Need at least 30 labeled events and both classes; got {len(rows)} rows")
     frame = pd.DataFrame(rows)
-    feature_columns = [c for c in frame.columns if c not in {"label", "sale_id", "event_date"}]
+    feature_columns = [c for c in frame.columns if c not in {"label", "sale_id", "event_date"} | LEAKY_FEATURES]
     frame[feature_columns] = frame[feature_columns].fillna(0)
     # Keep events from the latest 20% of dates out of fitting for a time-aware check.
     dates = pd.to_datetime(frame["event_date"], errors="coerce")
@@ -283,6 +299,83 @@ def _select_params(train_frame: pd.DataFrame, feature_columns: list[str]) -> tup
                   "best_validation_roc_auc": best_auc, "default_validation_roc_auc": default_auc}
 
 
+# Inputs grouped the way a person would read them, for per-property reasons.
+DRIVER_GROUPS: list[tuple[str, str, list[str]]] = [
+    ("adjournments", "Adjournments", ["adjournment_count", "plaintiff_adjournment_count",
+                                      "defendant_adjournment_count", "court_adjournment_count"]),
+    ("bankruptcy", "Bankruptcy filings", ["bankruptcy_count"]),
+    ("reschedules", "Times scheduled before", ["prior_scheduled_count", "prior_event_count", "distinct_status_count"]),
+    ("days_in_process", "Time in the sale process", ["days_in_process"]),
+    ("days_since_previous_event", "Days since the last status change", ["days_since_previous_event"]),
+    ("sale_month", "Sale month", ["sale_month"]),
+    ("minimum_bid", "Minimum bid", ["minimum_bid", "has_upset_price"]),
+    ("county", "County", ["county"]),
+]
+
+
+def typical_values(frame: pd.DataFrame, feature_columns: list[str]) -> dict[str, Any]:
+    """The 'typical' sale: median of each numeric input, most common category."""
+    typical: dict[str, Any] = {}
+    for column in feature_columns:
+        series = frame[column]
+        if pd.api.types.is_numeric_dtype(series):
+            typical[column] = _json_safe(series.median())
+        else:
+            typical[column] = series.mode().iloc[0]
+    return typical
+
+
+def _describe(group: str, values: dict[str, Any]) -> str:
+    def n(key: str) -> str:
+        value = values.get(key)
+        return "—" if value is None else f"{float(value):,.0f}"
+    if group == "county":
+        return str(values.get("county") or "—")
+    if group == "adjournments":
+        return f"{n('adjournment_count')} ({n('plaintiff_adjournment_count')} plaintiff, {n('defendant_adjournment_count')} defendant)"
+    if group == "reschedules":
+        return n("prior_scheduled_count")
+    if group == "minimum_bid":
+        return "Not published" if not values.get("minimum_bid") else f"${float(values['minimum_bid']):,.0f}"
+    if group in {"days_in_process", "days_since_previous_event"}:
+        return f"{n(group)} days"
+    if group == "sale_month":
+        month = values.get("sale_month")
+        return datetime(2000, int(month), 1).strftime("%B") if month else "—"
+    return n(DRIVER_GROUPS_BY_KEY[group][0])
+
+
+DRIVER_GROUPS_BY_KEY = {key: columns for key, _, columns in DRIVER_GROUPS}
+
+
+def explain_drivers(model: Any, frame: pd.DataFrame, feature_columns: list[str],
+                    typical: dict[str, Any], top: int = 4) -> list[list[dict[str, Any]]]:
+    """For each row, how many points each group of inputs moves the estimate
+    compared with a typical value: probability minus the probability with that
+    group set to typical. Returns the largest effects per row."""
+    base = model.predict_proba(frame[feature_columns])[:, 1]
+    impacts: dict[str, np.ndarray] = {}
+    for key, _, columns in DRIVER_GROUPS:
+        present = [column for column in columns if column in feature_columns]
+        if not present:
+            continue
+        changed = frame[feature_columns].copy()
+        for column in present:
+            changed[column] = typical[column]
+        impacts[key] = base - model.predict_proba(changed)[:, 1]
+    labels = {key: label for key, label, _ in DRIVER_GROUPS}
+    results = []
+    for index in range(len(frame)):
+        values = frame.iloc[index].to_dict()
+        ranked = sorted(impacts, key=lambda key: abs(impacts[key][index]), reverse=True)
+        results.append([
+            {"key": key, "label": labels[key], "value": _describe(key, values),
+             "typical": _describe(key, typical), "impact": round(float(impacts[key][index]), 4)}
+            for key in ranked[:top] if abs(impacts[key][index]) >= 0.005
+        ])
+    return results
+
+
 def _json_safe(value: Any) -> Any:
     if isinstance(value, (np.integer, np.floating)):
         return value.item()
@@ -291,7 +384,9 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
-def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, list[dict[str, Any]]], feature_columns: list[str]) -> int:
+def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, list[dict[str, Any]]],
+                  feature_columns: list[str], typical: dict[str, Any] | None = None,
+                  metrics: dict[str, Any] | None = None) -> int:
     current = [sale for sale in sales if _norm(sale.get("current_status")) == "scheduled"]
     now = datetime.now(timezone.utc).date()
     rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
@@ -307,14 +402,23 @@ def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, 
         return 0
     frame = pd.DataFrame([row for _, row in rows])[feature_columns].fillna(0)
     probabilities = model.predict_proba(frame)[:, 1]
+    drivers = explain_drivers(model, frame, feature_columns, typical) if typical else [[] for _ in rows]
     now_dt = datetime.now(timezone.utc)
     with engine.begin() as connection:
-        for (sale, feature_row), probability in zip(rows, probabilities):
+        for (sale, feature_row), probability, row_drivers in zip(rows, probabilities, drivers):
             features = {key: _json_safe(value) for key, value in feature_row.items()}
             explanations = {
-                "methodology": "Calibrated gradient boosting trained on prior status history; current event features exclude later statuses.",
+                "methodology": (
+                    "Calibrated gradient boosting trained on past NJ scheduled sale dates that have already "
+                    "passed, using only the status history known before each date."
+                ),
                 "target": "Next scheduled event reaches a sold/purchased terminal outcome",
                 "model_version": MODEL_VERSION,
+                "drivers": row_drivers,
+                "drivers_method": "Points this input moves the estimate compared with a typical NJ sale.",
+                "model_quality": {key: (metrics or {}).get(key) for key in (
+                    "holdout_rows", "holdout_roc_auc", "holdout_brier_score",
+                    "holdout_mean_prediction", "holdout_positive_rate", "holdout_cutoff")},
             }
             connection.execute(text("""
                 INSERT INTO sale_predictions(
@@ -346,15 +450,18 @@ def main() -> None:
     sales, histories = _load_db_rows()
     if args.score_only and ARTIFACT_PATH.exists():
         artifact = joblib.load(ARTIFACT_PATH)
-        count = score_current(artifact["model"], sales, histories, artifact["feature_columns"])
+        count = score_current(artifact["model"], sales, histories, artifact["feature_columns"], artifact.get("typical"),
+                              artifact.get("metrics"))
         print(f"Scored {count} current scheduled sales with {MODEL_VERSION}")
         return
-    rows = build_training_rows(sales, histories)
+    rows = build_training_rows(sales, histories, as_of=datetime.now(timezone.utc).date())
     model, metrics = train_model(rows)
     feature_columns = metrics["feature_columns"]
-    joblib.dump({"model": model, "feature_columns": feature_columns, "metrics": metrics}, ARTIFACT_PATH)
-    METRICS_PATH.write_text(json.dumps(metrics, indent=2) + "\n")
-    count = score_current(model, sales, histories, feature_columns)
+    typical = typical_values(pd.DataFrame(rows)[feature_columns].fillna(0), feature_columns)
+    metrics["typical_sale"] = typical
+    joblib.dump({"model": model, "feature_columns": feature_columns, "metrics": metrics, "typical": typical}, ARTIFACT_PATH)
+    METRICS_PATH.write_text(json.dumps(metrics, indent=2, default=str) + "\n")
+    count = score_current(model, sales, histories, feature_columns, typical, metrics)
     print(json.dumps({"trained": metrics, "scored_current": count}, indent=2))
 
 

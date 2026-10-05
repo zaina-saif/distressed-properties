@@ -197,7 +197,8 @@ class Refresh:
         try:
             artifact = joblib.load(ARTIFACT_PATH)
             sales, histories = _load_db_rows()
-            count = self._quiet(score_current, artifact["model"], sales, histories, artifact["feature_columns"])
+            count = self._quiet(score_current, artifact["model"], sales, histories, artifact["feature_columns"],
+                                artifact.get("typical"), artifact.get("metrics"))
             self.report["stages"]["score"] = {"model_version": MODEL_VERSION, "scored": count}
             print(f"  scored {count} scheduled sales with {MODEL_VERSION}", flush=True)
         except Exception as exc:  # noqa: BLE001
