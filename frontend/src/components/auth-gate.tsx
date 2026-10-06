@@ -19,7 +19,6 @@ export function AuthGate() {
 
   function continueToPlatform(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!event.currentTarget.reportValidity()) return;
     router.push("/dashboard");
   }
 
@@ -45,7 +44,7 @@ export function AuthGate() {
           <div className={styles.formIntro}>
             <span className={styles.formEyebrow}>WELCOME TO DISTRESSED PROPERTIES PRO</span>
             <h2 id="auth-title">{mode === "create" ? "Create your account" : "Welcome back"}</h2>
-            <p>{mode === "create" ? "Set up your access to the sheriff-sale research workspace." : "Log in to continue to your research workspace."}</p>
+            <p>{mode === "create" ? "No login is needed to view the dashboard during development. Choose Create account and continue to open it." : "Sign-in will be set up for launch. For now, you can open the dashboard without logging in."}</p>
           </div>
 
           <div className={styles.modeSwitch} role="tablist" aria-label="Account access">
@@ -53,14 +52,14 @@ export function AuthGate() {
             <button type="button" role="tab" aria-selected={mode === "login"} onClick={() => setMode("login")} className={mode === "login" ? styles.selected : ""}>Log in</button>
           </div>
 
-          <form onSubmit={continueToPlatform} className={styles.form}>
-            {mode === "create" && <label>Full name<input autoComplete="name" name="name" type="text" required placeholder="Your name" /></label>}
-            <label>Email address<span className={styles.inputWrap}><Mail aria-hidden="true" /><input autoComplete="email" name="email" type="email" required placeholder="you@example.com" /></span></label>
-            <label>Password<span className={styles.inputWrap}><LockKeyhole aria-hidden="true" /><input autoComplete={mode === "create" ? "new-password" : "current-password"} name="password" type={showPassword ? "text" : "password"} required minLength={8} placeholder="At least 8 characters" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></span></label>
+          <form noValidate onSubmit={continueToPlatform} className={styles.form}>
+            {mode === "create" && <label>Full name<input autoComplete="name" name="name" type="text" placeholder="Your name (optional for preview)" /></label>}
+            <label>Email address<span className={styles.inputWrap}><Mail aria-hidden="true" /><input autoComplete="email" name="email" type="email" placeholder="you@example.com (optional for preview)" /></span></label>
+            <label>Password<span className={styles.inputWrap}><LockKeyhole aria-hidden="true" /><input autoComplete={mode === "create" ? "new-password" : "current-password"} name="password" type={showPassword ? "text" : "password"} placeholder="Optional for preview" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></span></label>
             <button type="submit" className={styles.submit}>{mode === "create" ? "Create account and continue" : "Log in and continue"}<ArrowRight aria-hidden="true" /></button>
           </form>
 
-          <p className={styles.previewNote}><strong>Preview:</strong> this form demonstrates the account flow and continues to the platform. Account creation, password checks, and sign-in are not connected to a secure authentication service yet.</p>
+          <p className={styles.previewNote}><strong>Developer preview:</strong> no account or login is required right now. The buttons open the dashboard directly. We’ll connect account creation and secure sign-in when the product launches.</p>
           <p className={styles.terms}>Listings, values, and sale dates should be verified with their original sources before bidding.</p>
         </section>
       </section>
