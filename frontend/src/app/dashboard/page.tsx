@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { RequireAccess } from "@/components/account-provider";
 import PropertyDashboard from "@/components/property-dashboard";
 
 export const metadata: Metadata = {
@@ -16,7 +17,11 @@ export default async function DashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const params = await searchParams;
+  const query = new URLSearchParams(
+    Object.entries(params).flatMap(([key, value]) => (value === undefined ? [] : [[key, first(value)]])),
+  ).toString();
   return (
+    <RequireAccess next={`/dashboard${query ? `?${query}` : ""}`}>
     <PropertyDashboard
       // Remount when the link changes so the filters start from the URL.
       key={`${first(params.state)}|${first(params.county)}|${first(params.q)}|${first(params.spotlight)}`}
@@ -25,5 +30,6 @@ export default async function DashboardPage({
       initialQuery={first(params.q)}
       initialSpotlight={first(params.spotlight) === "1"}
     />
+    </RequireAccess>
   );
 }

@@ -101,3 +101,43 @@
 /* Same ordering issue for the mobile menu button: hide it except on phones. */
 .root :global(.site-button.mobile-menu) { display: none; }
 @media(max-width:600px) { .root :global(.site-button.mobile-menu) { display: inline-flex; } }
+.root :global(.choose-plan), .root :global(.account-page) { padding-top: 64px; padding-bottom: 88px; max-width: 900px; }
+.root :global(.choose-plan h1), .root :global(.account-page h1) { font-size: 44px; margin-bottom: 26px; }
+.root :global(.choose-plan .billing-toggle) { margin: 0 0 22px; }
+.root :global(.plan-options) { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.root :global(.plan-option) { display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); color: var(--foreground); transition: border-color .15s, box-shadow .15s; }
+.root :global(.plan-option:hover:not(:disabled)) { border-color: var(--equity); }
+.root :global(.plan-option.is-selected) { border: 2px solid var(--equity); padding: 17px; box-shadow: var(--shadow); }
+.root :global(.plan-option:disabled) { opacity: .55; cursor: not-allowed; }
+.root :global(.plan-option-head) { display: flex; justify-content: space-between; align-items: center; font-size: 17px; color: var(--equity); }
+.root :global(.plan-option-head strong) { color: var(--foreground); }
+.root :global(.plan-option-price) { font-family: var(--font-display); font-size: 30px; font-weight: 650; }
+.root :global(.plan-option-price small) { font-size: 13px; font-weight: 500; color: var(--muted-foreground); margin-left: 3px; }
+.root :global(.plan-option-coverage) { font-size: 12px; color: var(--muted-foreground); }
+.root :global(.plan-option-note) { font-size: 11px; font-weight: 600; color: var(--muted-foreground); }
+.root :global(.coverage-pickers) { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin-top: 24px; padding: 18px; border-radius: 8px; background: var(--muted); }
+.root :global(.coverage-pickers label), .root :global(.password-form label) { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; min-width: 220px; }
+.root :global(.coverage-pickers select), .root :global(.password-form input) { height: 42px; padding: 0 10px; border: 1px solid var(--border); border-radius: 5px; background: var(--background); font-size: 14px; }
+.root :global(.coverage-pickers p) { flex-basis: 100%; font-size: 12px; color: var(--muted-foreground); }
+.root :global(.coverage-pickers .site-button) { height: 42px; padding: 0 18px; }
+.root :global(.choose-plan-submit) { height: 50px; padding: 0 24px; margin-top: 24px; font-size: 14px; }
+.root :global(.choose-plan-submit:disabled), .root :global(.account-page .site-button:disabled) { opacity: .6; cursor: wait; }
+.root :global(.choose-plan-note), .root :global(.account-muted) { font-size: 12px; color: var(--muted-foreground); margin-top: 12px; }
+.root :global(.choose-plan-done p) { font-size: 15px; line-height: 1.7; color: var(--muted-foreground); }
+.root :global(.choose-plan-actions) { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.root :global(.choose-plan-actions .site-button) { height: 44px; padding: 0 18px; }
+.root :global(.form-error), .root :global(.form-notice) { margin-top: 18px; padding: 11px 13px; border-radius: 6px; font-size: 13px; line-height: 1.5; }
+.root :global(.form-error) { background: #fef2f2; color: #b91c1c; }
+.root :global(.form-notice) { background: var(--soft-equity); color: var(--equity); }
+.root :global(.account-facts) { display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; margin: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--border); }
+.root :global(.account-facts div) { padding: 16px 18px; background: var(--background); }
+.root :global(.account-facts dt) { font-size: 11px; color: var(--muted-foreground); }
+.root :global(.account-facts dd) { margin: 6px 0 0; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.root :global(.plan-status) { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 6px; border-radius: 3px; background: var(--muted); color: var(--muted-foreground); }
+.root :global(.plan-status.status-active), .root :global(.plan-status.status-trialing) { background: var(--soft-equity); color: var(--equity); }
+.root :global(.plan-status.status-past_due), .root :global(.plan-status.status-canceled) { background: #fef2f2; color: #b91c1c; }
+.root :global(.coverage-change) { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 26px; }
+.root :global(.coverage-change h2) { font-size: 20px; font-weight: 650; }
+.root :global(.password-form) { display: flex; flex-direction: column; gap: 16px; max-width: 380px; }
+.root :global(.password-form .site-button) { height: 46px; }
+@media(max-width:700px) { .root :global(.plan-options), .root :global(.account-facts) { grid-template-columns: 1fr; } .root :global(.choose-plan h1), .root :global(.account-page h1) { font-size: 34px; } .root :global(.coverage-pickers label) { min-width: 100%; } }

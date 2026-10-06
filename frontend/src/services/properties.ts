@@ -10,8 +10,7 @@ import type {
 } from "@/types/property";
 import type { WarehouseCoverage, WarehouseCursor, WarehouseMonthlyCoverage, WarehousePropertyPage } from "@/types/warehouse-valuation";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+import { API_URL, authFetch } from "@/lib/api";
 
 /** Aerial photo centred on the property, from NJ's 2020 orthoimagery (404 outside NJ). */
 export function aerialPhotoUrl(propertyId: string): string {
@@ -89,7 +88,7 @@ export async function getProperties(
   params.set("page", String(filters.page ?? 1));
   params.set("page_size", String(filters.pageSize ?? 50));
 
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties?${params.toString()}`,
     {
       cache: "no-store",
@@ -123,7 +122,7 @@ export async function downloadPropertiesXlsx(
   params.set("page", String(filters.page ?? 1));
   params.set("page_size", String(filters.pageSize ?? 24));
 
-  const response = await fetch(`${API_URL}/api/v1/properties/export.xlsx?${params.toString()}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/properties/export.xlsx?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to export properties: ${response.status}`);
   return response.blob();
 }
@@ -159,7 +158,7 @@ export async function getNycAuctionCoverage(): Promise<NycAuctionCoverage> {
 export async function getLienCoverage(
   propertyId: string,
 ): Promise<LienCoverageItem[]> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties/${propertyId}/lien-coverage`,
     { cache: "no-store" },
   );
@@ -173,27 +172,27 @@ export async function getLienCoverage(
 }
 
 export async function getLiens(propertyId: string): Promise<LienItem[]> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/liens`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/properties/${propertyId}/liens`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load liens: ${response.status}`);
   const result = (await response.json()) as { items: LienItem[] };
   return result.items;
 }
 
 export async function getLienEnrichment(propertyId: string): Promise<LienEnrichment | null> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/lien-enrichment`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/properties/${propertyId}/lien-enrichment`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load public-record enrichment: ${response.status}`);
   const result = (await response.json()) as { item: LienEnrichment | null };
   return result.item;
 }
 
 export async function getLienSummary(propertyId: string): Promise<LienSummaryResponse> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/lien-summary`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/properties/${propertyId}/lien-summary`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load lien summary: ${response.status}`);
   return response.json() as Promise<LienSummaryResponse>;
 }
 
 export async function getPublicComplaints(propertyId: string): Promise<PublicComplaint[]> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${propertyId}/complaints`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/properties/${propertyId}/complaints`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load public complaints: ${response.status}`);
   const result = (await response.json()) as { items: PublicComplaint[] };
   return result.items;
@@ -202,7 +201,7 @@ export async function getPublicComplaints(propertyId: string): Promise<PublicCom
 export async function getProfessionalTitleSearch(
   propertyId: string,
 ): Promise<ProfessionalTitleSearch> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties/${propertyId}/professional-title-search`,
     { cache: "no-store" },
   );
@@ -214,14 +213,14 @@ export async function getProfessionalTitleSearch(
 }
 
 export async function getWarehouseCoverage(state: string): Promise<WarehouseCoverage> {
-  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/coverage?state=${encodeURIComponent(state)}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/warehouse-valuations/coverage?state=${encodeURIComponent(state)}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load warehouse coverage: ${response.status}`);
   return response.json();
 }
 
 export async function getWarehouseCounties(state: string, year: number): Promise<string[]> {
   const params = new URLSearchParams({ state, year: String(year) });
-  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/counties?${params}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/warehouse-valuations/counties?${params}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load warehouse counties: ${response.status}`);
   const result = (await response.json()) as { counties: string[] };
   return result.counties;
@@ -240,14 +239,14 @@ export async function getWarehouseProperties(filters: {
     params.set("after_parcel", filters.cursor.parcel);
     params.set("after_source", filters.cursor.source);
   }
-  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/properties?${params}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/warehouse-valuations/properties?${params}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load warehouse properties: ${response.status}`);
   return response.json();
 }
 
 export async function getWarehouseMonthlyCoverage(state: string, county: string, year: number): Promise<WarehouseMonthlyCoverage> {
   const params = new URLSearchParams({ state, county, year: String(year) });
-  const response = await fetch(`${API_URL}/api/v1/warehouse-valuations/months?${params}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/warehouse-valuations/months?${params}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load monthly coverage: ${response.status}`);
   return response.json();
 }
@@ -273,7 +272,7 @@ export interface SalePage {
 
 /** Live copy of the sale's CivilView detail page, looked up by sheriff number. */
 export async function getSalePage(sheriffSaleId: string): Promise<SalePage> {
-  const response = await fetch(`${API_URL}/api/v1/sale-pages/${encodeURIComponent(sheriffSaleId)}`, { cache: "no-store" });
+  const response = await authFetch(`${API_URL}/api/v1/sale-pages/${encodeURIComponent(sheriffSaleId)}`, { cache: "no-store" });
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as { detail?: string } | null;
     throw new Error(body?.detail ?? "The sheriff sale page could not be loaded.");

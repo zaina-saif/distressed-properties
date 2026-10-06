@@ -16,8 +16,10 @@ from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
+
+from app.auth import Access, assert_covers, require_access
 
 from app.database.session import engine
 from pipeline.scrape_nj_civilview import CIVILVIEW_COUNTIES
@@ -148,7 +150,19 @@ def _fetch(county_id: int, sheriff_number: str) -> dict[str, Any] | None:
     return page
 
 
-@router.get("/{sheriff_sale_id}")
+def require_sale_access(sheriff_sale_id: str, access: Access = Depends(require_access)) -> Access:
+    """The sale must be inside the user's plan coverage."""
+    if access.scope_state:
+        with engine.connect() as connection:
+            sale = connection.execute(text("SELECT state, county FROM sheriff_sales WHERE id::text = :id"),
+                                      {"id": sheriff_sale_id}).first()
+        if sale is None:
+            raise HTTPException(status_code=404, detail="Sale not found")
+        assert_covers(access, sale[0], sale[1])
+    return access
+
+
+@router.get("/{sheriff_sale_id}", dependencies=[Depends(require_sale_access)])
 def get_sale_page(sheriff_sale_id: str) -> dict[str, Any]:
     cached = _cache.get(sheriff_sale_id)
     if cached and time.monotonic() - cached[0] < CACHE_SECONDS:

@@ -6,9 +6,10 @@ import json
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import text
 
+from app.auth import require_developer
 from app.database.session import engine
 from app.liens.models import LienRecord, SourceCoverage, SourceStatus
 from app.liens.risk import calculate_lien_risk
@@ -412,7 +413,8 @@ def _run_lien_job(job_id: str, property_id: str) -> None:
                 WHERE id=CAST(:job_id AS UUID)"""), {"job_id": job_id, "error_message": str(exc)})
 
 
-@router.post("/{property_id}/liens/refresh")
+# Refreshing queries outside lien sources, so only developers can trigger it.
+@router.post("/{property_id}/liens/refresh", dependencies=[Depends(require_developer)])
 def refresh_liens(property_id: str, background_tasks: BackgroundTasks):
     """Queue a refresh; external source requests never block property rendering."""
     with engine.begin() as connection:

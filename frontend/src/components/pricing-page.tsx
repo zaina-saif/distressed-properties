@@ -10,25 +10,25 @@ import { getStateSummary } from "@/services/properties";
 
 import styles from "./marketing-home.module.css";
 
-const ANNUAL_DISCOUNT = 0.1;
+export const ANNUAL_DISCOUNT = 0.1;
 
-type Plan = { name: string; monthly: number; tagline: string; coverage: string; features: string[]; cta: string; popular?: boolean };
+export type PlanCard = { id: "free" | "starter" | "pro"; name: string; monthly: number; tagline: string; coverage: string; features: string[]; cta: string; popular?: boolean };
 
-function plans(stateCount: number, countyCount: number | null): Plan[] {
+export function plans(stateCount: number, countyCount: number | null): PlanCard[] {
   const everywhere = countyCount ? `All ${countyCount} counties across ${stateCount} states` : `Every county across ${stateCount} states`;
   return [
     {
-      name: "Free", monthly: 0, tagline: "Get to know one market.", coverage: "One county of your choice", cta: "Start free",
+      id: "free", name: "Free", monthly: 0, tagline: "Get to know one market.", coverage: "One county of your choice", cta: "Start free",
       features: ["Interactive sale map and list", "Search and filters by county, city or address", "Minimum bid, estimated value and gross equity",
         "Sale status and postponement history", "Property photos and source links", "10 full property reports a month"],
     },
     {
-      name: "Starter", monthly: 39, tagline: "Work a whole state.", coverage: "Every county in one state", cta: "Choose Starter",
+      id: "starter", name: "Starter", monthly: 39, tagline: "Work a whole state.", coverage: "Every county in one state", cta: "Choose Starter",
       features: ["Everything in Free", "Unlimited property reports", "Probability each sale reaches auction, with the reasons",
         "Preliminary lien pre-screening", "Investor Spotlight ranking by expected equity", "Change your state every 30 days"],
     },
     {
-      name: "Pro", monthly: 69, tagline: "See every opportunity we track.", coverage: everywhere, cta: "Choose Pro", popular: true,
+      id: "pro", name: "Pro", monthly: 69, tagline: "See every opportunity we track.", coverage: everywhere, cta: "Choose Pro", popular: true,
       features: ["Everything in Starter", "Every state and county as soon as we add it", "Excel export of any filtered list",
         "Compare opportunities across states on one map", "Priority support"],
     },
@@ -36,7 +36,7 @@ function plans(stateCount: number, countyCount: number | null): Plan[] {
 }
 
 const FAQ = [
-  { q: "When will I be charged?", a: "Not during the preview. Every feature is free to use while we finish the platform, and no card is needed. Paid plans start at general launch, and you will be asked before anything is billed." },
+  { q: "When will I be charged?", a: "Starter and Pro are billed through Stripe when you subscribe, then at the start of each month or year. The Free plan never needs a card." },
   { q: "How does annual billing work?", a: `Pay for a year up front and save ${ANNUAL_DISCOUNT * 100}% compared with paying monthly. The price shown is the monthly equivalent.` },
   { q: "Can I cancel or change plans?", a: "Yes. You can change or cancel at any time, and your plan stays active until the end of the period you have paid for." },
   { q: "Which areas do you cover?", a: `Sheriff, clerk and court-officer foreclosure sales in ${STATES.map((s) => s.name).join(", ")}. We only list counties whose official sale listings we can collect, and we add more as new sources come online.` },
@@ -44,7 +44,7 @@ const FAQ = [
   { q: "Is the lien screening a title search?", a: "No. Lien results are a pre-screening aid with an estimated priority and confidence. They are not legal advice or a guaranteed lien status. Get a professional title search before you bid." },
 ];
 
-function price(monthly: number, annual: boolean) {
+export function price(monthly: number, annual: boolean) {
   const value = annual ? monthly * (1 - ANNUAL_DISCOUNT) : monthly;
   return value % 1 ? value.toFixed(2) : String(value);
 }
@@ -72,7 +72,6 @@ export function PricingPage() {
           <button type="button" role="radio" aria-checked={!annual} className={!annual ? "is-selected" : ""} onClick={() => setAnnual(false)}>Monthly</button>
           <button type="button" role="radio" aria-checked={annual} className={annual ? "is-selected" : ""} onClick={() => setAnnual(true)}>Annual <span>Save {ANNUAL_DISCOUNT * 100}%</span></button>
         </div>
-        <p className="preview-note">Preview: every plan is free while we finish the platform. No card needed.</p>
       </section>
 
       <section className="pricing-grid container" aria-label="Plans">
@@ -83,7 +82,7 @@ export function PricingPage() {
           <div className="plan-price"><strong>${price(plan.monthly, annual)}</strong><span>/mo</span></div>
           <p className="plan-billing">{plan.monthly === 0 ? "Free forever" : annual ? `$${(plan.monthly * 12 * (1 - ANNUAL_DISCOUNT)).toFixed(0)} billed yearly` : "Billed monthly"}</p>
           <p className="plan-coverage">{plan.coverage}</p>
-          <Link href="/get-started" className={plan.popular ? "site-button plan-cta" : "site-button button-outline plan-cta"}>{plan.cta}<ArrowUpRight/></Link>
+          <Link href={`/choose-plan?plan=${plan.id}&interval=${annual ? "year" : "month"}`} className={plan.popular ? "site-button plan-cta" : "site-button button-outline plan-cta"}>{plan.cta}<ArrowUpRight/></Link>
           <ul>{plan.features.map((feature) => <li key={feature}><Check size={15} aria-hidden="true"/>{feature}</li>)}</ul>
         </article>)}
       </section>

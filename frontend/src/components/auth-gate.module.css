@@ -86,3 +86,7 @@
   .formIntro h2 { font-size: 25px; }
   .modeSwitch { margin-bottom: 16px; }
 }
+.error { margin: 0; padding: 10px 12px; border-radius: 6px; background: #fef2f2; color: #b91c1c; font-size: 13px; line-height: 1.5; }
+.notice { margin: 0; padding: 10px 12px; border-radius: 6px; background: #ecfdf3; color: #166534; font-size: 13px; line-height: 1.5; }
+.linkButton { margin-top: 14px; border: 0; background: none; padding: 0; color: inherit; font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.submit:disabled { opacity: .6; cursor: wait; }

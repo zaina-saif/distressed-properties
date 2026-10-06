@@ -65,6 +65,8 @@ Other states load complete snapshots of each county's upcoming sales through `sa
 
 `DEPLOYMENT.md` covers production: the API runs from `backend/Dockerfile` (Railway reads `backend/railway.json`), the frontend on Vercel with `NEXT_PUBLIC_API_URL`, and refreshes in GitHub Actions. The API's allowed browser origins come from `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, and `ENABLE_WAREHOUSE_API=0` drops the warehouse routes on hosts that cannot reach the warehouse.
 
+**Access control** (`backend/app/auth.py`, `app/api/account.py`): Supabase Auth tokens are verified against the project's JWKS (`SUPABASE_URL`); `user_accounts` holds role, plan and coverage (Free one county, Starter one state, Pro all; `role = developer` sees everything). Data routes depend on `require_access` / `require_property_access` and must apply the user's `scope_state` / `scope_county`; maintenance routes use `require_developer`; only aggregate facets are public. Stripe Checkout and its webhook set plans. Every table in `public` has RLS on with no access for the `anon`/`authenticated` roles (migration 034), because the browser holds the publishable key: keep RLS on for new tables and never query data from the browser with Supabase.
+
 ## Cloud agent environments
 
 For Claude Code on the web, Codex cloud, or similar sandboxes:

@@ -1,15 +1,20 @@
 "use client";
 
 import { Home } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { authFetch } from "@/lib/api";
 import { propertyPhotoUrl } from "@/lib/zillow";
 import { aerialPhotoUrl, streetViewUrl } from "@/services/properties";
 import type { Property } from "@/types/property";
 
 type Source = { url: string; kind: "listing" | "street" | "aerial" };
 
-/** Zillow listing photo, else our Street View photo, else an NJ aerial view, else a placeholder. */
+/**
+ * Zillow listing photo, else our Street View photo, else an NJ aerial view, else a placeholder.
+ * Street View and aerial images come from our API, which needs the user's token, so they are
+ * fetched and shown from a local object URL instead of a plain <img src>.
+ */
 export function PropertyPhoto({ property, showMissingText = false }: { property: Property; showMissingText?: boolean }) {
   const listing = propertyPhotoUrl(property, "large");
   const sources: Source[] = [
@@ -18,7 +23,28 @@ export function PropertyPhoto({ property, showMissingText = false }: { property:
     { url: aerialPhotoUrl(property.property_id), kind: "aerial" },
   ];
   const [failed, setFailed] = useState(0);
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const source = sources[failed];
+  const protectedUrl = source && source.kind !== "listing" ? source.url : null;
+
+  useEffect(() => {
+    if (!protectedUrl) return;
+    let active = true;
+    let created: string | null = null;
+    authFetch(protectedUrl)
+      .then((response) => (response.ok ? response.blob() : Promise.reject(new Error(String(response.status)))))
+      .then((blob) => {
+        if (!active) return;
+        created = URL.createObjectURL(blob);
+        setObjectUrl(created);
+      })
+      .catch(() => { if (active) setFailed((count) => count + 1); });
+    return () => {
+      active = false;
+      if (created) URL.revokeObjectURL(created);
+      setObjectUrl(null);
+    };
+  }, [protectedUrl]);
 
   if (!source) {
     return (
@@ -28,12 +54,14 @@ export function PropertyPhoto({ property, showMissingText = false }: { property:
       </div>
     );
   }
+  const src = protectedUrl ? objectUrl : source.url;
+  if (!src) return <div className="absolute inset-0 animate-pulse bg-slate-200" aria-hidden="true" />;
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- remote photo, shown as-is */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- remote or locally fetched photo, shown as-is */}
       <img
-        key={source.url}
-        src={source.url}
+        key={src}
+        src={src}
         alt={source.kind === "aerial" ? `Aerial view of ${property.street_address}` : `Photo of ${property.street_address}`}
         loading="lazy"
         onError={() => setFailed((count) => count + 1)}

@@ -4,17 +4,20 @@ import {
   ChevronLeft,
   ChevronRight,
   ListFilter,
+  LogOut,
   Map as MapIcon,
   RefreshCw,
   Search,
   SlidersHorizontal,
   Sparkles,
   Download,
+  UserRound,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
+import { useAccount } from "@/components/account-provider";
 import { DistressedPropertiesBrand } from "@/components/brand-logo";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
@@ -67,11 +70,20 @@ export default function PropertyDashboard({
   const [selectedLienSummaryProperty, setSelectedLienSummaryProperty] = useState<Property | null>(null);
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
   const [selectedProbabilityReasonProperty, setSelectedProbabilityReasonProperty] = useState<Property | null>(null);
+  const { account, signOut } = useAccount();
+  // Free covers one county and Starter one state; the API enforces the same limits.
+  const allowedStates = useMemo(
+    () => account && !account.is_developer && account.plan !== "pro" && account.coverage_state
+      ? STATES.filter((item) => item.code === account.coverage_state)
+      : STATES,
+    [account],
+  );
+  const lockedCounty = account && !account.is_developer && account.plan === "free" ? account.coverage_county : null;
   const [selectedState, setSelectedState] = useState(
-    STATES.some((item) => item.code === initialState.toUpperCase()) ? initialState.toUpperCase() : "NJ",
+    allowedStates.some((item) => item.code === initialState.toUpperCase()) ? initialState.toUpperCase() : allowedStates[0]?.code ?? "NJ",
   );
   const stateInfo = STATES.find((item) => item.code === selectedState) ?? STATES[0];
-  const [selectedCounty, setSelectedCounty] = useState(initialCounty);
+  const [selectedCounty, setSelectedCounty] = useState(lockedCounty ?? initialCounty);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [sort, setSort] = useState("gross-equity");
@@ -132,9 +144,9 @@ export default function PropertyDashboard({
 
   const counties = useMemo(
     () => coverage
-      .filter((item) => item.state === selectedState)
+      .filter((item) => item.state === selectedState && (!lockedCounty || item.county === lockedCounty))
       .sort((left, right) => left.county.localeCompare(right.county)),
-    [coverage, selectedState],
+    [coverage, lockedCounty, selectedState],
   );
 
   const sortedProperties = properties;
@@ -158,10 +170,10 @@ export default function PropertyDashboard({
     setMobileView("list");
   }, []);
   const chooseCounty = useCallback((state: string, county: string) => {
-    if (state !== selectedState) return;
+    if (state !== selectedState || (lockedCounty && county !== lockedCounty)) return;
     setSelectedCounty(county);
     setPage(1);
-  }, [selectedState]);
+  }, [lockedCounty, selectedState]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
@@ -172,7 +184,7 @@ export default function PropertyDashboard({
   function resetFilters() {
     setFocusedProperty(null);
     setSpotlight(false);
-    setSelectedCounty("");
+    setSelectedCounty(lockedCounty ?? "");
     setSearchInput("");
     setSearchQuery("");
     setSort("gross-equity");
@@ -264,7 +276,7 @@ export default function PropertyDashboard({
               onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
               className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
             >
-              {STATES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+              {allowedStates.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
             </select>
             <select
               aria-label="County"
@@ -272,10 +284,12 @@ export default function PropertyDashboard({
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
               className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
             >
-              <option value="">All counties</option>
+              {!lockedCounty && <option value="">All counties</option>}
               {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
             </select>
             <button type="button" onClick={resetFilters} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><X className="h-3 w-3" />Clear</button>
+            <Link href="/account" className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100" title={account?.email}><UserRound className="h-3.5 w-3.5" />{account?.is_developer ? "Developer" : "Account"}</Link>
+            <button type="button" onClick={async () => { await signOut(); window.location.assign("/"); }} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><LogOut className="h-3.5 w-3.5" />Sign out</button>
           </div>
   
         </div>

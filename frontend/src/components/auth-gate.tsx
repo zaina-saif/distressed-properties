@@ -6,20 +6,74 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+import { useAccount } from "@/components/account-provider";
 import { DistressedPropertiesBrand } from "@/components/brand-logo";
+import { supabase } from "@/lib/supabase";
 
 import styles from "./auth-gate.module.css";
 
-type AuthMode = "create" | "login";
+type AuthMode = "create" | "login" | "reset";
 
-export function AuthGate() {
+/** Only same-site paths are followed after sign-in. */
+function safeNext(next: string | undefined): string | null {
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
+export function AuthGate({ initialMode = "create", next, plan }: { initialMode?: AuthMode; next?: string; plan?: string }) {
   const router = useRouter();
-  const [mode, setMode] = useState<AuthMode>("create");
+  const { refresh } = useAccount();
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const choosePlan = plan ? `/choose-plan?plan=${encodeURIComponent(plan)}` : "/choose-plan";
 
-  function continueToPlatform(event: FormEvent<HTMLFormElement>) {
+  function switchMode(value: AuthMode) {
+    setMode(value);
+    setError(null);
+    setNotice(null);
+  }
+
+  async function goOn() {
+    const account = await refresh();
+    router.push(account?.has_access ? safeNext(next) ?? "/dashboard" : choosePlan);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/dashboard");
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    setError(null);
+    setNotice(null);
+    if (!email) return setError("Enter your email address.");
+    if (mode !== "reset" && password.length < 8) return setError("Use a password of at least 8 characters.");
+    setBusy(true);
+    try {
+      const auth = supabase().auth;
+      if (mode === "reset") {
+        const { error: failure } = await auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+        if (failure) throw failure;
+        setNotice("If an account exists for that email, a reset link is on its way.");
+      } else if (mode === "create") {
+        const { data, error: failure } = await auth.signUp({
+          email, password,
+          options: { data: { full_name: String(form.get("name") ?? "").trim() }, emailRedirectTo: `${window.location.origin}${choosePlan}` },
+        });
+        if (failure) throw failure;
+        if (data.session) await goOn();
+        else setNotice("Check your email and open the confirmation link to finish creating your account.");
+      } else {
+        const { error: failure } = await auth.signInWithPassword({ email, password });
+        if (failure) throw failure;
+        await goOn();
+      }
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -30,7 +84,7 @@ export function AuthGate() {
       </header>
       <section className={styles.authLayout}>
         <aside className={styles.story}>
-          <Image className={styles.storyImage} src="/marketing/nj-neighborhood.jpg" alt="New Jersey residential neighborhood" fill sizes="(max-width: 800px) 100vw, 45vw" />
+          <Image className={styles.storyImage} src="/marketing/nj-neighborhood.jpg" alt="Residential neighborhood" fill sizes="(max-width: 800px) 100vw, 45vw" />
           <div className={styles.storyWash} />
           <div className={styles.storyContent}>
             <span className={styles.eyebrow}><i />YOUR DISTRESSED PROPERTY EXPERT</span>
@@ -43,23 +97,26 @@ export function AuthGate() {
         <section className={styles.formPanel} aria-labelledby="auth-title">
           <div className={styles.formIntro}>
             <span className={styles.formEyebrow}>WELCOME TO DISTRESSED PROPERTIES PRO</span>
-            <h2 id="auth-title">{mode === "create" ? "Create your account" : "Welcome back"}</h2>
-            <p>{mode === "create" ? "No login is needed to view the dashboard during development. Choose Create account and continue to open it." : "Sign-in will be set up for launch. For now, you can open the dashboard without logging in."}</p>
+            <h2 id="auth-title">{mode === "create" ? "Create your account" : mode === "login" ? "Welcome back" : "Reset your password"}</h2>
+            <p>{mode === "create" ? "Create an account, then choose a plan to open the dashboard." : mode === "login" ? "Log in to continue to your research workspace." : "Enter your email and we will send you a link to set a new password."}</p>
           </div>
 
           <div className={styles.modeSwitch} role="tablist" aria-label="Account access">
-            <button type="button" role="tab" aria-selected={mode === "create"} onClick={() => setMode("create")} className={mode === "create" ? styles.selected : ""}>Create account</button>
-            <button type="button" role="tab" aria-selected={mode === "login"} onClick={() => setMode("login")} className={mode === "login" ? styles.selected : ""}>Log in</button>
+            <button type="button" role="tab" aria-selected={mode === "create"} onClick={() => switchMode("create")} className={mode === "create" ? styles.selected : ""}>Create account</button>
+            <button type="button" role="tab" aria-selected={mode !== "create"} onClick={() => switchMode("login")} className={mode !== "create" ? styles.selected : ""}>Log in</button>
           </div>
 
-          <form noValidate onSubmit={continueToPlatform} className={styles.form}>
-            {mode === "create" && <label>Full name<input autoComplete="name" name="name" type="text" placeholder="Your name (optional for preview)" /></label>}
-            <label>Email address<span className={styles.inputWrap}><Mail aria-hidden="true" /><input autoComplete="email" name="email" type="email" placeholder="you@example.com (optional for preview)" /></span></label>
-            <label>Password<span className={styles.inputWrap}><LockKeyhole aria-hidden="true" /><input autoComplete={mode === "create" ? "new-password" : "current-password"} name="password" type={showPassword ? "text" : "password"} placeholder="Optional for preview" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></span></label>
-            <button type="submit" className={styles.submit}>{mode === "create" ? "Create account and continue" : "Log in and continue"}<ArrowRight aria-hidden="true" /></button>
+          <form noValidate onSubmit={submit} className={styles.form}>
+            {mode === "create" && <label>Full name<input autoComplete="name" name="name" type="text" placeholder="Your name" /></label>}
+            <label>Email address<span className={styles.inputWrap}><Mail aria-hidden="true" /><input autoComplete="email" name="email" type="email" required placeholder="you@example.com" /></span></label>
+            {mode !== "reset" && <label>Password<span className={styles.inputWrap}><LockKeyhole aria-hidden="true" /><input autoComplete={mode === "create" ? "new-password" : "current-password"} name="password" type={showPassword ? "text" : "password"} required minLength={8} placeholder="At least 8 characters" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></span></label>}
+            {error && <p className={styles.error} role="alert">{error}</p>}
+            {notice && <p className={styles.notice} role="status">{notice}</p>}
+            <button type="submit" className={styles.submit} disabled={busy}>{busy ? "Please wait…" : mode === "create" ? "Create account" : mode === "login" ? "Log in" : "Send reset link"}<ArrowRight aria-hidden="true" /></button>
           </form>
+          {mode === "login" && <button type="button" className={styles.linkButton} onClick={() => switchMode("reset")}>Forgot your password?</button>}
+          {mode === "reset" && <button type="button" className={styles.linkButton} onClick={() => switchMode("login")}>Back to log in</button>}
 
-          <p className={styles.previewNote}><strong>Developer preview:</strong> no account or login is required right now. The buttons open the dashboard directly. We’ll connect account creation and secure sign-in when the product launches.</p>
           <p className={styles.terms}>Listings, values, and sale dates should be verified with their original sources before bidding.</p>
         </section>
       </section>

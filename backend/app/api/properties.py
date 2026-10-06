@@ -5,12 +5,13 @@ from io import BytesIO
 from typing import Literal, Optional
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from openpyxl import Workbook
 from pydantic import BaseModel
 from sqlalchemy import text
 
+from app.auth import Access, require_access, require_developer, require_property_access
 from app.database.session import engine
 
 
@@ -64,7 +65,7 @@ def readable_apify_value(value, depth=0):
 class ParcelApproval(BaseModel):
     candidate_id: int
 
-@router.get("/parcel-review/candidates")
+@router.get("/parcel-review/candidates", dependencies=[Depends(require_developer)])
 def list_parcel_review_candidates():
     query=text("""SELECT p.id property_id,p.normalized_address,p.city,p.zip_code,
       bool_or(lower(ss.current_status)='scheduled') is_scheduled,
@@ -86,7 +87,7 @@ def list_parcel_review_candidates():
     with engine.connect() as connection:
         return {"items":[dict(row) for row in connection.execute(query).mappings()]}
 
-@router.post("/{property_id}/parcel-review/approve")
+@router.post("/{property_id}/parcel-review/approve", dependencies=[Depends(require_developer)])
 def approve_parcel_candidate(property_id: str,approval: ParcelApproval):
     with engine.begin() as connection:
         candidate=connection.execute(text("""SELECT * FROM property_parcel_candidates
@@ -169,6 +170,7 @@ def list_properties(
     sort_direction: Literal["asc", "desc"] = "asc",
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
+    access: Access = Depends(require_access),
 ):
     offset = (page - 1) * page_size
 
@@ -177,6 +179,14 @@ def list_properties(
         "limit": page_size,
         "offset": offset,
     }
+
+    # The plan's coverage always applies, on top of any filters in the request.
+    if access.scope_state:
+        conditions.append("p.state = :scope_state")
+        parameters["scope_state"] = access.scope_state
+    if access.scope_county:
+        conditions.append("LOWER(p.county) = :scope_county")
+        parameters["scope_county"] = access.scope_county.lower()
 
     if state:
         conditions.append("p.state = ANY(:states)")
@@ -771,12 +781,13 @@ def export_properties_xlsx(
     sort_direction: Literal["asc", "desc"] = "asc",
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=24, ge=1, le=200),
+    access: Access = Depends(require_access),
 ):
     result = list_properties(
         state=state, county=county, q=q, zip_code=zip_code, status=status,
         status_contains=status_contains, future_only=future_only,
         min_equity=min_equity, sort=sort, sort_direction=sort_direction,
-        page=page, page_size=page_size,
+        page=page, page_size=page_size, access=access,
     )
     rows = list(result["items"])
 
@@ -971,13 +982,13 @@ NJ_ORTHO_EXPORT = (
 _aerial_cache: dict[str, bytes] = {}
 
 
-@router.get("/{property_id}/aerial")
+@router.get("/{property_id}/aerial", dependencies=[Depends(require_property_access)])
 def get_aerial_photo(property_id: str):
     """Aerial photo centred on the property, from the NJ Office of GIS 2020
     natural-color orthoimagery (public state service). Cached in memory."""
     if property_id in _aerial_cache:
         return Response(content=_aerial_cache[property_id], media_type="image/jpeg",
-                        headers={"Cache-Control": "public, max-age=604800"})
+                        headers={"Cache-Control": "private, max-age=604800"})
     with engine.connect() as connection:
         row = connection.execute(text("""
             SELECT p.state,
@@ -1012,13 +1023,13 @@ def get_aerial_photo(property_id: str):
         _aerial_cache.clear()
     _aerial_cache[property_id] = image.content
     return Response(content=image.content, media_type="image/jpeg",
-                    headers={"Cache-Control": "public, max-age=604800"})
+                    headers={"Cache-Control": "private, max-age=604800"})
 
 
 STREET_VIEW_API = "https://maps.googleapis.com/maps/api/streetview"
 
 
-@router.get("/{property_id}/street-view")
+@router.get("/{property_id}/street-view", dependencies=[Depends(require_property_access)])
 def get_street_view(property_id: str):
     """Street View photo for a property, fetched with our own Google key.
 
@@ -1055,7 +1066,7 @@ def get_street_view(property_id: str):
     )
 
 
-@router.get("/{property_id}")
+@router.get("/{property_id}", dependencies=[Depends(require_property_access)])
 def get_property(property_id: str):
     query = text(
         """
