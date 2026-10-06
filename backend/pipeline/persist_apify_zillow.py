@@ -98,15 +98,21 @@ def persist(output_dir: Path) -> dict[str, int]:
         for row in manifest:
             address = row["input_address"].strip()
             item = by_address.get(address)
-            reason = mismatch_reason(row, item) if item else None
-            status = "no_match" if not item else "invalid" if reason else "matched"
+            if item and str(item.get("isValid", True)).lower() == "false":
+                # The actor echoes the input with isValid=false when Zillow
+                # has no record for the address; that is not a match.
+                item_found = False
+            else:
+                item_found = bool(item)
+            reason = mismatch_reason(row, item) if item_found else None
+            status = "no_match" if not item_found else "invalid" if reason else "matched"
             if status == "matched":
                 matched += 1
             elif status == "invalid":
                 invalid += 1
             else:
                 no_match += 1
-            zestimate = item.get("zestimate") if item else None
+            zestimate = item.get("zestimate") if item_found else None
             payload = json.dumps({**item, "_mismatch_reason": reason} if reason else (item or {}))
             connection.execute(text("""INSERT INTO apify_zillow_results
                 (run_id,property_id,submitted_address,match_status,zillow_id,zestimate,

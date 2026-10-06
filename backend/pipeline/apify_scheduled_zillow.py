@@ -31,7 +31,46 @@ def save(name, value):
     temp.replace(path)
 
 
-def prepare(only_missing=False):
+STREET_SUFFIX = re.compile(
+    r"\b(?:Avenue|Ave|Street|St|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Place|Pl|Boulevard|Blvd|"
+    r"Way|Terrace|Ter|Circle|Cir|Run|Pike|Highway|Hwy|Trail|Parkway|Pkwy|Square|Sq|Alley|"
+    r"Turnpike|Tpke|Crossing|Xing|Loop|Path|Plaza|Row)\b\.?", re.IGNORECASE)
+NEXT_SUFFIX = re.compile(r"\s+" + STREET_SUFFIX.pattern, re.IGNORECASE)
+UNIT = re.compile(r"^\s*,?\s*((?:Unit|Apt\.?|Apartment|Suite|Ste\.?|#)\s*[\w-]+)", re.IGNORECASE)
+
+
+def clean_street(street):
+    """Strip court-notice noise from a street line for a Zillow address search.
+
+    Drops "A/K/A ..." aliases, parentheticals and trailing municipality text
+    ("East Pennsboro - Township Enola"), keeps a unit, and reduces a house
+    number range ("8155-57") to its first number."""
+    street = re.split(r"\b(?:A/K/A|AKA|F/K/A|Is Also Known As|Also Known As)\b|\(|,(?!\s*(?:Unit|Apt|#))",
+                      street or "", maxsplit=1, flags=re.IGNORECASE)[0]
+    street = re.sub(r"^Mailing Address:\s*", "", street.strip(), flags=re.IGNORECASE)
+    street = re.sub(r"^(\d+)\s*-\s*\d+\b", r"\1", street)
+    # The suffix ends the street name unless it directly follows the house
+    # number ("830 Avenue A"); anything after it except a unit is noise.
+    for match in STREET_SUFFIX.finditer(street):
+        if re.fullmatch(r"\d+\s*", street[:match.start()]):
+            continue
+        end = match.end()
+        # "West Terrace Drive": a following suffix word is still the street name.
+        while following := NEXT_SUFFIX.match(street, end):
+            end = following.end()
+        unit = UNIT.match(street[end:])
+        street = street[:end] + (f" {unit.group(1)}" if unit else "")
+        break
+    return re.sub(r"\s+", " ", street).strip(" ,.")
+
+
+def search_address(row):
+    """Street, state and ZIP: Zillow resolves these better than court town names."""
+    place = f"{row['state']} {row['zip_code']}" if row.get("zip_code") else f"{row['city']}, {row['state']}"
+    return f"{clean_street(row['street_address'])}, {place}"
+
+
+def prepare(only_missing=False, retry_unmatched=False):
     if (OUTPUT / "submission.json").exists():
         raise RuntimeError("A submission already exists. Resume it; do not replace its manifest.")
     with engine.connect() as connection:
@@ -51,13 +90,21 @@ def prepare(only_missing=False):
                 SELECT 1 FROM apify_zillow_results z
                 WHERE z.property_id=p.id AND z.is_current
                   AND z.match_status IN ('matched','invalid')))
+              AND (NOT :retry_unmatched OR NOT EXISTS (
+                SELECT 1 FROM apify_zillow_results z
+                WHERE z.property_id=p.id AND z.is_current AND z.match_status='matched'
+                  AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'))
             ORDER BY p.normalized_address, ss.id
-        """), {"state": TARGET_STATE, "only_missing": only_missing}).mappings().all()
+        """), {"state": TARGET_STATE, "only_missing": only_missing,
+                "retry_unmatched": retry_unmatched}).mappings().all()
     manifest = [dict(row) for row in rows]
     for row in manifest:
-        # Normalized addresses sometimes split multi-word towns ("West New, York");
-        # Zillow's free-text search matches better without the commas.
-        row["input_address"] = re.sub(r"\s*,\s*", " ", row["normalized_address"]).strip()
+        if retry_unmatched:
+            row["input_address"] = search_address(row)
+        else:
+            # Normalized addresses sometimes split multi-word towns ("West New, York");
+            # Zillow's free-text search matches better without the commas.
+            row["input_address"] = re.sub(r"\s*,\s*", " ", row["normalized_address"]).strip()
     if any(not row["input_address"] for row in manifest):
         raise RuntimeError("Blank input address; review manifest before submitting.")
     save("manifest.json", manifest)
@@ -147,8 +194,11 @@ if __name__ == "__main__":
     parser.add_argument("action", choices=["prepare", "submit", "watch"])
     parser.add_argument("--only-missing", action="store_true",
                         help="prepare: skip properties that already have a current matched Zestimate")
+    parser.add_argument("--retry-unmatched", action="store_true",
+                        help="prepare: only properties Zillow had no data for or matched to the wrong "
+                             "house, searched again by cleaned street and ZIP")
     args = parser.parse_args()
     if args.action == "prepare":
-        prepare(args.only_missing)
+        prepare(args.only_missing, args.retry_unmatched)
     else:
         {"submit": submit, "watch": watch}[args.action]()
