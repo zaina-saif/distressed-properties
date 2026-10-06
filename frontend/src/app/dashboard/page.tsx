@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import PropertyDashboard from "@/components/property-dashboard";
 
 export const metadata: Metadata = {
-  title: "Live map · NJ Sheriff Sale Pro",
+  title: "Live map · Distressed Properties Pro",
 };
 
 function first(value: string | string[] | undefined): string {
