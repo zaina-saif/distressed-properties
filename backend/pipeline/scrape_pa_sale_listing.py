@@ -16,12 +16,18 @@ SOURCES={"Butler":"https://civil.co.butler.pa.us/Sheriff.SaleListing/",
  "Susquehanna":"https://sheriff.susqco.com/Sheriff.SaleListing/"}
 async def run(counties):
  out=Path("data/sheriff_sales");out.mkdir(parents=True,exist_ok=True)
+ failed=[]
  for county in counties:
-  records=(await MonroeBid4AssetsAdapter().fetch() if county=="Monroe"
-           else await PASaleListingAdapter(county,SOURCES[county]).fetch())
+  try:
+   records=(await MonroeBid4AssetsAdapter().fetch() if county=="Monroe"
+            else await PASaleListingAdapter(county,SOURCES[county]).fetch())
+  except Exception as exc:
+   # Keep the previous snapshot; a blocked or changed site must not erase it.
+   print(f"{county}: FAILED, previous snapshot kept ({type(exc).__name__}: {exc})");failed.append(county);continue
   path=out/f"pa_{county.lower()}_sheriff_sales.json"
   path.write_text(json.dumps([asdict(r) for r in records],indent=2,default=json_serializer)+"\n")
   print(f"{county}: {len(records)} records saved to {path}")
+ if failed:raise SystemExit(f"Failed counties: {', '.join(failed)}")
 def main():
  p=argparse.ArgumentParser();p.add_argument("--counties",nargs="+",choices=sorted(SOURCES));p.add_argument("--all",action="store_true");a=p.parse_args()
  asyncio.run(run(sorted(SOURCES) if a.all else a.counties or []))

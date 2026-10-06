@@ -11,6 +11,7 @@ type GeocodeResult = {
 };
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
+const NJ_VIEW: [number, number, number] = [40.1, -74.6, 8];
 
 export function PropertyMap({
   properties,
@@ -18,12 +19,15 @@ export function PropertyMap({
   onPropertyClick,
   onCountySelect,
   visibilityKey,
+  defaultView = NJ_VIEW,
 }: {
   properties: Property[];
   selectedPropertyId?: string;
   onPropertyClick: (property: Property) => void;
   onCountySelect: (state: string, county: string) => void;
   visibilityKey: string;
+  /** Latitude, longitude and zoom shown when no property has coordinates. */
+  defaultView?: [number, number, number];
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -42,7 +46,7 @@ export function PropertyMap({
 
         const map = L.map(containerRef.current, {
           zoomControl: true,
-        }).setView([40.1, -74.6], 8);
+        }).setView([NJ_VIEW[0], NJ_VIEW[1]], NJ_VIEW[2]);
         mapRef.current = map;
 
         const tiles = L.tileLayer(
@@ -164,12 +168,14 @@ export function PropertyMap({
 
       if (bounds.isValid()) {
         mapRef.current.fitBounds(bounds, { padding: [70, 70], maxZoom: 13 });
+      } else {
+        mapRef.current.setView([defaultView[0], defaultView[1]], defaultView[2]);
       }
     }
 
     void updateMarkers();
     return () => { active = false; };
-  }, [mapReady, onPropertyClick, properties, selectedPropertyId]);
+  }, [defaultView, mapReady, onPropertyClick, properties, selectedPropertyId]);
 
   const mappedCount = properties.filter((property) =>
     property.latitude != null

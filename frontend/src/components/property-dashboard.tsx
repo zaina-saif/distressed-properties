@@ -30,8 +30,11 @@ import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/se
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
 const PAGE_SIZE = 24;
-// The app shows New Jersey only; every request is pinned to this state.
-const STATE = "NJ";
+// States with sheriff-sale listings; every request is pinned to the selected one.
+const STATES: { code: string; name: string; view: [number, number, number] }[] = [
+  { code: "NJ", name: "New Jersey", view: [40.1, -74.6, 8] },
+  { code: "PA", name: "Pennsylvania", view: [40.9, -77.6, 7] },
+];
 // The dashboard only lists properties whose sale status contains "scheduled".
 const SCHEDULED = "scheduled";
 
@@ -42,10 +45,12 @@ function wholeDollars(value: number | null | undefined): string {
 }
 
 export default function PropertyDashboard({
+  initialState = "NJ",
   initialCounty = "",
   initialQuery = "",
   initialSpotlight = false,
 }: {
+  initialState?: string;
   initialCounty?: string;
   initialQuery?: string;
   initialSpotlight?: boolean;
@@ -66,6 +71,10 @@ export default function PropertyDashboard({
   const [selectedLienSummaryProperty, setSelectedLienSummaryProperty] = useState<Property | null>(null);
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
   const [selectedProbabilityReasonProperty, setSelectedProbabilityReasonProperty] = useState<Property | null>(null);
+  const [selectedState, setSelectedState] = useState(
+    STATES.some((item) => item.code === initialState.toUpperCase()) ? initialState.toUpperCase() : "NJ",
+  );
+  const stateInfo = STATES.find((item) => item.code === selectedState) ?? STATES[0];
   const [selectedCounty, setSelectedCounty] = useState(initialCounty);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
@@ -84,7 +93,7 @@ export default function PropertyDashboard({
   useEffect(() => {
     let active = true;
     getProperties({
-      states: [STATE],
+      states: [selectedState],
       counties: selectedCounty ? [selectedCounty] : undefined,
       investorSpotlight: true,
       sort: "investor-spotlight",
@@ -95,12 +104,12 @@ export default function PropertyDashboard({
       .then((response) => { if (active) setSpotlightSummary(response.spotlight_summary ?? null); })
       .catch(() => { if (active) setSpotlightSummary(null); });
     return () => { active = false; };
-  }, [refreshKey, selectedCounty]);
+  }, [refreshKey, selectedCounty, selectedState]);
 
   useEffect(() => {
     let active = true;
     getProperties({
-      states: [STATE],
+      states: [selectedState],
       counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
       statusContains: SCHEDULED,
@@ -123,13 +132,13 @@ export default function PropertyDashboard({
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, sort, sortDirection, spotlight]);
+  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight]);
 
   const counties = useMemo(
     () => coverage
-      .filter((item) => item.state === STATE)
+      .filter((item) => item.state === selectedState)
       .sort((left, right) => left.county.localeCompare(right.county)),
-    [coverage],
+    [coverage, selectedState],
   );
 
   const sortedProperties = properties;
@@ -153,10 +162,10 @@ export default function PropertyDashboard({
     setMobileView("list");
   }, []);
   const chooseCounty = useCallback((state: string, county: string) => {
-    if (state !== STATE) return;
+    if (state !== selectedState) return;
     setSelectedCounty(county);
     setPage(1);
-  }, []);
+  }, [selectedState]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
@@ -179,7 +188,7 @@ export default function PropertyDashboard({
     setExporting(true);
     try {
       const blob = await downloadPropertiesXlsx({
-        states: [STATE],
+        states: [selectedState],
         counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
         statusContains: SCHEDULED,
@@ -192,7 +201,7 @@ export default function PropertyDashboard({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = "nj-sheriff-properties.xlsx";
+      anchor.download = `${selectedState.toLowerCase()}-sheriff-properties.xlsx`;
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -254,6 +263,14 @@ export default function PropertyDashboard({
               <button className="rounded-r-md bg-teal-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-teal-700">Search</button>
             </form>
             <select
+              aria-label="State"
+              value={selectedState}
+              onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
+              className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
+            >
+              {STATES.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+            </select>
+            <select
               aria-label="County"
               value={selectedCounty}
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
@@ -286,9 +303,9 @@ export default function PropertyDashboard({
         )}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         {countyCounts.length > 0 && (
-          <section className="w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2" aria-label="NJ county record counts">
+          <section className="w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2" aria-label={`${selectedState} county record counts`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-xs font-bold text-teal-950">NJ county coverage</h2>
+              <h2 className="text-xs font-bold text-teal-950">{selectedState} county coverage</h2>
               <span className="text-xs text-teal-800">Counties with available listings · click to filter</span>
             </div>
             <div className="mt-1 flex w-full flex-wrap content-start text-xs leading-6">
@@ -316,7 +333,7 @@ export default function PropertyDashboard({
       <div className={`grid min-h-0 flex-1 overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]" : "grid-cols-1"}`}>
         <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-full" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
           {desktopView === "dashboard" && (
-            <PropertyMap properties={properties} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={focusProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} />
+            <PropertyMap properties={properties} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={focusProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} defaultView={stateInfo.view} />
           )}
         </div>
 

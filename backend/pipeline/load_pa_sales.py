@@ -23,6 +23,19 @@ def address_parts(raw):
  city=city_match.group(1).strip() if city_match else "Unknown"
  return value,before,city,zip_code
 
+from pipeline.adapters.pa_sale_listing import PARCEL_LINE
+
+def portal_address(lines):
+ """Street, city, ZIP and municipality from a county portal's address lines:
+ ["95 Greenwood Circle", "Wormleysburg - Borough", "Wormleysburg, PA 17043", "Wormleysburg Borough"]."""
+ if not lines:return None
+ for index,line in enumerate(lines[1:],1):
+  match=re.match(r"\s*(.+?),\s*PA\b\s*(\d{5})?",line,re.I)
+  if match:
+   rest=[l for l in lines[index+1:] if not PARCEL_LINE.match(l)]
+   return " ".join(lines[0].split()),match.group(1).strip(),match.group(2),(rest[-1].strip() if rest else None)
+ return None
+
 def load(county,path):
  records=json.loads(path.read_text()); run=str(uuid.uuid4()); now=datetime.now(timezone.utc)
  created=updated=0
@@ -33,12 +46,17 @@ def load(county,path):
   for record in records:
    raw_payload=record.get("raw_payload") or {}
    raw_address=record["address"];normalized,street,city,zip_code=address_parts(raw_address)
+   # The hash stays on the legacy one-line address so reloads match existing properties.
    address_hash=hashlib.sha256(f"PA|{county}|{normalized.upper()}".encode()).hexdigest()
    municipality=raw_payload.get("township") or city
+   if (lines:=portal_address(raw_payload.get("address_lines"))):
+    street,city,zip_code,municipality=lines;municipality=municipality or city
+    normalized=f"{street}, {city}, PA {zip_code}" if zip_code else f"{street}, {city}, PA"
    property_id=c.execute(text("""INSERT INTO properties(id,normalized_address,street_address,city,
     municipality,county,state,zip_code,address_hash,data_quality_score) VALUES(:id,:normalized,:street,
     :city,:municipality,:county,'PA',:zip,:hash,70) ON CONFLICT(address_hash) DO UPDATE SET
-    municipality=EXCLUDED.municipality,updated_at=NOW()
+    municipality=EXCLUDED.municipality,normalized_address=EXCLUDED.normalized_address,
+    street_address=EXCLUDED.street_address,city=EXCLUDED.city,zip_code=EXCLUDED.zip_code,updated_at=NOW()
     RETURNING id"""),{"id":str(uuid.uuid4()),"normalized":normalized,"street":street,"city":city,
       "municipality":municipality,"county":county,"zip":zip_code,"hash":address_hash}).scalar_one()
    content_hash=hashlib.sha256(json.dumps(record,sort_keys=True,default=str).encode()).hexdigest()
@@ -82,9 +100,22 @@ def load(county,path):
     {"history_id":str(uuid.uuid4()),"sale_id":params["id"],"status":params["status"],
      "sale_date":params["sale_date"],"upset_price":record.get("upset_price"),"now":now,
      "url":params["url"],"raw_status":raw_payload.get("raw_status")})
+  # Portal snapshots list every upcoming sale, so an open case missing from one
+  # has been sold, cancelled or pulled; the portal does not say which.
+  dropped=0
+  if records and all("listed_sale_date" in (r.get("raw_payload") or {}) for r in records):
+   dropped_ids=c.execute(text("""UPDATE sheriff_sales SET current_status='sold_or_cancelled_unverified',
+    updated_at=NOW() WHERE state='PA' AND county=:county AND source_system='pa_sheriff_sale_listing'
+    AND current_status IN ('scheduled','adjourned') AND sheriff_number <> ALL(:numbers) RETURNING id"""),
+    {"county":county,"numbers":[r["sheriff_number"] for r in records]}).scalars().all()
+   for sale_id in dropped_ids:
+    c.execute(text("""INSERT INTO sheriff_sale_status_history(id,sheriff_sale_id,status,observed_at,raw_status)
+     VALUES(:id,:sale_id,'sold_or_cancelled_unverified',:now,'no longer on the sale listing')"""),
+     {"id":str(uuid.uuid4()),"sale_id":sale_id,"now":now})
+   dropped=len(dropped_ids)
   c.execute(text("""UPDATE scrape_runs SET completed_at=NOW(),status='completed',records_created=:created,
    records_updated=:updated WHERE id=:id"""),{"created":created,"updated":updated,"id":run})
- print(f"{county}: created {created}, updated {updated}")
+ print(f"{county}: created {created}, updated {updated}, no longer listed {dropped}")
 
 def main():
  p=argparse.ArgumentParser();p.add_argument("--counties",nargs="+",choices=sorted(FILES));p.add_argument("--all",action="store_true");a=p.parse_args()
