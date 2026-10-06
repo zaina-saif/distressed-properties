@@ -1,0 +1,15 @@
+# Keep the build context small: scraped data, secrets and local artefacts stay out.
+data/
+.env
+.env.*
+!.env.example
+tests/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log
+*.pid
+*.csv
+*.xlsx
+*.json
+!models/**/*.json

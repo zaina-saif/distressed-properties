@@ -1,0 +1,63 @@
+name: Multi-state Sale Refresh
+
+on:
+  schedule:
+    # 10:00 UTC (5–6 AM Eastern) every Monday.
+    - cron: "0 10 * * 1"
+  workflow_dispatch:
+    inputs:
+      skip_zillow:
+        description: "Skip the paid Apify Zillow stage"
+        type: boolean
+        default: false
+      max_zillow_addresses:
+        description: "Never submit more than this many addresses to Apify in one run"
+        type: number
+        default: 600
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multistate-sale-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    # Philadelphia alone has 1,500+ listing pages fetched one at a time.
+    timeout-minutes: 240
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Multi-state Sale Refresh
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}
+        run: |
+          args=(--run-dir "$RUNNER_TEMP/multistate-refresh" --max-zillow-addresses "${{ inputs.max_zillow_addresses || 600 }}")
+          if [ "${{ inputs.skip_zillow }}" = "true" ]; then args+=(--skip-zillow); fi
+          python -m pipeline.multistate_refresh "${args[@]}"
+
+      # The run log holds addresses and party names, so it stays on the runner;
+      # report.json has counts only.
+      - name: Keep the count report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multistate-sale-refresh-report
+          path: ${{ runner.temp }}/multistate-refresh/report.json
+          if-no-files-found: ignore
+          retention-days: 90

@@ -49,7 +49,7 @@ Other states load complete snapshots of each county's upcoming sales through `sa
 
 **Lien pre-screening** lives in `backend/app/liens/` (identity → source matching → risk/summary), exposed through `app/api/liens.py` including a lien-ingestion jobs router.
 
-**API**: `app/main.py` mounts the properties, liens, lien-jobs, pa_data, and warehouse_valuations routers. `app/api/sheriff_sales.py` and `app/api/watchlists.py` exist but are **not mounted**. The frontend calls `${NEXT_PUBLIC_API_URL}/api/v1/...` through `frontend/src/services/properties.ts`. CORS allows only localhost:3000.
+**API**: `app/main.py` mounts the properties, liens, lien-jobs, pa_data, and warehouse_valuations routers. `app/api/sheriff_sales.py` and `app/api/watchlists.py` exist but are **not mounted**. The frontend calls `${NEXT_PUBLIC_API_URL}/api/v1/...` through `frontend/src/services/properties.ts`. CORS allows localhost:3000 unless `CORS_ALLOWED_ORIGINS` says otherwise (see Hosting).
 
 ## Domain rules (from project specs)
 
@@ -60,6 +60,10 @@ Other states load complete snapshots of each county's upcoming sales through `sa
 - **Source honesty:** listings from secondary sources carry hedged statuses (e.g. `scheduled_unverified`, `date_passed_unverified`). Court/referee auctions are labeled as such, not as sheriff sales. Keep source URLs and raw data.
 - **Privacy:** public-record importers deliberately exclude owner, mailing, grantor/grantee, and party fields. Keep it that way when adding importers.
 - **Access controls:** collectors must not solve CAPTCHAs or bypass access controls. Sources that need a CAPTCHA (e.g. NY SalesWeb) use visible, operator-assisted runners. An access challenge should exit non-zero without importing stale data.
+
+## Hosting
+
+`DEPLOYMENT.md` covers production: the API runs from `backend/Dockerfile` (Railway reads `backend/railway.json`), the frontend on Vercel with `NEXT_PUBLIC_API_URL`, and refreshes in GitHub Actions. The API's allowed browser origins come from `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, and `ENABLE_WAREHOUSE_API=0` drops the warehouse routes on hosts that cannot reach the warehouse.
 
 ## Cloud agent environments
 
