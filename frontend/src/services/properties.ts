@@ -299,3 +299,19 @@ export async function getLandingSummary(): Promise<LandingSummary> {
   if (!response.ok) throw new Error(`Landing summary request failed: ${response.status}`);
   return response.json() as Promise<LandingSummary>;
 }
+
+export interface StateSummary {
+  state: string;
+  scheduled_sales: number;
+  counties: number;
+  sales_with_equity: number;
+  gross_equity: number;
+  last_updated: string | null;
+}
+
+/** Scheduled sales and gross equity per state, counted the way the dashboard counts them. */
+export async function getStateSummary(): Promise<StateSummary[]> {
+  const response = await fetch(`${API_URL}/api/v1/properties/facets/state-summary`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`State summary request failed: ${response.status}`);
+  return ((await response.json()) as { states: StateSummary[] }).states;
+}

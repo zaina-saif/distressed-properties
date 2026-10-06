@@ -23,3 +23,81 @@
 .root :global(.button-icon) { width: 34px; height: 34px; padding: 0; }
 .root :global(.nav-cta) { text-decoration: none; }
 .root :global(.lime-button) { padding: 0 22px; }
+.root :global(.text-equity) { color: var(--equity); }
+.root :global(.states-section) { padding-top: 76px; padding-bottom: 20px; }
+.root :global(.state-grid) { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-top: 34px; }
+.root :global(.state-card) { display: flex; flex-direction: column; gap: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 7px; background: var(--background); transition: box-shadow .2s, border-color .2s; }
+.root :global(.state-card:hover), .root :global(.state-card:focus-visible) { box-shadow: var(--shadow); border-color: var(--equity); outline: none; }
+.root :global(.state-card.is-loading) { min-height: 190px; background: var(--muted); }
+.root :global(.state-card-head) { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.root :global(.state-card-head svg) { color: var(--muted-foreground); flex-shrink: 0; }
+.root :global(.state-card:hover .state-card-head svg) { color: var(--equity); }
+.root :global(.state-code) { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 3px; background: var(--secondary); color: var(--equity); }
+.root :global(.state-card h3) { font-size: 18px; font-weight: 650; margin-top: 8px; }
+.root :global(.state-metric-label) { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.root :global(.state-metric-label span) { font-size: 11px; color: var(--muted-foreground); }
+.root :global(.state-metric-label strong) { font-family: var(--font-display); font-size: 20px; font-weight: 650; text-align: right; }
+.root :global(.state-bar) { height: 6px; border-radius: 3px; background: var(--muted); margin-top: 7px; overflow: hidden; }
+.root :global(.state-bar span) { display: block; height: 100%; border-radius: 3px; background: var(--primary); }
+.root :global(.state-bar-equity span) { background: var(--equity); }
+.root :global(.state-foot) { font-size: 10px; color: var(--muted-foreground); margin-top: auto; }
+@media(max-width:1100px) { .root :global(.state-grid) { grid-template-columns: repeat(3,1fr); } }
+@media(max-width:800px) { .root :global(.state-grid) { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:600px) { .root :global(.states-section) { padding-top: 50px; } .root :global(.state-grid) { grid-template-columns: 1fr; gap: 12px; } }
+.root :global(.state-pending) { font-style: normal; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+.root :global(.county-lists) { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 28px; }
+.root :global(.county-lists>h3) { font-size: 20px; font-weight: 650; }
+.root :global(.county-lists>p) { font-size: 12px; color: var(--muted-foreground); margin: 6px 0 16px; }
+.root :global(.county-list) { border-bottom: 1px solid var(--border); }
+.root :global(.county-list summary) { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 2px; cursor: pointer; font-size: 14px; font-weight: 600; list-style: none; }
+.root :global(.county-list summary::-webkit-details-marker) { display: none; }
+.root :global(.county-list summary:after) { content: '+'; font-size: 18px; font-weight: 400; color: var(--muted-foreground); width: 14px; text-align: center; }
+.root :global(.county-list[open] summary:after) { content: '−'; }
+.root :global(.county-list summary span:nth-child(2)) { margin-left: auto; font-size: 11px; font-weight: 500; color: var(--muted-foreground); }
+.root :global(.county-list ul) { list-style: none; margin: 0; padding: 0 0 18px; display: flex; flex-wrap: wrap; gap: 7px; }
+.root :global(.county-list a) { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 4px; transition: border-color .15s, background .15s; }
+.root :global(.county-list a:hover), .root :global(.county-list a:focus-visible) { border-color: var(--equity); background: var(--soft-equity); outline: none; }
+.root :global(.county-list a span) { font-size: 10px; font-weight: 650; color: var(--equity); }
+.root :global(.pricing-hero) { padding-top: 72px; padding-bottom: 36px; text-align: center; }
+.root :global(.pricing-hero h1) { font-size: 52px; }
+.root :global(.pricing-hero>p) { max-width: 620px; margin: 18px auto 0; font-size: 15px; line-height: 1.7; color: var(--muted-foreground); }
+.root :global(.billing-toggle) { display: inline-flex; gap: 4px; margin-top: 28px; padding: 4px; border: 1px solid var(--border); border-radius: 6px; background: var(--muted); }
+.root :global(.billing-toggle button) { border: 0; background: transparent; padding: 9px 18px; border-radius: 4px; font-size: 13px; font-weight: 600; color: var(--muted-foreground); display: inline-flex; align-items: center; gap: 8px; }
+.root :global(.billing-toggle button.is-selected) { background: var(--background); color: var(--foreground); box-shadow: 0 1px 3px oklch(.2 .02 250 / .12); }
+.root :global(.billing-toggle span) { font-size: 10px; padding: 3px 6px; border-radius: 3px; background: var(--soft-equity); color: var(--equity); }
+.root :global(.preview-note) { margin-top: 16px; font-size: 12px; color: var(--equity); }
+.root :global(.pricing-grid) { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; align-items: stretch; }
+.root :global(.plan-card) { position: relative; display: flex; flex-direction: column; padding: 28px 26px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); }
+.root :global(.plan-card.is-popular) { border: 2px solid var(--equity); box-shadow: var(--shadow); }
+.root :global(.plan-badge) { position: absolute; top: -12px; left: 26px; font-size: 10px; font-weight: 700; padding: 5px 9px; border-radius: 3px; background: var(--accent); color: var(--foreground); }
+.root :global(.plan-card h2) { font-size: 22px; font-weight: 650; }
+.root :global(.plan-tagline) { font-size: 13px; color: var(--muted-foreground); margin-top: 6px; }
+.root :global(.plan-price) { display: flex; align-items: baseline; gap: 4px; margin-top: 22px; }
+.root :global(.plan-price strong) { font-family: var(--font-display); font-size: 44px; font-weight: 650; }
+.root :global(.plan-price span) { font-size: 14px; color: var(--muted-foreground); }
+.root :global(.plan-billing) { font-size: 11px; color: var(--muted-foreground); margin-top: 4px; min-height: 16px; }
+.root :global(.plan-coverage) { font-size: 13px; font-weight: 600; margin-top: 18px; padding: 10px 12px; border-radius: 4px; background: var(--soft-equity); color: var(--equity); }
+.root :global(.plan-cta) { height: 46px; margin-top: 18px; box-shadow: none; }
+.root :global(.plan-card ul) { list-style: none; margin: 22px 0 0; padding: 20px 0 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 11px; }
+.root :global(.plan-card li) { display: flex; gap: 9px; align-items: flex-start; font-size: 13px; line-height: 1.5; }
+.root :global(.plan-card li svg) { flex-shrink: 0; margin-top: 2px; color: var(--equity); }
+.root :global(.enterprise) { display: grid; grid-template-columns: auto 1fr auto; gap: 26px; align-items: center; margin-top: 44px; padding-top: 30px; padding-bottom: 30px; border-radius: 8px; background: var(--primary); color: var(--primary-foreground); max-width: 1136px; }
+.root :global(.enterprise .eyebrow) { color: var(--accent); margin-bottom: 8px; }
+.root :global(.enterprise h2) { font-size: 26px; font-weight: 600; }
+.root :global(.enterprise p) { font-size: 13px; line-height: 1.7; opacity: .75; margin-top: 8px; max-width: 560px; }
+.root :global(.enterprise-icon) { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 8px; background: oklch(1 0 0 / .1); color: var(--accent); }
+.root :global(.pricing-faq) { padding-top: 72px; padding-bottom: 88px; max-width: 860px; }
+.root :global(.pricing-faq h2) { font-size: 32px; font-weight: 650; margin-bottom: 18px; }
+.root :global(.pricing-faq details) { border-bottom: 1px solid var(--border); }
+.root :global(.pricing-faq summary) { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 2px; cursor: pointer; font-size: 15px; font-weight: 600; list-style: none; }
+.root :global(.pricing-faq summary::-webkit-details-marker) { display: none; }
+.root :global(.pricing-faq summary:after) { content: '+'; font-size: 20px; font-weight: 400; color: var(--muted-foreground); }
+.root :global(.pricing-faq details[open] summary:after) { content: '−'; }
+.root :global(.pricing-faq details p) { font-size: 14px; line-height: 1.8; color: var(--muted-foreground); padding: 0 2px 20px; }
+@media(max-width:900px) { .root :global(.pricing-grid) { grid-template-columns: 1fr; max-width: 520px; } .root :global(.enterprise) { grid-template-columns: 1fr; margin-left: 22px; margin-right: 22px; } }
+@media(max-width:600px) { .root :global(.pricing-hero) { padding-top: 44px; } .root :global(.pricing-hero h1) { font-size: 36px; } .root :global(.plan-price strong) { font-size: 38px; } .root :global(.pricing-faq) { padding-top: 50px; padding-bottom: 55px; } .root :global(.pricing-faq h2) { font-size: 26px; } }
+/* .site-button is declared after .lime-button above; restate the lime colours with higher specificity. */
+.root :global(.site-button.lime-button) { background: var(--accent); color: var(--foreground); height: 48px; }
+/* Same ordering issue for the mobile menu button: hide it except on phones. */
+.root :global(.site-button.mobile-menu) { display: none; }
+@media(max-width:600px) { .root :global(.site-button.mobile-menu) { display: inline-flex; } }

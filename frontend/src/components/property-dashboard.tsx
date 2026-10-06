@@ -26,20 +26,11 @@ import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason
 import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
+import { STATES } from "@/lib/states";
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
 const PAGE_SIZE = 24;
-// States with sheriff-sale listings; every request is pinned to the selected one.
-const STATES: { code: string; name: string; view: [number, number, number] }[] = [
-  { code: "NJ", name: "New Jersey", view: [40.1, -74.6, 8] },
-  { code: "PA", name: "Pennsylvania", view: [40.9, -77.6, 7] },
-  { code: "OH", name: "Ohio", view: [40.3, -82.8, 7] },
-  { code: "FL", name: "Florida", view: [27.8, -82.6, 6] },
-  { code: "IL", name: "Illinois", view: [40.0, -89.2, 6] },
-  { code: "SC", name: "South Carolina", view: [33.8, -80.9, 7] },
-  { code: "DE", name: "Delaware", view: [39.1, -75.5, 8] },
-];
 // The dashboard only lists properties whose sale status contains "scheduled".
 const SCHEDULED = "scheduled";
 

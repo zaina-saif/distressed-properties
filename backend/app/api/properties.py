@@ -914,6 +914,36 @@ def landing_summary(state: str = "NJ"):
     }
 
 
+@router.get("/facets/state-summary")
+def state_summary():
+    """Scheduled sales and gross equity per state for the landing page. Uses the
+    dashboard's own filter (status contains "scheduled") so a state's count
+    matches what its dashboard shows."""
+    equity = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+    with engine.connect() as connection:
+        rows = connection.execute(text(f"""
+            SELECT ss.state, COUNT(*) AS scheduled_sales, COUNT(DISTINCT ss.county) AS counties,
+                   COUNT(*) FILTER (WHERE {equity} > 0) AS sales_with_equity,
+                   SUM({equity}) FILTER (WHERE {equity} > 0) AS gross_equity,
+                   MAX(ss.last_scraped_at) AS last_updated
+            FROM sheriff_sales AS ss
+            LEFT JOIN LATERAL (
+                SELECT zestimate FROM apify_zillow_results
+                WHERE property_id = ss.property_id AND is_current = TRUE AND match_status <> 'invalid'
+                ORDER BY retrieved_at DESC, id DESC LIMIT 1
+            ) AS azr ON TRUE
+            WHERE ss.property_id IS NOT NULL AND strpos({EFFECTIVE_STATUS_SQL}, 'scheduled') > 0
+            GROUP BY ss.state
+            ORDER BY COUNT(*) DESC
+        """)).mappings().all()
+    return {"states": [
+        {"state": row["state"], "scheduled_sales": row["scheduled_sales"], "counties": row["counties"],
+         "sales_with_equity": row["sales_with_equity"], "gross_equity": float(row["gross_equity"] or 0),
+         "last_updated": row["last_updated"]}
+        for row in rows
+    ]}
+
+
 @router.get("/facets/nyc-auction-coverage")
 def nyc_auction_coverage():
     boroughs = ("New York", "Bronx", "Kings", "Queens", "Richmond")

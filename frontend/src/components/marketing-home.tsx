@@ -1,9 +1,14 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, ArrowUpRight, Bath, BedDouble, CalendarDays, ChartNoAxesCombined, Check, Layers, MapPin, Maximize, Menu, Play, Radar, Search, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bath, BedDouble, CalendarDays, ChartNoAxesCombined, Check, Layers, MapPin, Maximize, Play, Radar, Search, ShieldCheck, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+import { Button, SiteFooter, SiteHeader } from "@/components/marketing-chrome";
+import { STATES } from "@/lib/states";
+import { getPropertyCoverage, getStateSummary, type StateSummary } from "@/services/properties";
+import type { PropertyCoverageItem } from "@/types/property";
 
 import styles from "./marketing-home.module.css";
 
@@ -14,13 +19,29 @@ const properties: Property[] = [
   { id: 3, image: "/marketing/property-cape.jpg", address: "76 Willow Lane", city: "Westfield", county: "Union", value: 485000, bid: 272000, equity: 213000, probability: 89, beds: 3, baths: 2, sqft: "1,780", date: "Oct 28, 2026" },
 ];
 const money = (n: number) => "$" + n.toLocaleString("en-US");
+const compactMoney = (n: number) => n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(n >= 1e8 ? 0 : 1)}M` : `$${Math.round(n / 1e3)}K`;
+const stateName = (code: string) => STATES.find((s) => s.code === code)?.name ?? code;
 
-function Brand() {
-  return <span className="brand"><span className="brand-symbol"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 23V11L14 4l10 7v12h-7v-9h-6v9H4Z" stroke="currentColor" strokeWidth="2.1"/><path d="m18 5 6-3v7" stroke="currentColor" strokeWidth="2.1"/></svg></span><span>Distressed<span className="brand-second">Properties<span className="brand-pro">PRO</span></span></span></span>;
-}
-
-function Button({ children, className = "", variant = "default", size = "default", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "outline" | "ghost"; size?: "default" | "icon" }) {
-  return <button className={`site-button button-${variant} ${size === "icon" ? "button-icon" : ""} ${className}`} {...props}>{children}</button>;
+/** Live per-state totals for the states the dashboard covers, largest first. */
+function StateOpportunities({ summary, coverage }: { summary: StateSummary[] | null; coverage: PropertyCoverageItem[] }) {
+  const maxSales = Math.max(1, ...(summary ?? []).map((s) => s.scheduled_sales));
+  const maxEquity = Math.max(1, ...(summary ?? []).map((s) => s.gross_equity));
+  return <section id="states" className="states-section container"><span className="eyebrow">OPPORTUNITY BY STATE</span><div className="section-heading"><h2>Every state we cover,<br/>side by side.</h2><p>Scheduled sales and the gross equity behind them, live from the platform. Choose a state to open it on the map.</p></div>
+    {summary === null ? <div className="state-grid" aria-busy="true">{STATES.map((s) => <div key={s.code} className="state-card is-loading"/>)}</div>
+      : summary.length === 0 ? <p className="empty-state">State totals are unavailable right now.</p>
+      : <div className="state-grid">{summary.map((s) => <Link key={s.state} href={`/dashboard?state=${s.state}`} className="state-card" aria-label={`Open ${stateName(s.state)} in the dashboard: ${s.scheduled_sales.toLocaleString("en-US")} scheduled sales`}>
+        <div className="state-card-head"><div><span className="state-code">{s.state}</span><h3>{stateName(s.state)}</h3></div><ArrowUpRight size={18}/></div>
+        <div className="state-metric"><div className="state-metric-label"><span>Properties scheduled</span><strong>{s.scheduled_sales.toLocaleString("en-US")}</strong></div><div className="state-bar"><span style={{ width: `${(s.scheduled_sales / maxSales) * 100}%` }}/></div></div>
+        <div className="state-metric"><div className="state-metric-label"><span>Gross equity</span>{s.sales_with_equity ? <strong className="text-equity">{compactMoney(s.gross_equity)}</strong> : <em className="state-pending">Not estimated yet</em>}</div><div className="state-bar state-bar-equity"><span style={{ width: `${(s.gross_equity / maxEquity) * 100}%` }}/></div></div>
+        <p className="state-foot">{s.counties} {s.counties === 1 ? "county" : "counties"} · {s.sales_with_equity.toLocaleString("en-US")} with an equity estimate</p>
+      </Link>)}</div>}
+    {summary && summary.length > 0 && coverage.length > 0 && <div className="county-lists"><h3>Counties with scheduled sales</h3><p>Choose a county to open it on the map. The number is its scheduled sales.</p>
+      {summary.map((s) => {
+        const counties = coverage.filter((item) => item.state === s.state && item.property_count > 0).sort((a, b) => a.county.localeCompare(b.county));
+        if (!counties.length) return null;
+        return <details key={s.state} className="county-list"><summary><span>{stateName(s.state)}</span><span>{counties.length} {counties.length === 1 ? "county" : "counties"}</span></summary><ul>{counties.map((item) => <li key={item.county}><Link href={`/dashboard?state=${s.state}&county=${encodeURIComponent(item.county)}`}>{item.county}<span>{item.property_count.toLocaleString("en-US")}</span></Link></li>)}</ul></details>;
+      })}</div>}
+    <p className="data-disclaimer">Gross equity is estimated market value minus the minimum bid, summed over sales where both are known; it is before liens, costs and fees. Sales whose value or minimum bid is not yet published are counted but not included in equity.</p></section>;
 }
 
 function AnimatedStat({ value, prefix = "", suffix = "", label }: { value: number; prefix?: string; suffix?: string; label: string }) {
@@ -64,12 +85,28 @@ function PropertyExplorer({ onClose, initial }: { onClose: () => void; initial?:
 }
 
 export function MarketingHome() {
-  const [mobile, setMobile] = useState(false);
   const [explore, setExplore] = useState(false);
   const [selected, setSelected] = useState<Property>();
   const [how, setHow] = useState(false);
   const openProperty = (p: Property) => { setSelected(p); setExplore(true); };
   const openExplorer = () => { setSelected(undefined); setExplore(true); };
+  const [summary, setSummary] = useState<StateSummary[] | null>(null);
+  const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
+  useEffect(() => {
+    let active = true;
+    const covered = new Set(STATES.map((s) => s.code));
+    getStateSummary()
+      .then((rows) => { if (active) setSummary(rows.filter((row) => covered.has(row.state))); })
+      .catch(() => { if (active) setSummary([]); });
+    getPropertyCoverage("scheduled").then((rows) => { if (active) setCoverage(rows); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+  const totals = summary?.length ? {
+    sales: summary.reduce((sum, s) => sum + s.scheduled_sales, 0),
+    states: summary.length,
+    counties: summary.reduce((sum, s) => sum + s.counties, 0),
+    equity: summary.reduce((sum, s) => sum + s.gross_equity, 0),
+  } : null;
   useEffect(() => {
     if (!explore && !how) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setExplore(false); setHow(false); } };
@@ -77,17 +114,18 @@ export function MarketingHome() {
     return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", onKey); };
   }, [explore, how]);
   return <div className={styles.root}>
-    <header className="site-header"><div className="nav-inner"><Link href="/" aria-label="Distressed Properties Pro home"><Brand/></Link><nav aria-label="Main navigation" className={mobile ? "main-nav is-open" : "main-nav"}><a href="#home" className="active" onClick={() => setMobile(false)}>Home</a><a href="#company" onClick={() => setMobile(false)}>Company</a><a href="#news" onClick={() => setMobile(false)}>News</a><a href="#contact" onClick={() => setMobile(false)}>Contact</a></nav><div className="nav-actions"><Link href="/get-started" className="site-button nav-cta">Get Started<ArrowUpRight/></Link><Button variant="ghost" size="icon" className="mobile-menu" aria-label={mobile ? "Close menu" : "Open menu"} onClick={() => setMobile(!mobile)}>{mobile ? <X/> : <Menu/>}</Button></div></div></header>
+    <SiteHeader active="home"/>
     <main>
-      <section id="home" className="hero"><Image className="hero-image" src="/marketing/nj-neighborhood.jpg" alt="Aerial view of residential properties in a leafy New Jersey neighborhood" fill priority sizes="100vw"/><div className="hero-inner container"><div className="hero-copy"><div className="hero-label"><span className="status-dot"/>YOUR DISTRESSED PROPERTY EXPERT</div><h1>Find the opportunity<br/><em>before everyone</em><br/>else does.</h1><h2>Every NJ sheriff sale. One intelligent platform.</h2><p>See estimated value, minimum bid, potential equity, liens, sale history, and the probability a property actually reaches auction.</p><div className="hero-buttons"><Button onClick={openExplorer}>Explore Properties<ArrowUpRight/></Button><Button variant="outline" onClick={() => setHow(true)}><Play size={15}/>See How It Works</Button></div><div className="hero-note"><ShieldCheck size={14}/>Less guesswork. More intelligence. Better opportunities.</div></div><div className="map-pin"><MapPin size={15}/>$307K potential equity</div><div className="intelligence-preview"><div className="preview-top"><span>PROPERTY INTELLIGENCE</span><span>High equity</span></div><h3>124 Maple Avenue</h3><p>Montclair, NJ · Essex County</p><div className="preview-values"><div><span>Estimated value</span><strong>$625,000</strong></div><div><span>Minimum bid</span><strong>$318,000</strong></div></div><div className="preview-equity"><div><span>Potential equity</span><strong>$307,000</strong></div><ArrowUpRight/></div><div className="preview-foot"><CalendarDays size={12}/>82% auction probability · Example</div></div></div></section>
-      <section className="stats-section"><div className="container"><div className="stats-top"><span><span className="status-dot"/>A STATE OF OPPORTUNITY</span><span>New Jersey coverage · Platform snapshot</span></div><div className="stats-grid"><AnimatedStat value={1327} label="Upcoming sheriff sales"/><AnimatedStat value={181} label="Sales in the next 7 days"/><AnimatedStat value={17} label="NJ counties covered"/><AnimatedStat value={217} prefix="$" suffix="M" label="Estimated equity opportunities"/></div></div></section>
-      <section id="company" className="value-section container"><span className="eyebrow">LESS SEARCHING. MORE SIGNAL.</span><div className="section-heading"><h2>Stop searching sheriff websites.<br/>Start finding deals.</h2><p>We turn fragmented public sheriff-sale information into clear, investor-ready intelligence. Your research, finally connected.</p></div><div className="feature-grid"><article className="feature"><div className="feature-icon"><Layers size={21}/></div><h3>One platform. Every opportunity.</h3><p>Find NJ sheriff sales in one place. Discover properties on a map, track upcoming auctions, and put the whole picture together.</p><div className="feature-tags"><span>Map-based discovery</span><span>17 NJ counties</span></div></article><article className="feature"><div className="feature-icon"><ChartNoAxesCombined size={21}/></div><h3>Know the numbers that matter.</h3><p>Compare estimated values, minimum bids, and potential equity. Surface the highest-equity opportunities, not just another listing.</p><div className="feature-tags"><span>Equity estimates</span><span>Investor rankings</span></div></article><article className="feature"><div className="feature-icon"><Radar size={21}/></div><h3>See beyond the sale date.</h3><p>Understand preliminary liens, sale and postponement history, and the probability a property actually makes it to auction.</p><div className="feature-tags"><span>Lien intelligence</span><span>Auction probability</span></div></article></div></section>
+      <section id="home" className="hero"><Image className="hero-image" src="/marketing/nj-neighborhood.jpg" alt="Aerial view of residential properties in a leafy New Jersey neighborhood" fill priority sizes="100vw"/><div className="hero-inner container"><div className="hero-copy"><div className="hero-label"><span className="status-dot"/>YOUR DISTRESSED PROPERTY EXPERT</div><h1>Find the opportunity<br/><em>before everyone</em><br/>else does.</h1><h2>Sheriff and foreclosure sales across {STATES.length} states. One intelligent platform.</h2><p>See estimated value, minimum bid, potential equity, liens, sale history, and the probability a property actually reaches auction.</p><div className="hero-buttons"><Button onClick={openExplorer}>Explore Properties<ArrowUpRight/></Button><Button variant="outline" onClick={() => setHow(true)}><Play size={15}/>See How It Works</Button></div><div className="hero-note"><ShieldCheck size={14}/>Less guesswork. More intelligence. Better opportunities.</div></div><div className="map-pin"><MapPin size={15}/>$307K potential equity</div><div className="intelligence-preview"><div className="preview-top"><span>PROPERTY INTELLIGENCE</span><span>High equity</span></div><h3>124 Maple Avenue</h3><p>Montclair, NJ · Essex County</p><div className="preview-values"><div><span>Estimated value</span><strong>$625,000</strong></div><div><span>Minimum bid</span><strong>$318,000</strong></div></div><div className="preview-equity"><div><span>Potential equity</span><strong>$307,000</strong></div><ArrowUpRight/></div><div className="preview-foot"><CalendarDays size={12}/>82% auction probability · Example</div></div></div></section>
+      <section className="stats-section"><div className="container"><div className="stats-top"><span><span className="status-dot"/>STATES OF OPPORTUNITY</span><span>{STATES.map((s) => s.code).join(" · ")} · Live platform snapshot</span></div>{totals ? <div className="stats-grid"><AnimatedStat value={totals.sales} label="Scheduled sales"/><AnimatedStat value={totals.states} label="States covered"/><AnimatedStat value={totals.counties} label="Counties covered"/><AnimatedStat value={Math.round(totals.equity / 1e6)} prefix="$" suffix="M" label="Estimated gross equity"/></div> : <div className="stats-grid" aria-busy="true">{["Scheduled sales", "States covered", "Counties covered", "Estimated gross equity"].map((label) => <div key={label} className="stat"><strong>—</strong><p>{label}</p></div>)}</div>}</div></section>
+      <StateOpportunities summary={summary} coverage={coverage}/>
+      <section id="company" className="value-section container"><span className="eyebrow">LESS SEARCHING. MORE SIGNAL.</span><div className="section-heading"><h2>Stop searching sheriff websites.<br/>Start finding deals.</h2><p>We turn fragmented public sheriff-sale information into clear, investor-ready intelligence. Your research, finally connected.</p></div><div className="feature-grid"><article className="feature"><div className="feature-icon"><Layers size={21}/></div><h3>One platform. Every opportunity.</h3><p>Find sheriff and foreclosure sales across {STATES.length} states in one place. Discover properties on a map, track upcoming auctions, and put the whole picture together.</p><div className="feature-tags"><span>Map-based discovery</span><span>{STATES.length} states</span></div></article><article className="feature"><div className="feature-icon"><ChartNoAxesCombined size={21}/></div><h3>Know the numbers that matter.</h3><p>Compare estimated values, minimum bids, and potential equity. Surface the highest-equity opportunities, not just another listing.</p><div className="feature-tags"><span>Equity estimates</span><span>Investor rankings</span></div></article><article className="feature"><div className="feature-icon"><Radar size={21}/></div><h3>See beyond the sale date.</h3><p>Understand preliminary liens, sale and postponement history, and the probability a property actually makes it to auction.</p><div className="feature-tags"><span>Lien intelligence</span><span>Auction probability</span></div></article></div></section>
       <section id="news" className="testimonial"><div className="testimonial-inner container"><div className="testimonial-result"><span>THE OPPORTUNITY, REALIZED.</span><strong>$1.2M+</strong><p>in potential equity identified</p></div><div className="quote-area"><blockquote>“With Distressed Properties Pro, we were able to find a property with <strong>more than $1.2 million in potential equity.</strong>”</blockquote><div className="quote-attribution"><span className="legacy-logo" aria-label="Legacy monogram">L</span><div><b>Legacy Sales LLC</b><p>Real Estate Investor</p></div></div></div></div></section>
       <section className="opportunities container"><span className="eyebrow">THE OPPORTUNITY IS IN THE DETAILS</span><div className="section-heading"><h2>Where the numbers get interesting.</h2><Button variant="outline" onClick={openExplorer}>Explore Properties<ArrowUpRight/></Button></div><p className="section-description">A closer look at what investor-ready intelligence can uncover.</p><div className="property-grid">{properties.map((p) => <PropertyCard key={p.id} property={p} onSelect={openProperty}/>)}</div><p className="data-disclaimer">Illustrative properties and estimates. Potential equity excludes liens, transaction costs, and fees. Always perform independent due diligence.</p></section>
       <section id="contact" className="final-cta"><div className="container"><span className="eyebrow">YOUR NEXT MOVE</span><h2>The next opportunity<br/>is already scheduled.</h2><div className="cta-bottom"><p>Find it before auction day.</p><Link className="site-button lime-button" href="/get-started">Explore Distressed Properties<ArrowUpRight/></Link></div></div></section>
     </main>
-    <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Distressed Property Expert.</span><nav aria-label="Footer navigation"><a href="#company">Company</a><a href="#news">News</a><a href="#contact">Contact</a></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Distressed Properties Pro. All rights reserved.</span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>
+    <SiteFooter/>
     {explore && <PropertyExplorer initial={selected} onClose={() => setExplore(false)}/>}
-    {how && <div className="modal-backdrop" onClick={() => setHow(false)}><section className="explorer-modal" role="dialog" aria-modal="true" aria-labelledby="how-title" onClick={(e) => e.stopPropagation()}><header><div><span className="eyebrow">FROM RESEARCH TO OPPORTUNITY</span><h2 id="how-title">A smarter way to find your next deal.</h2></div><Button variant="ghost" size="icon" onClick={() => setHow(false)} aria-label="Close how it works"><X/></Button></header><div className="how-steps">{[{ title: "Discover", text: "Find sheriff-sale opportunities by county, city, or address. Get a statewide view instead of checking individual county websites." }, { title: "Evaluate", text: "Compare estimated value and minimum bid, then dig into potential equity, preliminary liens, and sale history." }, { title: "Make your move", text: "Use auction probability to prioritize your research. Verify the property, liens, and current sale details before bidding." }].map((s, i) => <article key={s.title}><strong>0{i + 1}</strong><h3>{s.title}</h3><p>{s.text}</p></article>)}</div><Button className="mt-8" onClick={() => { setHow(false); openExplorer(); }}>Explore Properties<Check/></Button></section></div>}
+    {how && <div className="modal-backdrop" onClick={() => setHow(false)}><section className="explorer-modal" role="dialog" aria-modal="true" aria-labelledby="how-title" onClick={(e) => e.stopPropagation()}><header><div><span className="eyebrow">FROM RESEARCH TO OPPORTUNITY</span><h2 id="how-title">A smarter way to find your next deal.</h2></div><Button variant="ghost" size="icon" onClick={() => setHow(false)} aria-label="Close how it works"><X/></Button></header><div className="how-steps">{[{ title: "Discover", text: "Find sheriff-sale opportunities by county, city, or address. See every county and state we cover in one view instead of checking individual county websites." }, { title: "Evaluate", text: "Compare estimated value and minimum bid, then dig into potential equity, preliminary liens, and sale history." }, { title: "Make your move", text: "Use auction probability to prioritize your research. Verify the property, liens, and current sale details before bidding." }].map((s, i) => <article key={s.title}><strong>0{i + 1}</strong><h3>{s.title}</h3><p>{s.text}</p></article>)}</div><Button className="mt-8" onClick={() => { setHow(false); openExplorer(); }}>Explore Properties<Check/></Button></section></div>}
   </div>;
 }
