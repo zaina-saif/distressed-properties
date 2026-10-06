@@ -54,6 +54,7 @@ Use test mode first; switch the keys and price IDs to live mode at launch.
    |---|---|
    | `DATABASE_URL` | Supabase connection string |
    | `SUPABASE_URL` | `https://<project>.supabase.co` |
+   | `SUPABASE_ANON_KEY` | The publishable key (lets the API confirm sessions signed with Supabase's legacy secret) |
    | `GOOGLE_MAPS_API_KEY` | Street View key (restricted to the Street View Static API) |
    | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | From step 3 |
    | `STRIPE_PRICE_STARTER_MONTH`, `STRIPE_PRICE_STARTER_YEAR`, `STRIPE_PRICE_PRO_MONTH`, `STRIPE_PRICE_PRO_YEAR` | From step 3 |

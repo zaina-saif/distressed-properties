@@ -7,7 +7,15 @@ from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+def with_driver(url):
+    """Pin plain postgres URLs to psycopg2, the driver in requirements.txt.
+    SQLAlchemy 2.1 changed the default for "postgresql://" to psycopg 3."""
+    if url and url.startswith(("postgresql://", "postgres://")):
+        return "postgresql+psycopg2://" + url.split("://", 1)[1]
+    return url
+
+
+DATABASE_URL = with_driver(os.getenv("DATABASE_URL"))
 
 if not DATABASE_URL:
     raise RuntimeError(
@@ -22,7 +30,7 @@ engine = create_engine(
 # Large public datasets and AVM training data can live in a separate,
 # self-hosted PostgreSQL database. Falling back to DATABASE_URL preserves the
 # original single-database setup for the API and test environments.
-WAREHOUSE_DATABASE_URL = os.getenv("WAREHOUSE_DATABASE_URL", DATABASE_URL)
+WAREHOUSE_DATABASE_URL = with_driver(os.getenv("WAREHOUSE_DATABASE_URL")) or DATABASE_URL
 WAREHOUSE_IS_FALLBACK = not os.getenv("WAREHOUSE_DATABASE_URL")
 warehouse_engine = create_engine(
     WAREHOUSE_DATABASE_URL,
