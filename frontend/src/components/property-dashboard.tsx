@@ -372,7 +372,7 @@ export default function PropertyDashboard({
             <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} onLienSummaryClick={setSelectedLienSummaryProperty} onAdditionalDetailsClick={setSelectedComplaintsProperty} onProbabilityReasonClick={setSelectedProbabilityReasonProperty} onStatusHistoryClick={setSelectedHistoryProperty} onSalePageClick={setSalePageProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
-              {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => chooseProperty(property)} />)}
+              {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => focusProperty(property)} />)}
             </div>
           )}
 

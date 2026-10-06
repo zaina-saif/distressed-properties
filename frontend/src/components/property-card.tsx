@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   Bath,
   BedDouble,
   CalendarDays,
@@ -42,7 +43,7 @@ export function PropertyCard({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group w-full overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
         selected ? "border-teal-600 ring-2 ring-teal-100" : "border-slate-200"
       }`}
     >
@@ -100,6 +101,11 @@ export function PropertyCard({
             <span className="rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-600">{property.sale_type ?? "Sheriff sale"}</span>
           </div>
         </div>
+      </div>
+      {/* The whole card is the button; this is its visible call to action. */}
+      <div className="flex items-center justify-end gap-1 border-t border-slate-100 px-4 py-2 text-xs font-semibold text-teal-700 group-hover:text-teal-900">
+        <span className="group-hover:underline">Show details</span>
+        <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
       </div>
     </button>
   );
