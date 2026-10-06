@@ -144,6 +144,9 @@ MINIMUM_BID_BASIS_SQL = (
     "WHEN COALESCE(ss.estimated_upset_price, ss.alternate_upset_price) IS NOT NULL THEN 'notice_estimate' END)"
 )
 
+# Sale status as shown: unverified secondary-source listings whose date has passed read as date_passed_unverified.
+EFFECTIVE_STATUS_SQL = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
+
 # Investor Spotlight ranks by expected equity: gross equity (Zestimate minus the
 # minimum bid) weighted by the probability that the next sale date goes to auction.
 SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
@@ -201,7 +204,7 @@ def list_properties(
         conditions.append("p.zip_code = :zip_code")
         parameters["zip_code"] = zip_code
 
-    effective_status = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
+    effective_status = EFFECTIVE_STATUS_SQL
     if status:
         conditions.append(f"{effective_status} = :status")
         parameters["status"] = status.lower()
@@ -819,9 +822,10 @@ def export_properties_xlsx(
 
 
 @router.get("/facets/coverage")
-def list_property_coverage():
+def list_property_coverage(status_contains: Optional[str] = Query(default=None, max_length=100)):
+    status_filter = f"AND strpos({EFFECTIVE_STATUS_SQL}, :status_contains) > 0" if status_contains and status_contains.strip() else ""
     query = text(
-        """
+        f"""
         SELECT
             p.state,
             p.county,
@@ -830,6 +834,7 @@ def list_property_coverage():
         JOIN properties AS p
             ON p.id = ss.property_id
         WHERE ss.property_id IS NOT NULL
+        {status_filter}
         GROUP BY p.state, p.county
         ORDER BY p.state, p.county
         """
@@ -838,7 +843,9 @@ def list_property_coverage():
     with engine.connect() as connection:
         items = [
             dict(row)
-            for row in connection.execute(query).mappings()
+            for row in connection.execute(
+                query, {"status_contains": (status_contains or "").strip().lower()},
+            ).mappings()
         ]
 
     return {"items": items}

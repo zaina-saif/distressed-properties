@@ -32,6 +32,8 @@ import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/p
 const PAGE_SIZE = 24;
 // The app shows New Jersey only; every request is pinned to this state.
 const STATE = "NJ";
+// The dashboard only lists properties whose sale status contains "scheduled".
+const SCHEDULED = "scheduled";
 
 type SortDirection = "asc" | "desc";
 
@@ -67,7 +69,6 @@ export default function PropertyDashboard({
   const [selectedCounty, setSelectedCounty] = useState(initialCounty);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [selectedStatus, setSelectedStatus] = useState("scheduled-containing");
   const [sort, setSort] = useState("gross-equity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -76,7 +77,7 @@ export default function PropertyDashboard({
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    getPropertyCoverage().then(setCoverage).catch(() => setCoverage([]));
+    getPropertyCoverage(SCHEDULED).then(setCoverage).catch(() => setCoverage([]));
   }, [refreshKey]);
 
   // Always-visible spotlight totals: one small request, independent of the list view.
@@ -102,8 +103,7 @@ export default function PropertyDashboard({
       states: [STATE],
       counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
-      status: !spotlight && selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
-      statusContains: !spotlight && selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
+      statusContains: SCHEDULED,
       investorSpotlight: spotlight || undefined,
       sort: spotlight ? "investor-spotlight" : sort,
       sortDirection: spotlight ? "desc" : sortDirection,
@@ -123,7 +123,7 @@ export default function PropertyDashboard({
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedStatus, sort, sortDirection, spotlight]);
+  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, sort, sortDirection, spotlight]);
 
   const counties = useMemo(
     () => coverage
@@ -170,7 +170,6 @@ export default function PropertyDashboard({
     setSelectedCounty("");
     setSearchInput("");
     setSearchQuery("");
-    setSelectedStatus("scheduled-containing");
     setSort("gross-equity");
     setSortDirection("desc");
     setPage(1);
@@ -183,8 +182,7 @@ export default function PropertyDashboard({
         states: [STATE],
         counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
-        status: !spotlight && selectedStatus && selectedStatus !== "scheduled-containing" ? selectedStatus : undefined,
-        statusContains: !spotlight && selectedStatus === "scheduled-containing" ? "scheduled" : undefined,
+        statusContains: SCHEDULED,
         investorSpotlight: spotlight || undefined,
         sort: spotlight ? "investor-spotlight" : sort,
         sortDirection: spotlight ? "desc" : sortDirection,
@@ -267,24 +265,6 @@ export default function PropertyDashboard({
             >
               <option value="">All counties</option>
               {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
-            </select>
-            <select
-              aria-label="Status"
-              value={spotlight ? "scheduled-containing" : selectedStatus}
-              disabled={spotlight}
-              title={spotlight ? "Investor Spotlight shows upcoming scheduled sales" : undefined}
-              onChange={(event) => { setSelectedStatus(event.target.value); setPage(1); }}
-              className="w-36 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-            >
-              <option value="scheduled-containing">Status contains scheduled</option>
-              <option value="">All statuses</option>
-              <option value="scheduled">Scheduled (confirmed)</option>
-              <option value="scheduled_unverified">Scheduled (unverified)</option>
-              <option value="adjourned">Adjourned</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="sold">Sold</option>
-              <option value="sold_or_cancelled_unverified">Sold or cancelled (unverified)</option>
-              <option value="date_passed_unverified">Date passed (unverified)</option>
             </select>
             <button type="button" onClick={resetFilters} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><X className="h-3 w-3" />Clear</button>
           </div>

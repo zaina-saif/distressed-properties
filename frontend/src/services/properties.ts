@@ -128,8 +128,9 @@ export async function downloadPropertiesXlsx(
   return response.blob();
 }
 
-export async function getPropertyCoverage(): Promise<PropertyCoverageItem[]> {
-  const response = await fetch(`${API_URL}/api/v1/properties/facets/coverage`, {
+export async function getPropertyCoverage(statusContains?: string): Promise<PropertyCoverageItem[]> {
+  const query = statusContains ? `?status_contains=${encodeURIComponent(statusContains)}` : "";
+  const response = await fetch(`${API_URL}/api/v1/properties/facets/coverage${query}`, {
     cache: "no-store",
   });
 
