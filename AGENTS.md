@@ -45,6 +45,8 @@ Next.js here is v16 with breaking changes from older versions — read `frontend
 
 Base NJ flow: `scrape_civilview` → `load_to_supabase` → `create_properties` (normalizes and deduplicates addresses) → `import_property_analysis_csv` (valuations and equity).
 
+Other states load complete snapshots of each county's upcoming sales through `sale_listing_loader.load_sales`, which also marks open sales missing from a snapshot `sold_or_cancelled_unverified`: `scrape_realauction`/`load_realauction_sales` (OH sheriff sales, FL clerk sales), `scrape_civilview_states`/`load_civilview_states` (non-NJ CivilView counties: DE, PA Philadelphia/Montgomery/Lehigh, IL Lake, some TX/GA), `scrape_sc_master_in_equity`/`load_sc_master_in_equity`, and `scrape_pa_sale_listing`/`load_pa_sales`. New listings get coordinates, Zestimates and photos from `apify_scheduled_zillow` (paid; `--only-missing`, then `--retry-unmatched`) and probabilities from the sale-probability model's `score_current`.
+
 **Lien pre-screening** lives in `backend/app/liens/` (identity → source matching → risk/summary), exposed through `app/api/liens.py` including a lien-ingestion jobs router.
 
 **API**: `app/main.py` mounts the properties, liens, lien-jobs, pa_data, and warehouse_valuations routers. `app/api/sheriff_sales.py` and `app/api/watchlists.py` exist but are **not mounted**. The frontend calls `${NEXT_PUBLIC_API_URL}/api/v1/...` through `frontend/src/services/properties.ts`. CORS allows only localhost:3000.

@@ -11,6 +11,10 @@ backend/data/nj_property/raw/
 backend/data/nj_property/models/
 backend/data/pa_property/models/
 backend/data/state_avm/models/
+# Multi-county sale snapshots, regenerated on every scrape.
+backend/data/sheriff_sales/realauction/
+backend/data/sheriff_sales/civilview/
+backend/data/sheriff_sales/sc_master_in_equity/
 backend/cook_county_backfill.log
 backend/cook_county_backfill.pid
 tmp/

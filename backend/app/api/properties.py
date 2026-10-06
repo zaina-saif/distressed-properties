@@ -336,6 +336,12 @@ def list_properties(
                 THEN 'Federal seized-property auction'
                 WHEN ss.source_system='il_tjsc_upcoming_sales'
                 THEN 'Illinois judicial sale'
+                WHEN ss.source_system='fl_realforeclose_clerk_sale'
+                THEN 'Clerk foreclosure auction'
+                WHEN ss.source_system='sc_master_in_equity_sale'
+                THEN 'Master-in-Equity foreclosure sale'
+                WHEN ss.source_system='civilview_sheriff_sale' AND ss.state='TX'
+                THEN 'Sheriff or constable sale'
                 ELSE 'Sheriff sale' END AS sale_type,
             COALESCE(ss.docket_number, ss.court_case_number)
                 AS court_case_number,
