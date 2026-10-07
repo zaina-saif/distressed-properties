@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000";
+// A trailing slash in the setting would turn every path into "//api/...", which the API rejects.
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
 
 /** fetch() for API routes that need the signed-in user's access token. */
 export async function authFetch(input: string, init: RequestInit = {}): Promise<Response> {
