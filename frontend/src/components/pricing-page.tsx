@@ -23,12 +23,12 @@ export function plans(stateCount: number, countyCount: number | null): PlanCard[
         "Sale status and postponement history", "Property photos and source links", "10 full property reports a month"],
     },
     {
-      id: "starter", name: "Starter", monthly: 39, tagline: "Work a whole state.", coverage: "Every county in one state", cta: "Choose Starter",
+      id: "starter", name: "Starter", monthly: 19.99, tagline: "Work a whole state.", coverage: "Every county in one state", cta: "Choose Starter",
       features: ["Everything in Free", "Unlimited property reports", "Probability each sale reaches auction, with the reasons",
         "Preliminary lien pre-screening", "Investor Spotlight ranking by expected equity", "Change your state every 30 days"],
     },
     {
-      id: "pro", name: "Pro", monthly: 69, tagline: "See every opportunity we track.", coverage: everywhere, cta: "Choose Pro", popular: true,
+      id: "pro", name: "Pro", monthly: 49.99, tagline: "See every opportunity we track.", coverage: everywhere, cta: "Choose Pro", popular: true,
       features: ["Everything in Starter", "Every state and county as soon as we add it", "Excel export of any filtered list",
         "Compare opportunities across states on one map", "Priority support"],
     },
@@ -44,8 +44,13 @@ const FAQ = [
   { q: "Is the lien screening a title search?", a: "No. Lien results are a pre-screening aid with an estimated priority and confidence. They are not legal advice or a guaranteed lien status. Get a professional title search before you bid." },
 ];
 
+/** The yearly charge, in dollars to the cent; it must match the yearly Stripe price. */
+export function yearlyTotal(monthly: number) {
+  return Math.round(monthly * 12 * (1 - ANNUAL_DISCOUNT) * 100) / 100;
+}
+
 export function price(monthly: number, annual: boolean) {
-  const value = annual ? monthly * (1 - ANNUAL_DISCOUNT) : monthly;
+  const value = annual ? yearlyTotal(monthly) / 12 : monthly;
   return value % 1 ? value.toFixed(2) : String(value);
 }
 
@@ -80,7 +85,7 @@ export function PricingPage() {
           <h2>{plan.name}</h2>
           <p className="plan-tagline">{plan.tagline}</p>
           <div className="plan-price"><strong>${price(plan.monthly, annual)}</strong><span>/mo</span></div>
-          <p className="plan-billing">{plan.monthly === 0 ? "Free forever" : annual ? `$${(plan.monthly * 12 * (1 - ANNUAL_DISCOUNT)).toFixed(0)} billed yearly` : "Billed monthly"}</p>
+          <p className="plan-billing">{plan.monthly === 0 ? "Free forever" : annual ? `$${yearlyTotal(plan.monthly).toFixed(2)} billed yearly` : "Billed monthly"}</p>
           <p className="plan-coverage">{plan.coverage}</p>
           <Link href={`/choose-plan?plan=${plan.id}&interval=${annual ? "year" : "month"}`} className={plan.popular ? "site-button plan-cta" : "site-button button-outline plan-cta"}>{plan.cta}<ArrowUpRight/></Link>
           <ul>{plan.features.map((feature) => <li key={feature}><Check size={15} aria-hidden="true"/>{feature}</li>)}</ul>

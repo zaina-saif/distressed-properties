@@ -38,7 +38,7 @@ In the Supabase dashboard:
 
 ## 3. Stripe
 
-1. Create products **Starter** and **Pro**, each with a monthly and a yearly recurring price (the pricing page shows $39 and $69 a month, 10% off yearly). Copy the four price IDs (`price_...`).
+1. Create products **Starter** and **Pro**, each with a monthly and a yearly recurring price (the pricing page shows $19.99 and $49.99 a month; yearly is 10% off: $215.89 and $539.89). Copy the four price IDs (`price_...`).
 2. **Developers → API keys**: copy the secret key.
 3. **Developers → Webhooks → Add endpoint**: URL `https://api.<your-domain>/api/v1/billing/webhook`, events `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`. Copy the signing secret (`whsec_...`).
 4. **Settings → Billing → Customer portal**: turn it on and allow cancelling and updating payment methods.
