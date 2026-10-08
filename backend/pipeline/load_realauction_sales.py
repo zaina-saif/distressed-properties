@@ -7,6 +7,7 @@ import json
 import re
 from datetime import date
 
+from pipeline import colorado_addresses
 from pipeline.sale_listing_loader import Sale, load_sales, money
 from pipeline.scrape_realauction import SOURCES, snapshot_path
 
@@ -58,12 +59,20 @@ def load(state, county):
     for case, item in current_items(snapshot["items"], date.today()).items():
         fields = item["fields"]
         street, city, zip_code = address(fields, state)
+        raw = {**item, "source_url": snapshot["source_url"], "parser_version": snapshot["parser_version"]}
+        if state == "CO" and street and not city:
+            # Colorado sites often give only the street; fill city and ZIP from the
+            # state's address points when the match is unambiguous.
+            found = colorado_addresses.city_and_zip(street, county)
+            if found:
+                city, zip_code = found
+                raw["address_completed_from"] = colorado_addresses.SOURCE
         _, sheriff_number = case_number(fields)
         area = "waiting" if item["area"] == "W" else "closed or canceled"
         sales.append(Sale(
             case=case, street=street, city=city, zip_code=zip_code,
             sale_date=date.fromisoformat(item["sale_date"]), status=status(item, date.today()),
-            raw={**item, "source_url": snapshot["source_url"], "parser_version": snapshot["parser_version"]},
+            raw=raw,
             raw_status=f"{area} (auction {item['auction_id']})",
             parcel=(fields.get("Parcel ID") or "").strip() or None,
             # Ohio's opening bid is the minimum bid (two-thirds of the appraisal);

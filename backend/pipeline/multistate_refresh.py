@@ -34,7 +34,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-STATES = ("OH", "FL", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR")
+STATES = ("OH", "FL", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT")
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -53,6 +53,7 @@ SOURCES = [
     ("SC Master-in-Equity", ["pipeline.scrape_sc_master_in_equity", "--all"],
      ["pipeline.load_sc_master_in_equity", "--all"]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
+    ("Connecticut court sales", ["pipeline.scrape_ct_foreclosure_sales"], ["pipeline.load_ct_foreclosure_sales"]),
 ]
 BACKEND = Path(__file__).resolve().parents[1]
 DEFAULT_RUN_ROOT = BACKEND.parent / ".local" / "multistate-refresh"
