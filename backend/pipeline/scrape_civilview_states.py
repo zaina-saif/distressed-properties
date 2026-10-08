@@ -25,6 +25,11 @@ COUNTIES = {
     ("GA", "Coweta"): [92],
     ("TX", "Dallas"): [93, 94, 95, 96, 97], ("TX", "Guadalupe"): [86, 87, 88, 89, 90],
     ("TX", "McLennan"): [76, 77, 78, 79, 80], ("TX", "Rockwall"): [69, 70, 71, 72, 63],
+    ("CO", "Larimer"): [48], ("MN", "Stearns"): [62], ("MN", "St. Louis"): [91],
+    ("LA", "Orleans"): [28], ("LA", "Ascension"): [55],
+    ("IA", "Pottawattamie"): [11], ("IA", "Story"): [16], ("IA", "Scott"): [37],
+    ("WA", "Snohomish"): [26], ("KS", "Shawnee"): [56], ("ID", "Canyon"): [68],
+    ("OR", "Josephine"): [54], ("OR", "Deschutes"): [30], ("AZ", "Maricopa"): [47], ("AR", "Pulaski"): [74],
 }
 
 

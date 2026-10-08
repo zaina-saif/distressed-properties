@@ -7,6 +7,7 @@ import json
 import re
 
 from pipeline.adapters.civilview_listing import parse_date
+from pipeline.apify_scheduled_zillow import STREET_SUFFIX
 from pipeline.sale_listing_loader import Sale, load_sales, money
 from pipeline.scrape_civilview_states import COUNTIES, key, snapshot_path
 
@@ -31,33 +32,88 @@ def normalize_status(raw):
     return value.replace(" ", "_") or "scheduled"
 
 
+DIRECTION = r"(?:\s+(?:N|S|E|W|NE|NW|SE|SW|NORTH|SOUTH|EAST|WEST)\b)?"
+
+
+def split_street_city(text):
+    """"2116 WASHINGTON AVE CALDWELL" -> street ending at the last street type, then the city."""
+    matches = list(re.finditer(STREET_SUFFIX.pattern + DIRECTION, text, re.I))
+    if not matches:
+        return text.strip(), None
+    end = matches[-1].end()
+    return text[:end].strip(" ,"), text[end:].strip(" ,") or None
+
+
+def one_line(text, state):
+    """Street, city and ZIP from a single line such as "814 2ND STREET, NEVADA IA 50201"
+    or "8739 EDINBURGH ST  NEW ORLEANS LA 70118" (Orleans separates with two spaces)."""
+    match = re.search(rf"^(.*?)[\s,]+{state}\s+(\d{{5}})", text.strip(), re.I)
+    if not match:
+        return text.strip(), None, None
+    before, zip_code = match.group(1), match.group(2)
+    if "  " in before.strip():
+        street, city = re.split(r"\s{2,}", before.strip(), maxsplit=1)
+    elif "," in before:
+        street, city = before.rsplit(",", 1)
+    else:
+        street, city = split_street_city(before)
+    return street.strip(" ,"), (city or "").strip(" ,").title() or None, zip_code
+
+
 def address(fields, state):
-    """Street and "CITY ST ZIP" lines from the Address or Property Address field."""
-    lines = fields.get("Property Address") or fields.get("Address") or []
+    """Street, city and ZIP. Counties use a street line plus a "CITY ST ZIP" line, a single
+    line, or (Canyon, ID) only a "COMMONLY KNOWN AS ..." phrase in another field."""
+    lines = fields.get("Property Address") or fields.get("Address") or fields.get("Address/Description") or []
+    if not lines:
+        text = " ".join(value for values in fields.values() for value in values)
+        known = re.search(rf"COMMONLY KNOWN AS\s*:?\s*(.+?,?\s*{state}\s+\d{{5}})", text, re.I)
+        return one_line(known.group(1), state) if known else ("", None, None)
     # New Castle flags some listings with a leading "*"; the raw record keeps it.
-    street = " ".join(lines[0].lstrip("*").split()) if lines else ""
+    street = " ".join(lines[0].lstrip("*").split())
+    city = zip_code = None
     for line in lines[1:]:
         match = re.match(rf"\s*(.+?)\s*,?\s+{state}\s+(\d{{5}})?", line, re.I)
         if match:
-            return street, match.group(1).strip().title(), match.group(2)
-    return street, None, None
+            city, zip_code = match.group(1).strip().title(), match.group(2)
+            break
+    if city is None and len(lines) == 1:
+        street, city, zip_code = one_line(street, state)
+    # Snohomish writes "SALE FOR REAL PROPERTY LOCATED AT <street> <CITY> WILL BE HELD AT ...".
+    located = re.search(r"LOCATED AT\s+(.+?)(?:\s+WILL BE HELD|$)", street, re.I)
+    if located:
+        street = located.group(1).strip(" ,")
+        if city and street.upper().endswith(" " + city.upper()):
+            street = street[: -len(city)].strip(" ,")
+    return street, city, zip_code
+
+
+def amount_after(fields, label):
+    """A dollar amount written inside a value, e.g. "Writ Amount: $220,143.88" (Louisiana)."""
+    for values in fields.values():
+        for value in values:
+            match = re.search(rf"{label}\s*:?\s*\$\s*([\d,]+(?:\.\d+)?)", value, re.I)
+            if match:
+                return float(match.group(1).replace(",", ""))
+    return None
 
 
 def to_sale(record, state):
     fields = record["fields"]
     history = record["status_history"]
-    sheriff_number = first(fields, "Sheriff #") or record["detail_url"].rsplit("=", 1)[-1]
+    sheriff_number = first(fields, "Sheriff #", "Case #") or record["detail_url"].rsplit("=", 1)[-1]
     # Texas counties combine several precincts whose numbers can collide.
     case = f"{record['county_id']}:{sheriff_number}" if state == "TX" else sheriff_number
     street, city, zip_code = address(fields, state)
     raw_status = history[0]["status"] if history else None
     return Sale(
         case=case, street=street, city=city, zip_code=zip_code,
-        sale_date=parse_date(first(fields, "Sales Date")), status=normalize_status(raw_status) if raw_status else "scheduled",
+        # Louisiana parishes have no "Sales Date"; the newest status carries the date.
+        sale_date=parse_date(first(fields, "Sales Date") or (history[0]["date"] if history else None)), status=normalize_status(raw_status) if raw_status else "scheduled",
         raw=record, raw_status=raw_status, parcel=first(fields, "Parcel #", "OPA #", "Parcel"),
         # "$0.00" is the portal's placeholder for an amount not yet posted.
-        upset=money(first(fields, "Minimum Bid", "Approx. Upset", "Upset")) or None,
-        judgment=money(first(fields, "Approx. Judgment", "Debt Amount", "Judgment")) or None,
+        upset=money(first(fields, "Minimum Bid", "Approx. Upset", "Upset", "Opening Credit Bid")) or None,
+        judgment=money(first(fields, "Approx. Judgment", "Approx. Judgment*", "Debt Amount", "Judgment"))
+        or amount_after(fields, "Writ Amount") or None,
         plaintiff=first(fields, "Plaintiff"), defendant=first(fields, "Defendant"),
         attorney=first(fields, "Attorney"), result=first(fields, "Sale Type"),
         property_number=first(fields, "Court Case #"))

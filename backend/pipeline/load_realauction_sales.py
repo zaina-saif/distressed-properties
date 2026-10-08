@@ -10,7 +10,8 @@ from datetime import date
 from pipeline.sale_listing_loader import Sale, load_sales, money
 from pipeline.scrape_realauction import SOURCES, snapshot_path
 
-SOURCE_SYSTEM = {"OH": "oh_realauction_sheriff_sale", "FL": "fl_realforeclose_clerk_sale"}
+SOURCE_SYSTEM = {"OH": "oh_realauction_sheriff_sale", "FL": "fl_realforeclose_clerk_sale",
+                 "CO": "co_realforeclose_public_trustee_sale"}
 
 
 def address(fields, state):
@@ -67,7 +68,10 @@ def load(state, county):
             parcel=(fields.get("Parcel ID") or "").strip() or None,
             # Ohio's opening bid is the minimum bid (two-thirds of the appraisal);
             # Florida lists the final judgment and no opening bid.
-            upset=money(fields.get("Opening Bid")), judgment=money(fields.get("Final Judgment Amount")),
+            # Colorado sites show a placeholder "Final Judgment Amount" ($300.00 on every
+            # El Paso sale) and hide the lender's bid, so no amount is taken there.
+            upset=money(fields.get("Opening Bid")),
+            judgment=None if state == "CO" else money(fields.get("Final Judgment Amount")),
             result=fields.get("Case Status") or fields.get("Auction Type"), property_number=sheriff_number))
     return load_sales(state, county, SOURCE_SYSTEM[state], snapshot["source_url"], sales,
                       job=f"{state.lower()}_realauction_{county.lower()}")

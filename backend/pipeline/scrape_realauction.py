@@ -2,6 +2,7 @@
 
 Ohio: county sheriff sales on *.sheriffsaleauction.ohio.gov.
 Florida: clerk foreclosure sales on www.*.realforeclose.com.
+Colorado: Public Trustee foreclosure sales on *.realforeclose.com.
 
     python -m pipeline.scrape_realauction --state OH --all
     python -m pipeline.scrape_realauction --state FL --counties "Miami-Dade" Broward
@@ -38,9 +39,19 @@ FL_SITES = {
     "Putnam": "putnam", "Santa Rosa": "santarosa", "Sarasota": "sarasota", "St. Lucie": "stlucie",
     "Volusia": "volusia", "Walton": "walton"}
 
+# Colorado Public Trustees on RealForeclose. Hosts differ: Denver uses "www.", the
+# others do not. Larimer is collected from CivilView instead; Arapahoe, Jefferson,
+# Douglas, Boulder and Pueblo are not on RealAuction.
+CO_SITES = {
+    "Adams": "https://adams.realforeclose.com", "Denver": "https://www.denver.realforeclose.com",
+    "Eagle": "https://eagle.realforeclose.com", "El Paso": "https://elpasoco.realforeclose.com",
+    "Mesa": "https://mesa.realforeclose.com", "Summit": "https://summit.realforeclose.com",
+    "Weld": "https://weld.realforeclose.com"}
+
 SOURCES = {
     "OH": {county: f"https://{county.lower().replace(' ', '')}.sheriffsaleauction.ohio.gov" for county in OH_COUNTIES},
     "FL": {county: f"https://www.{site}.realforeclose.com" for county, site in FL_SITES.items()},
+    "CO": CO_SITES,
 }
 
 

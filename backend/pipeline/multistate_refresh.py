@@ -34,7 +34,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-STATES = ("OH", "FL", "PA", "IL", "SC", "DE")
+STATES = ("OH", "FL", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR")
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -43,7 +43,9 @@ SOURCES = [
      ["pipeline.load_realauction_sales", "--state", "OH", "--all"]),
     ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--all"],
      ["pipeline.load_realauction_sales", "--state", "FL", "--all"]),
-    ("CivilView (DE, PA, IL, TX, GA)", ["pipeline.scrape_civilview_states", "--all"],
+    ("Colorado RealAuction", ["pipeline.scrape_realauction", "--state", "CO", "--all"],
+     ["pipeline.load_realauction_sales", "--state", "CO", "--all"]),
+    ("CivilView (DE, PA, IL, CO, MN, LA, IA, WA, KS, ID, OR, AZ, AR, TX, GA)", ["pipeline.scrape_civilview_states", "--all"],
      ["pipeline.load_civilview_states", "--all"]),
     # Monroe's Bid4Assets page answers Access Denied, so it is left out.
     ("PA county portals", ["pipeline.scrape_pa_sale_listing", "--counties", *PA_PORTAL_COUNTIES],

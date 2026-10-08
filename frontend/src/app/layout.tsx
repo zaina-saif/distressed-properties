@@ -6,7 +6,7 @@ import { AccountProvider } from "@/components/account-provider";
 
 export const metadata: Metadata = {
   title: "Distressed Properties Pro",
-  description: "Sheriff and foreclosure sale intelligence for investors across seven states.",
+  description: "Sheriff and foreclosure sale intelligence for investors across multiple states.",
 };
 
 export default function RootLayout({

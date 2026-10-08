@@ -350,6 +350,8 @@ def list_properties(
                 THEN 'Clerk foreclosure auction'
                 WHEN ss.source_system='sc_master_in_equity_sale'
                 THEN 'Master-in-Equity foreclosure sale'
+                WHEN ss.source_system='co_realforeclose_public_trustee_sale'
+                THEN 'Public Trustee foreclosure sale'
                 WHEN ss.source_system='civilview_sheriff_sale' AND ss.state='TX'
                 THEN 'Sheriff or constable sale'
                 ELSE 'Sheriff sale' END AS sale_type,

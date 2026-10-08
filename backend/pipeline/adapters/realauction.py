@@ -1,5 +1,5 @@
-"""RealAuction county auction sites: Ohio sheriff sales (*.sheriffsaleauction.ohio.gov)
-and Florida clerk foreclosure sales (www.*.realforeclose.com).
+"""RealAuction county auction sites: Ohio sheriff sales (*.sheriffsaleauction.ohio.gov),
+Florida clerk foreclosure sales and Colorado Public Trustee sales (*.realforeclose.com).
 
 Public pages only: the calendar lists sale days, and each day's auctions load
 ten at a time from the site's own AJAX endpoint. Tax-deed days are skipped."""
@@ -95,7 +95,8 @@ class RealAuctionAdapter:
                 if "CALBOX" not in page.text:
                     raise RuntimeError("RealAuction calendar not found")
                 for day, kind, count in calendar_days(page.text):
-                    if day >= today and count and "foreclos" in kind.lower():
+                    # Most sites label sale days "Foreclosure"; some (Mesa, CO) use "FC".
+                    if day >= today and count and ("foreclos" in kind.lower() or kind.strip().upper() == "FC"):
                         days[day] = kind
             for day in sorted(days):
                 client.get(self.base_url, params={"zaction": "AUCTION", "Zmethod": "PREVIEW",
