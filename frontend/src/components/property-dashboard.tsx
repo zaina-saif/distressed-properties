@@ -18,7 +18,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
-import { DistressedPropertiesBrand } from "@/components/brand-logo";
+import { SheriffSaleHunterBrand } from "@/components/brand-logo";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
 import { PropertyFocusPanel } from "@/components/property-focus-panel";
@@ -223,8 +223,8 @@ export default function PropertyDashboard({
     <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
       <header className="z-30 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
         <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-3" aria-label="Distressed Properties Pro home">
-            <DistressedPropertiesBrand />
+          <Link href="/" className="flex items-center gap-3" aria-label="Sheriff Sale Hunter home">
+            <SheriffSaleHunterBrand />
           </Link>
         </div>
 

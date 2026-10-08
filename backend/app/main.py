@@ -14,7 +14,7 @@ from app.auth import require_developer, require_property_access
 
 
 app = FastAPI(
-    title="NJ Sheriff Sale API",
+    title="Sheriff Sale Hunter API",
     version="1.0.0",
 )
 
@@ -59,5 +59,5 @@ def health_check():
 @app.get("/")
 async def root():
     return {
-        "message": "NJ Sheriff Sale API is running"
+        "message": "Sheriff Sale Hunter API is running"
     }

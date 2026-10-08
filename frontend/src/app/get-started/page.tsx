@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { AuthGate } from "@/components/auth-gate";
 
 export const metadata: Metadata = {
-  title: "Get started · Distressed Properties Pro",
-  description: "Create an account or sign in to continue to Distressed Properties Pro.",
+  title: "Get started · Sheriff Sale Hunter",
+  description: "Create an account or sign in to continue to Sheriff Sale Hunter.",
 };
 
 function first(value: string | string[] | undefined): string | undefined {

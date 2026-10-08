@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { ChoosePlan } from "@/components/choose-plan";
 
-export const metadata: Metadata = { title: "Choose a plan · Distressed Properties Pro" };
+export const metadata: Metadata = { title: "Choose a plan · Sheriff Sale Hunter" };
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;

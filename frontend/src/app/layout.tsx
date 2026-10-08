@@ -5,7 +5,7 @@ import "./globals.css";
 import { AccountProvider } from "@/components/account-provider";
 
 export const metadata: Metadata = {
-  title: "Distressed Properties Pro",
+  title: "Sheriff Sale Hunter",
   description: "Sheriff and foreclosure sale intelligence for investors across multiple states.",
 };
 

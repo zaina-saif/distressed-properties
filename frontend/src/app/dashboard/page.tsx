@@ -4,7 +4,7 @@ import { RequireAccess } from "@/components/account-provider";
 import PropertyDashboard from "@/components/property-dashboard";
 
 export const metadata: Metadata = {
-  title: "Live map · Distressed Properties Pro",
+  title: "Live map · Sheriff Sale Hunter",
 };
 
 function first(value: string | string[] | undefined): string {

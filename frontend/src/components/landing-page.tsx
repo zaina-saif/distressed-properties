@@ -4,7 +4,7 @@ import { ArrowRight, CalendarDays, Clock, Landmark, MapPin, Sparkles, TrendingUp
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { DistressedPropertiesBrand } from "@/components/brand-logo";
+import { SheriffSaleHunterBrand } from "@/components/brand-logo";
 import { PropertyPhoto } from "@/components/property-photo";
 import { getLandingSummary, getProperties, type LandingSummary } from "@/services/properties";
 import type { Property } from "@/types/property";
@@ -98,7 +98,7 @@ export function LandingPage() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-3">
-            <DistressedPropertiesBrand />
+            <SheriffSaleHunterBrand />
           </Link>
           <nav className="flex items-center gap-1 text-sm font-medium text-slate-600">
             <a href="#counties" className="hidden rounded-lg px-3 py-2 hover:bg-slate-100 sm:block">Counties</a>
@@ -206,7 +206,7 @@ export function LandingPage() {
 
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl space-y-2 px-4 py-8 text-xs leading-5 text-slate-500 sm:px-6">
-          <p className="font-semibold text-slate-700">Distressed Properties Pro</p>
+          <p className="font-semibold text-slate-700">Sheriff Sale Hunter</p>
           <p>Sale listings come from county sheriff portals (CivilView SalesWeb and the Ocean County sheriff). Market values come from Zillow and can be wrong. Sales are frequently postponed or cancelled; confirm every detail with the county sheriff&apos;s office.</p>
           <p>This is research information, not legal advice or a title search. Get a professional title search before bidding.</p>
         </div>

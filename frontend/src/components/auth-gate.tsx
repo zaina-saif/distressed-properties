@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
-import { DistressedPropertiesBrand } from "@/components/brand-logo";
+import { SheriffSaleHunterBrand } from "@/components/brand-logo";
 import { supabase } from "@/lib/supabase";
 
 import styles from "./auth-gate.module.css";
@@ -79,7 +79,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}><DistressedPropertiesBrand /></Link>
+        <Link href="/" className={styles.brand}><SheriffSaleHunterBrand /></Link>
         <Link href="/" className={styles.backLink}><ArrowLeft aria-hidden="true" />Back to home</Link>
       </header>
       <section className={styles.authLayout}>
@@ -87,7 +87,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
           <Image className={styles.storyImage} src="/marketing/nj-neighborhood.jpg" alt="Residential neighborhood" fill sizes="(max-width: 800px) 100vw, 45vw" />
           <div className={styles.storyWash} />
           <div className={styles.storyContent}>
-            <span className={styles.eyebrow}><i />YOUR DISTRESSED PROPERTY EXPERT</span>
+            <span className={styles.eyebrow}><i />YOUR SHERIFF SALE EXPERT</span>
             <h1>Find the opportunity<br /><em>before everyone</em><br />else does.</h1>
             <p>See the minimum bid, estimated value, sale history, and research signals in one place.</p>
             <div className={styles.storyNote}><span><LockKeyhole aria-hidden="true" /></span><div><b>Your research workspace</b><small>Less guesswork. More intelligence. Better opportunities.</small></div></div>
@@ -96,7 +96,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
 
         <section className={styles.formPanel} aria-labelledby="auth-title">
           <div className={styles.formIntro}>
-            <span className={styles.formEyebrow}>WELCOME TO DISTRESSED PROPERTIES PRO</span>
+            <span className={styles.formEyebrow}>WELCOME TO SHERIFF SALE HUNTER</span>
             <h2 id="auth-title">{mode === "create" ? "Create your account" : mode === "login" ? "Welcome back" : "Reset your password"}</h2>
             <p>{mode === "create" ? "Create an account, then choose a plan to open the dashboard." : mode === "login" ? "Log in to continue to your research workspace." : "Enter your email and we will send you a link to set a new password."}</p>
           </div>
