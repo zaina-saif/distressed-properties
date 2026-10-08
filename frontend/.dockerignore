@@ -1,0 +1,8 @@
+# Keep the build context small and secrets out of the image.
+node_modules
+.next
+.env*
+!.env.local.example
+tsconfig.tsbuildinfo
+.pytest_cache
+npm-debug.log*

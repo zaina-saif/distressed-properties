@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 
 import type { Property } from "@/types/property";
 
-const titleSearchProviderUrl = process.env.NEXT_PUBLIC_TITLE_SEARCH_PROVIDER_URL ?? "https://www.protitleusa.com/";
+// "||" so an empty value from a Docker build falls back to the default.
+const titleSearchProviderUrl = process.env.NEXT_PUBLIC_TITLE_SEARCH_PROVIDER_URL || "https://www.protitleusa.com/";
 
 function currency(value: number | null | undefined): string {
   if (value == null) return "";

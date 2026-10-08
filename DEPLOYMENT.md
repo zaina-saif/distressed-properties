@@ -2,7 +2,7 @@
 
 | Part | Host | Source |
 |---|---|---|
-| Frontend (Next.js) | Vercel | `frontend/` |
+| Frontend (Next.js) | Railway (or Vercel Pro) | `frontend/Dockerfile` |
 | API (FastAPI) | Railway (any Docker host works) | `backend/Dockerfile` |
 | Database and sign-in | Supabase (already running) | `DATABASE_URL`, Supabase Auth |
 | Payments | Stripe | Checkout, customer portal, webhook |
@@ -66,19 +66,22 @@ Use test mode first; switch the keys and price IDs to live mode at launch.
    Do **not** add `SUPABASE_SERVICE_ROLE_KEY` or `APIFY_API_TOKEN`; the API does not use them.
 3. Settings → Networking: add `api.<your-domain>`. Check `https://api.<your-domain>/health`.
 
-## 5. Frontend on Vercel
+## 5. Frontend on Railway (recommended) or Vercel
 
-1. Add New → Project → this repository. **Root Directory** `frontend`.
-2. Environment variables (Production and Preview):
+Vercel's free Hobby plan is for non-commercial sites, so the frontend also runs on Railway from `frontend/Dockerfile` (Next.js standalone output).
 
-   | Name | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_URL` | `https://api.<your-domain>` |
-   | `NEXT_PUBLIC_SUPABASE_URL` | `https://<project>.supabase.co` |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The publishable (anon) key |
-   | `NEXT_PUBLIC_GEOAPIFY_API_KEY` | Optional, restricted to your domains |
+**Railway:** in the same project, **+ Create → GitHub Repo → this repository** to add a second service. In its **Settings**: Root Directory `/frontend`, Railway Config File `/frontend/railway.json`, region US East. **Variables** (they are compiled into the site at build time, so redeploy after changing them):
 
-   Builds fail on purpose if the first three are missing. `NEXT_PUBLIC_` values are baked in at build time, so redeploy after changing them. Commercial use needs Vercel Pro.
+| Name | Value |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | The API's public URL, e.g. `https://api.<your-domain>` |
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://<project>.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | The publishable key |
+| `NEXT_PUBLIC_GEOAPIFY_API_KEY` | Optional, restricted to your domains |
+
+The build stops on purpose if the first three are missing. Then **Settings → Networking**: add `www.<your-domain>` (and the apex domain) as custom domains, or **Generate Domain** to test first.
+
+**Vercel (alternative):** Add New → Project, Root Directory `frontend`, the same variables. Commercial use needs Vercel Pro.
 
 ## 6. Domain
 
