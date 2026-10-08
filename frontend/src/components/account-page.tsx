@@ -94,6 +94,10 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
           {account.has_access && account.plan === "free" && <Link href="/choose-plan?plan=starter" className="site-button button-outline">Upgrade</Link>}
           <button type="button" className="site-button button-ghost" onClick={async () => { await signOut(); router.push("/"); }}><LogOut/>Sign out</button>
         </div>
+        <section className="profile-card">
+          <div><h2>Investor profile</h2><p>Tell us your budget, markets and strategy so we can send you investment opportunities that fit. Optional.</p></div>
+          <Link href="/profile" className="site-button button-outline">Edit profile<ArrowRight/></Link>
+        </section>
         {account.has_access && ["free", "starter"].includes(account.plan) && !account.is_developer && <section className="coverage-change">
           <h2>Change your coverage</h2>
           {canChange ? <div className="coverage-pickers">

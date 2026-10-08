@@ -29,6 +29,7 @@ import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason
 import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
+import { getProfile } from "@/lib/profile";
 import { STATES } from "@/lib/states";
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
@@ -71,6 +72,20 @@ export default function PropertyDashboard({
   const [selectedComplaintsProperty, setSelectedComplaintsProperty] = useState<Property | null>(null);
   const [selectedProbabilityReasonProperty, setSelectedProbabilityReasonProperty] = useState<Property | null>(null);
   const { account, signOut } = useAccount();
+  // Optional profile prompt: shown until a profile exists or the user dismisses it.
+  const [profilePrompt, setProfilePrompt] = useState(false);
+  useEffect(() => {
+    let dismissed = false;
+    try { dismissed = window.localStorage.getItem("profile-prompt-dismissed") === "1"; } catch { /* storage unavailable */ }
+    if (dismissed) return;
+    let active = true;
+    getProfile().then((profile) => { if (active) setProfilePrompt(!profile.exists); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+  const dismissProfilePrompt = () => {
+    setProfilePrompt(false);
+    try { window.localStorage.setItem("profile-prompt-dismissed", "1"); } catch { /* storage unavailable */ }
+  };
   // Free covers one county and Starter one state; the API enforces the same limits.
   const allowedStates = useMemo(
     () => account && !account.is_developer && account.plan !== "pro" && account.coverage_state
@@ -296,6 +311,14 @@ export default function PropertyDashboard({
       </header>
 
       <section className="z-20 shrink-0 space-y-2 border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
+        {profilePrompt && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs text-teal-900">
+            <UserRound className="h-3.5 w-3.5" aria-hidden="true" />
+            <span><span className="font-semibold">Get opportunities that fit you.</span> Add your budget, states and strategy so we can send targeted investment opportunities. Optional, about a minute.</span>
+            <Link href="/profile" className="font-semibold underline">Set up my profile</Link>
+            <button type="button" onClick={dismissProfilePrompt} className="ml-auto rounded p-0.5 text-teal-700 hover:bg-teal-100" aria-label="Dismiss"><X className="h-3.5 w-3.5" /></button>
+          </div>
+        )}
         {spotlight && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-900">
             <Sparkles className="h-3.5 w-3.5" />
