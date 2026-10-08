@@ -19,11 +19,11 @@ const NAV = [
   { href: "/#company", label: "Company", page: "company" },
   { href: "/pricing", label: "Pricing", page: "pricing" },
   { href: "/#news", label: "News", page: "news" },
-  { href: "/#contact", label: "Contact", page: "contact" },
+  { href: "/contact", label: "Contact", page: "contact" },
 ];
 
 /** Header shared by the marketing pages; `active` marks the current page in the nav. */
-export function SiteHeader({ active }: { active: "home" | "pricing" }) {
+export function SiteHeader({ active }: { active: "home" | "pricing" | "contact" }) {
   const [mobile, setMobile] = useState(false);
   const { session, account } = useAccount();
   const cta = !session ? { href: "/get-started", label: "Get Started" }
@@ -32,5 +32,5 @@ export function SiteHeader({ active }: { active: "home" | "pricing" }) {
 }
 
 export function SiteFooter() {
-  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#company">Company</Link><Link href="/pricing">Pricing</Link><Link href="/#news">News</Link><Link href="/#contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved.</span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
+  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#company">Company</Link><Link href="/pricing">Pricing</Link><Link href="/#news">News</Link><Link href="/contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved.</span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
 }

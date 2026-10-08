@@ -160,3 +160,17 @@
 .root :global(.profile-card p) { font-size: 13px; color: var(--muted-foreground); margin-top: 4px; max-width: 520px; }
 .root :global(.profile-card .site-button) { height: 42px; padding: 0 16px; }
 @media(max-width:600px) { .root :global(.profile-page h1) { font-size: 32px; } }
+.root :global(.contact-page) { padding-top: 64px; padding-bottom: 88px; max-width: 760px; }
+.root :global(.contact-page h1) { font-size: 42px; }
+.root :global(.contact-form) { display: flex; flex-direction: column; gap: 16px; }
+.root :global(.contact-row) { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.root :global(.contact-form label) { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+.root :global(.contact-form input), .root :global(.contact-form select), .root :global(.contact-form textarea) { padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); font: inherit; font-size: 14px; font-weight: 400; }
+.root :global(.contact-form textarea) { resize: vertical; }
+.root :global(.contact-form input:focus), .root :global(.contact-form select:focus), .root :global(.contact-form textarea:focus) { outline: 2px solid var(--soft-equity); border-color: var(--equity); }
+.root :global(.contact-form .site-button) { height: 46px; padding: 0 20px; }
+.root :global(.contact-trap) { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+.root :global(.contact-sent) { font-size: 15px; padding: 16px; }
+.root :global(.contact-direct) { display: flex; align-items: center; gap: 8px; margin-top: 28px; font-size: 13px; color: var(--muted-foreground); }
+.root :global(.contact-direct a) { color: var(--equity); font-weight: 600; text-decoration: underline; }
+@media(max-width:600px) { .root :global(.contact-row) { grid-template-columns: 1fr; } .root :global(.contact-page h1) { font-size: 32px; } }

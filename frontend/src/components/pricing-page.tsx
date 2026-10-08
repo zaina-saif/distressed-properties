@@ -95,7 +95,7 @@ export function PricingPage() {
       <section className="enterprise container">
         <div className="enterprise-icon"><Database size={22}/></div>
         <div><span className="eyebrow">ENTERPRISE</span><h2>The whole feed, as data.</h2><p>For lenders, funds and brokerages that want every listing, status change and valuation delivered to their own systems. Priced per engagement.</p></div>
-        <Link href="/#contact" className="site-button lime-button">Talk to us<ArrowUpRight/></Link>
+        <Link href="/contact?topic=enterprise" className="site-button lime-button">Talk to us<ArrowUpRight/></Link>
       </section>
 
       <section className="pricing-faq container" aria-labelledby="faq-title">
