@@ -18,6 +18,8 @@ OUTPUT = Path(os.environ.get("APIFY_OUTPUT_DIR", ROOT / ".local/apify-zillow-sch
 ACTOR = "maxcopell~zillow-detail-scraper"
 API = "https://api.apify.com/v2"
 TARGET_STATE = os.environ.get("APIFY_STATE")
+# Sales whose status contains this text; "sold_or_cancelled" covers a recently held sale.
+TARGET_STATUS = os.environ.get("APIFY_STATUS", "scheduled")
 EXPECTED_COUNT = os.environ.get("APIFY_EXPECTED_COUNT")
 
 load_dotenv(ROOT / "backend/.env")
@@ -85,7 +87,7 @@ def prepare(only_missing=False, retry_unmatched=False):
                     'fl_hillsborough_published_foreclosure_notice')
                     AND ss.current_sale_date<CURRENT_DATE
                     AND ss.current_status='scheduled_unverified'
-                THEN 'date_passed_unverified' ELSE ss.current_status END), 'scheduled') > 0
+                THEN 'date_passed_unverified' ELSE ss.current_status END), :status) > 0
               AND (NOT :only_missing OR NOT EXISTS (
                 SELECT 1 FROM apify_zillow_results z
                 WHERE z.property_id=p.id AND z.is_current
@@ -95,7 +97,7 @@ def prepare(only_missing=False, retry_unmatched=False):
                 WHERE z.property_id=p.id AND z.is_current AND z.match_status='matched'
                   AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'))
             ORDER BY p.normalized_address, ss.id
-        """), {"state": TARGET_STATE, "only_missing": only_missing,
+        """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
                 "retry_unmatched": retry_unmatched}).mappings().all()
     manifest = [dict(row) for row in rows]
     for row in manifest:

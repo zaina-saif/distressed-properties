@@ -3,6 +3,7 @@
 import {
   ChevronLeft,
   ChevronRight,
+  Info,
   ListFilter,
   LogOut,
   Map as MapIcon,
@@ -40,6 +41,21 @@ const SCHEDULED = "scheduled";
 
 type SortDirection = "asc" | "desc";
 
+// Texas sale lists go up a few weeks before each first-Tuesday sale. Until the
+// next list is posted, Texas shows its most recent sale, labelled as already held.
+const RECENT_SALE = "sold_or_cancelled";
+
+function nextFirstTuesday(from: Date): Date {
+  for (let offset = 0; offset < 3; offset += 1) {
+    const first = new Date(from.getFullYear(), from.getMonth() + offset, 1);
+    const tuesday = new Date(first.getFullYear(), first.getMonth(), 1 + ((9 - first.getDay()) % 7));
+    if (tuesday >= new Date(from.getFullYear(), from.getMonth(), from.getDate())) return tuesday;
+  }
+  return from;
+}
+
+const longDate = (value: Date) => value.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
 function wholeDollars(value: number | null | undefined): string {
   return value == null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
 }
@@ -57,6 +73,8 @@ export default function PropertyDashboard({
 }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
+  const [coverageLoaded, setCoverageLoaded] = useState(false);
+  const [recentCoverage, setRecentCoverage] = useState<PropertyCoverageItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -109,8 +127,14 @@ export default function PropertyDashboard({
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    getPropertyCoverage(SCHEDULED).then(setCoverage).catch(() => setCoverage([]));
+    getPropertyCoverage(SCHEDULED).then(setCoverage).catch(() => setCoverage([])).finally(() => setCoverageLoaded(true));
   }, [refreshKey]);
+  const showRecentSale = selectedState === "TX" && coverageLoaded
+    && !coverage.some((item) => item.state === "TX" && item.property_count > 0);
+  const statusFilter = showRecentSale ? RECENT_SALE : SCHEDULED;
+  useEffect(() => {
+    if (showRecentSale) getPropertyCoverage(RECENT_SALE).then(setRecentCoverage).catch(() => setRecentCoverage([]));
+  }, [refreshKey, showRecentSale]);
 
   // Always-visible spotlight totals: one small request, independent of the list view.
   useEffect(() => {
@@ -130,12 +154,14 @@ export default function PropertyDashboard({
   }, [refreshKey, selectedCounty, selectedState]);
 
   useEffect(() => {
+    // Wait for coverage so Texas does not flash "no properties" before its fallback.
+    if (selectedState === "TX" && !coverageLoaded) return;
     let active = true;
     getProperties({
       states: [selectedState],
       counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
-      statusContains: SCHEDULED,
+      statusContains: statusFilter,
       investorSpotlight: spotlight || undefined,
       sort: spotlight ? "investor-spotlight" : sort,
       sortDirection: spotlight ? "desc" : sortDirection,
@@ -155,13 +181,13 @@ export default function PropertyDashboard({
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight]);
+  }, [coverageLoaded, desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, statusFilter]);
 
   const counties = useMemo(
-    () => coverage
+    () => (showRecentSale ? recentCoverage : coverage)
       .filter((item) => item.state === selectedState && (!lockedCounty || item.county === lockedCounty))
       .sort((left, right) => left.county.localeCompare(right.county)),
-    [coverage, lockedCounty, selectedState],
+    [coverage, lockedCounty, recentCoverage, selectedState, showRecentSale],
   );
 
   const sortedProperties = properties;
@@ -176,6 +202,10 @@ export default function PropertyDashboard({
   const averageEquity = useMemo(() => {
     const values = properties.map((property) => property.gross_equity).filter((value): value is number => value != null);
     return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }, [properties]);
+  const recentSaleDate = useMemo(() => {
+    const dates = properties.map((property) => property.current_sale_date).filter((value): value is string => Boolean(value)).sort();
+    return dates.length ? new Date(dates[dates.length - 1]) : null;
   }, [properties]);
   const mappedCount = properties.filter((property) => property.latitude != null && property.longitude != null).length;
 
@@ -218,7 +248,7 @@ export default function PropertyDashboard({
         states: [selectedState],
         counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
-        statusContains: SCHEDULED,
+        statusContains: statusFilter,
         investorSpotlight: spotlight || undefined,
         sort: spotlight ? "investor-spotlight" : sort,
         sortDirection: spotlight ? "desc" : sortDirection,
@@ -340,6 +370,15 @@ export default function PropertyDashboard({
             )}
             <span className="hidden text-amber-800 sm:inline">Upcoming scheduled sales ranked by expected equity: gross equity (Zestimate minus minimum bid) × probability to auction at the next sale date.</span>
             <button type="button" onClick={() => setSpotlight(false)} className="ml-auto font-semibold underline">Exit spotlight</button>
+          </div>
+        )}
+        {showRecentSale && (
+          <div className="flex items-start gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-5 text-sky-950" role="status">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>
+              <span className="font-semibold">Texas counties have not posted their {longDate(nextFirstTuesday(new Date()))} sale lists yet.</span>{" "}
+              Showing the most recent Texas sale{recentSaleDate ? ` (${recentSaleDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })})` : ""} for reference. These properties have already been offered at auction<span className="hidden sm:inline"> and the county sites do not say which sold; unsold ones can be offered again later. New listings appear here automatically once they are posted</span>.
+            </span>
           </div>
         )}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
