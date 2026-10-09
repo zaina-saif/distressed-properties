@@ -196,6 +196,7 @@
 .root :global(.founder-photo) { margin: 4px 0 22px; } .root :global(.founder-photo img) { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); } .root :global(.founder-photo figcaption) { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--equity); }
 .root :global(.hero-why-link) { margin-left: 4px; font-weight: 650; color: var(--equity); text-decoration: underline; text-underline-offset: 3px; } .root :global(#why) { scroll-margin-top: 20px; }
 .root :global(.hero-copy>p.hero-kicker) { max-width: 660px; margin-top: 0; margin-bottom: 18px; font-family: var(--font-display); font-size: 30px; font-weight: 750; line-height: 1.2; color: var(--foreground); }
+.root :global(.hero-copy>p.hero-lead) { max-width: 660px; margin-top: 0; margin-bottom: 12px; font-size: 18px; font-weight: 650; line-height: 1.35; color: var(--equity); }
 @media(max-width: 600px) { .root :global(.hero-copy>p.hero-kicker) { font-size: 22px; margin-bottom: 14px; } }
 .root :global(.founder-heading) { margin-bottom: 14px; font-size: 38px; font-weight: 700; line-height: 1.1; color: var(--foreground); }
 @media(max-width: 600px) { .root :global(.founder-heading) { font-size: 30px; } }

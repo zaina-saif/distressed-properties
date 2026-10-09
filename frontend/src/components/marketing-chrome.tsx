@@ -16,7 +16,7 @@ export function Button({ children, className = "", variant = "default", size = "
 
 const NAV = [
   { href: "/#home", label: "Home", page: "home" },
-  { href: "/#company", label: "Company", page: "company" },
+  { href: "/#story", label: "Our Story", page: "story" },
   { href: "/why", label: "Why us", page: "why" },
   { href: "/pricing", label: "Pricing", page: "pricing" },
   { href: "/#news", label: "News", page: "news" },
@@ -33,5 +33,5 @@ export function SiteHeader({ active }: { active: "home" | "why" | "pricing" | "c
 }
 
 export function SiteFooter() {
-  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#company">Company</Link><Link href="/why">Why us</Link><Link href="/pricing">Pricing</Link><Link href="/#news">News</Link><Link href="/contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved. <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
+  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#story">Our Story</Link><Link href="/why">Why us</Link><Link href="/pricing">Pricing</Link><Link href="/#news">News</Link><Link href="/contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved. <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
 }
