@@ -102,8 +102,8 @@ export function WhyPage() {
 export function Advantages({ link = false }: { link?: boolean }) {
   return <section id="why" className="why-advantages">
     <div className="container">
-      <span className="eyebrow">WHY INVESTORS USE SHERIFF SALE HUNTER</span>
-      <h2>Three answers every investor needs.</h2>
+      <span className="eyebrow">WHY SHERIFF SALE HUNTER</span>
+      <h2>Three reasons every investor should use Sheriff Sale Hunter.</h2>
       <div className="why-advantage-list">{ADVANTAGES.map((item, index) => <article key={item.title} className="why-advantage">
         <span className="why-number">0{index + 1}</span>
         <div className="feature-icon"><item.icon size={21}/></div>

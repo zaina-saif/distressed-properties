@@ -88,7 +88,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
           <div className={styles.storyWash} />
           <div className={styles.storyContent}>
             <span className={styles.eyebrow}><i />YOUR SHERIFF SALE EXPERT</span>
-            <h1>Find the opportunity<br /><em>before everyone</em><br />else does.</h1>
+            <h1>Real equity.<br /><em>Real auction odds.</em><br />Before you bid.</h1>
             <p>See the minimum bid, estimated value, sale history, and research signals in one place.</p>
             <div className={styles.storyNote}><span><LockKeyhole aria-hidden="true" /></span><div><b>Your research workspace</b><small>Less guesswork. More intelligence. Better opportunities.</small></div></div>
           </div>
