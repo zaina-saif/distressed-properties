@@ -117,6 +117,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
           {mode === "login" && <button type="button" className={styles.linkButton} onClick={() => switchMode("reset")}>Forgot your password?</button>}
           {mode === "reset" && <button type="button" className={styles.linkButton} onClick={() => switchMode("login")}>Back to log in</button>}
 
+          {mode === "create" && <p className={styles.terms}>By creating an account you agree to our <Link href="/terms">Terms of Service</Link> and <Link href="/privacy">Privacy Policy</Link>.</p>}
           <p className={styles.terms}>Listings, values, and sale dates should be verified with their original sources before bidding.</p>
         </section>
       </section>

@@ -174,3 +174,13 @@
 .root :global(.contact-direct) { display: flex; align-items: center; gap: 8px; margin-top: 28px; font-size: 13px; color: var(--muted-foreground); }
 .root :global(.contact-direct a) { color: var(--equity); font-weight: 600; text-decoration: underline; }
 @media(max-width:600px) { .root :global(.contact-row) { grid-template-columns: 1fr; } .root :global(.contact-page h1) { font-size: 32px; } }
+.root :global(.legal-page) { padding-top: 64px; padding-bottom: 88px; max-width: 800px; }
+.root :global(.legal-page h1) { font-size: 42px; }
+.root :global(.legal-updated) { font-size: 13px; color: var(--muted-foreground); margin: 8px 0 28px; }
+.root :global(.legal-page h2) { font-size: 19px; font-weight: 650; margin: 30px 0 10px; }
+.root :global(.legal-page p), .root :global(.legal-page li) { font-size: 14px; line-height: 1.75; color: #3b4652; }
+.root :global(.legal-page p) { margin: 0 0 12px; }
+.root :global(.legal-page ul) { margin: 0 0 12px; padding-left: 20px; list-style: disc; }
+.root :global(.legal-page li) { margin-bottom: 6px; }
+.root :global(.legal-page a) { color: var(--equity); text-decoration: underline; }
+@media(max-width:600px) { .root :global(.legal-page h1) { font-size: 32px; } }
