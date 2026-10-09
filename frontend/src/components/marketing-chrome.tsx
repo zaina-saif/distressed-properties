@@ -6,9 +6,8 @@ import { useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
 
-/** The wordmark; the header adds the tagline under it. */
-export function Brand({ tagline = false }: { tagline?: boolean }) {
-  return <span className="brand"><span className="brand-symbol"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 23V11L14 4l10 7v12h-7v-9h-6v9H4Z" stroke="currentColor" strokeWidth="2.1"/><path d="m18 5 6-3v7" stroke="currentColor" strokeWidth="2.1"/></svg></span><span>Sheriff Sale<span className="brand-second">Hunter</span>{tagline && <span className="brand-tagline">Stop searching sheriff websites.<br/>Start finding deals here.</span>}</span></span>;
+export function Brand() {
+  return <span className="brand"><span className="brand-symbol"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M4 23V11L14 4l10 7v12h-7v-9h-6v9H4Z" stroke="currentColor" strokeWidth="2.1"/><path d="m18 5 6-3v7" stroke="currentColor" strokeWidth="2.1"/></svg></span><span>Sheriff Sale<span className="brand-second">Hunter</span></span></span>;
 }
 
 export function Button({ children, className = "", variant = "default", size = "default", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "default" | "outline" | "ghost"; size?: "default" | "icon" }) {
@@ -30,7 +29,7 @@ export function SiteHeader({ active }: { active: "home" | "why" | "pricing" | "c
   const { session, account } = useAccount();
   const cta = !session ? { href: "/get-started", label: "Get Started" }
     : account?.has_access ? { href: "/dashboard", label: "Dashboard" } : { href: "/choose-plan", label: "Choose a plan" };
-  return <header className="site-header"><div className="nav-inner"><Link href="/" aria-label="Sheriff Sale Hunter home"><Brand tagline/></Link><nav aria-label="Main navigation" className={mobile ? "main-nav is-open" : "main-nav"}>{NAV.map((item) => <Link key={item.href} href={item.href} className={item.page === active ? "active" : undefined} aria-current={item.page === active ? "page" : undefined} onClick={() => setMobile(false)}>{item.label}</Link>)}</nav><div className="nav-actions">{session && <Link href="/account" className="site-button button-ghost nav-cta">Account</Link>}<Link href={cta.href} className="site-button nav-cta">{cta.label}<ArrowUpRight/></Link><Button variant="ghost" size="icon" className="mobile-menu" aria-label={mobile ? "Close menu" : "Open menu"} onClick={() => setMobile(!mobile)}>{mobile ? <X/> : <Menu/>}</Button></div></div></header>;
+  return <header className="site-header"><div className="nav-inner"><Link href="/" aria-label="Sheriff Sale Hunter home"><Brand/></Link><nav aria-label="Main navigation" className={mobile ? "main-nav is-open" : "main-nav"}>{NAV.map((item) => <Link key={item.href} href={item.href} className={item.page === active ? "active" : undefined} aria-current={item.page === active ? "page" : undefined} onClick={() => setMobile(false)}>{item.label}</Link>)}</nav><div className="nav-actions">{session && <Link href="/account" className="site-button button-ghost nav-cta">Account</Link>}<Link href={cta.href} className="site-button nav-cta">{cta.label}<ArrowUpRight/></Link><Button variant="ghost" size="icon" className="mobile-menu" aria-label={mobile ? "Close menu" : "Open menu"} onClick={() => setMobile(!mobile)}>{mobile ? <X/> : <Menu/>}</Button></div></div></header>;
 }
 
 export function SiteFooter() {
