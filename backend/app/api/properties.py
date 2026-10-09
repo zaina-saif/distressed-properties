@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from app.auth import Access, require_access, require_developer, require_property_access
+from app.rate_limit import per_user
 from app.database.session import engine
 
 
@@ -154,7 +155,7 @@ SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
 SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
 
 
-@router.get("")
+@router.get("", dependencies=[Depends(per_user("property_list", 600))])
 def list_properties(
     state: list[str] = Query(default=[]),
     county: list[str] = Query(default=[]),
@@ -771,7 +772,7 @@ def list_properties(
     return response
 
 
-@router.get("/export.xlsx")
+@router.get("/export.xlsx", dependencies=[Depends(per_user("export", 20))])
 def export_properties_xlsx(
     state: list[str] = Query(default=[]),
     county: list[str] = Query(default=[]),
@@ -986,7 +987,7 @@ NJ_ORTHO_EXPORT = (
 _aerial_cache: dict[str, bytes] = {}
 
 
-@router.get("/{property_id}/aerial", dependencies=[Depends(require_property_access)])
+@router.get("/{property_id}/aerial", dependencies=[Depends(require_property_access), Depends(per_user("photos", 1000))])
 def get_aerial_photo(property_id: str):
     """Aerial photo centred on the property, from the NJ Office of GIS 2020
     natural-color orthoimagery (public state service). Cached in memory."""
@@ -1033,7 +1034,7 @@ def get_aerial_photo(property_id: str):
 STREET_VIEW_API = "https://maps.googleapis.com/maps/api/streetview"
 
 
-@router.get("/{property_id}/street-view", dependencies=[Depends(require_property_access)])
+@router.get("/{property_id}/street-view", dependencies=[Depends(require_property_access), Depends(per_user("photos", 1000))])
 def get_street_view(property_id: str):
     """Street View photo for a property, fetched with our own Google key.
 
