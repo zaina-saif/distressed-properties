@@ -194,3 +194,4 @@
 .root :global(.why-hero .hero-buttons .site-button) { height: 48px; padding: 0 21px; font-size: 13px; }
 .root :global(.founder-property) { margin: 10px 0 14px; font-size: 13px !important; line-height: 1.6; } .root :global(.founder-property b) { color: var(--foreground); font-size: 15px; }
 .root :global(.founder-photos) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; } .root :global(.founder-photos img) { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.root :global(.hero-why-link) { margin-left: 4px; font-weight: 650; color: var(--equity); text-decoration: underline; text-underline-offset: 3px; } .root :global(#why) { scroll-margin-top: 20px; }

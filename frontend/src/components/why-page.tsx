@@ -69,18 +69,7 @@ export function WhyPage() {
         </div>
       </section>
 
-      <section className="why-advantages">
-        <div className="container">
-          <span className="eyebrow">WHAT YOU WON&apos;T GET ANYWHERE ELSE</span>
-          <h2>Three answers every investor needs.</h2>
-          <div className="why-advantage-list">{ADVANTAGES.map((item, index) => <article key={item.title} className="why-advantage">
-            <span className="why-number">0{index + 1}</span>
-            <div className="feature-icon"><item.icon size={21}/></div>
-            <div><h3>{item.title}</h3><p>{item.text}</p><div className="feature-tags">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
-          </article>)}</div>
-          <p className="data-disclaimer">Values, equity and probabilities are estimates. Lien results are a pre-screening aid, not a title search or legal advice; get a professional title search before you bid.</p>
-        </div>
-      </section>
+      <Advantages/>
 
       <FounderStory/>
 
@@ -107,6 +96,23 @@ export function WhyPage() {
     </main>
     <SiteFooter/>
   </div>;
+}
+
+/** The three core features; also shown on the home page right under the hero. */
+export function Advantages({ link = false }: { link?: boolean }) {
+  return <section id="why" className="why-advantages">
+    <div className="container">
+      <span className="eyebrow">WHY INVESTORS USE SHERIFF SALE HUNTER</span>
+      <h2>Three answers every investor needs.</h2>
+      <div className="why-advantage-list">{ADVANTAGES.map((item, index) => <article key={item.title} className="why-advantage">
+        <span className="why-number">0{index + 1}</span>
+        <div className="feature-icon"><item.icon size={21}/></div>
+        <div><h3>{item.title}</h3><p>{item.text}</p><div className="feature-tags">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
+      </article>)}</div>
+      {link && <Link href="/why" className="founder-link">Read the full story: why investors use Sheriff Sale Hunter<ArrowUpRight size={15}/></Link>}
+      <p className="data-disclaimer">Values, equity and probabilities are estimates. Lien results are a pre-screening aid, not a title search or legal advice; get a professional title search before you bid.</p>
+    </div>
+  </section>;
 }
 
 // Photos of the founder's sheriff-sale condo, served from public/marketing/founder/.
