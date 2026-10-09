@@ -18,3 +18,8 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "CT", name: "Connecticut", view: [41.6, -72.7, 8] },
   { code: "TX", name: "Texas", view: [31.0, -98.5, 6] },
 ];
+
+/** "Tue, Oct 13, 2026" for a YYYY-MM-DD sale date (dates are calendar days, not times). */
+export function formatSaleDate(value: string): string {
+  return new Date(`${value.slice(0, 10)}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}

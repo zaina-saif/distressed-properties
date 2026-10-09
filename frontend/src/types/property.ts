@@ -259,6 +259,8 @@ export interface PropertyResponse {
   page: number;
   page_size: number;
   total: number;
+  /** Earliest sale date from today on across every match (YYYY-MM-DD), or null. */
+  next_sale_date?: string | null;
   spotlight_summary?: SpotlightSummary;
 }
 

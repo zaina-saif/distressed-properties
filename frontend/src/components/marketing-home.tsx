@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Button, SiteFooter, SiteHeader } from "@/components/marketing-chrome";
 import { Advantages, FounderStory } from "@/components/why-page";
-import { STATES } from "@/lib/states";
+import { formatSaleDate, STATES } from "@/lib/states";
 import { getPropertyCoverage, getStateSummary, type StateSummary } from "@/services/properties";
 import type { PropertyCoverageItem } from "@/types/property";
 
@@ -31,7 +31,7 @@ function StateOpportunities({ summary, coverage }: { summary: StateSummary[] | n
     {summary === null ? <div className="state-grid" aria-busy="true">{STATES.map((s) => <div key={s.code} className="state-card is-loading"/>)}</div>
       : summary.length === 0 ? <p className="empty-state">State totals are unavailable right now.</p>
       : <div className="state-grid">{summary.map((s) => <Link key={s.state} href={`/dashboard?state=${s.state}`} className="state-card" aria-label={`Open ${stateName(s.state)} in the dashboard: ${s.scheduled_sales.toLocaleString("en-US")} scheduled sales`}>
-        <div className="state-card-head"><div><span className="state-code">{s.state}</span><h3>{stateName(s.state)}</h3></div><ArrowUpRight size={18}/></div>
+        <div className="state-card-head"><div><span className="state-code">{s.state}</span><h3>{stateName(s.state)}</h3>{s.next_sale_date && <p className="state-next-sale">Next sale <b>{formatSaleDate(s.next_sale_date)}</b></p>}</div><ArrowUpRight size={18}/></div>
         <div className="state-metric"><div className="state-metric-label"><span>Properties scheduled</span><strong>{s.scheduled_sales.toLocaleString("en-US")}</strong></div><div className="state-bar"><span style={{ width: `${(s.scheduled_sales / maxSales) * 100}%` }}/></div></div>
         <div className="state-metric"><div className="state-metric-label"><span>Gross equity</span>{s.sales_with_equity ? <strong className="text-equity">{compactMoney(s.gross_equity)}</strong> : <em className="state-pending">Not estimated yet</em>}</div><div className="state-bar state-bar-equity"><span style={{ width: `${(s.gross_equity / maxEquity) * 100}%` }}/></div></div>
         <p className="state-foot">{s.counties} {s.counties === 1 ? "county" : "counties"} · {s.sales_with_equity.toLocaleString("en-US")} with an equity estimate</p>

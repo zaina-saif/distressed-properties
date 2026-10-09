@@ -199,3 +199,4 @@
 @media(max-width: 600px) { .root :global(.hero-copy>p.hero-kicker) { font-size: 22px; margin-bottom: 14px; } }
 .root :global(.founder-heading) { margin-bottom: 14px; font-size: 38px; font-weight: 700; line-height: 1.1; color: var(--foreground); }
 @media(max-width: 600px) { .root :global(.founder-heading) { font-size: 30px; } }
+.root :global(.state-next-sale) { margin-top: 6px; font-size: 12px; color: var(--muted-foreground); } .root :global(.state-next-sale b) { color: var(--equity); font-weight: 650; }

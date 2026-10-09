@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   Info,
@@ -31,7 +32,7 @@ import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { getProfile } from "@/lib/profile";
-import { STATES } from "@/lib/states";
+import { formatSaleDate, STATES } from "@/lib/states";
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
@@ -76,6 +77,7 @@ export default function PropertyDashboard({
   const [coverageLoaded, setCoverageLoaded] = useState(false);
   const [recentCoverage, setRecentCoverage] = useState<PropertyCoverageItem[]>([]);
   const [total, setTotal] = useState(0);
+  const [nextSaleDate, setNextSaleDate] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,11 +174,13 @@ export default function PropertyDashboard({
         if (!active) return;
         setProperties(response.items);
         setTotal(response.total);
+        setNextSaleDate(response.next_sale_date ?? null);
       })
       .catch(() => {
         if (!active) return;
         setProperties([]);
         setTotal(0);
+        setNextSaleDate(null);
         setError("Unable to load sheriff-sale properties. Make sure the FastAPI backend and database are available.");
       })
       .finally(() => { if (active) setLoading(false); });
@@ -421,6 +425,12 @@ export default function PropertyDashboard({
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-2 sm:gap-3 sm:py-3">
             <div>
               <h2 className="font-bold text-slate-950">{loading ? "Loading properties…" : `${total.toLocaleString()} properties found`}</h2>
+              {!loading && nextSaleDate && (
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-slate-700">
+                  <CalendarDays className="h-4 w-4 text-teal-600" aria-hidden="true" />
+                  Next scheduled sale: <span className="font-semibold text-teal-800">{formatSaleDate(nextSaleDate)}</span>
+                </p>
+              )}
               <p className="text-xs text-slate-500">{mappedCount} mapped on this page{averageEquity != null ? ` · ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(averageEquity)} avg. equity` : ""}</p>
             </div>
             <label className="flex items-center gap-2 text-xs text-slate-500">

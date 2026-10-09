@@ -306,6 +306,7 @@ export interface StateSummary {
   sales_with_equity: number;
   gross_equity: number;
   last_updated: string | null;
+  next_sale_date: string | null;
 }
 
 /** Scheduled sales and gross equity per state, counted the way the dashboard counts them. */

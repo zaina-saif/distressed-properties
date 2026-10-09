@@ -656,7 +656,9 @@ def list_properties(
     ) if investor_spotlight else ""
     count_query = text(
         f"""
-        SELECT COUNT(*) AS total{spotlight_aggregates}
+        SELECT COUNT(*) AS total,
+               MIN(ss.current_sale_date) FILTER (WHERE ss.current_sale_date >= CURRENT_DATE) AS next_sale_date
+               {spotlight_aggregates}
         FROM sheriff_sales AS ss
         JOIN properties AS p
             ON p.id = ss.property_id
@@ -761,6 +763,8 @@ def list_properties(
         "page": page,
         "page_size": page_size,
         "total": total,
+        # Earliest sale date from today on across every match, not just this page.
+        "next_sale_date": counts["next_sale_date"].date().isoformat() if counts["next_sale_date"] else None,
     }
     if investor_spotlight:
         # Across every spotlight property matching the filters, not just this page.
@@ -943,7 +947,8 @@ def state_summary():
             SELECT ss.state, COUNT(*) AS scheduled_sales, COUNT(DISTINCT ss.county) AS counties,
                    COUNT(*) FILTER (WHERE {equity} > 0) AS sales_with_equity,
                    SUM({equity}) FILTER (WHERE {equity} > 0) AS gross_equity,
-                   MAX(ss.last_scraped_at) AS last_updated
+                   MAX(ss.last_scraped_at) AS last_updated,
+                   MIN(ss.current_sale_date) FILTER (WHERE ss.current_sale_date >= CURRENT_DATE) AS next_sale_date
             FROM sheriff_sales AS ss
             LEFT JOIN LATERAL (
                 SELECT zestimate FROM apify_zillow_results
@@ -957,7 +962,8 @@ def state_summary():
     return {"states": [
         {"state": row["state"], "scheduled_sales": row["scheduled_sales"], "counties": row["counties"],
          "sales_with_equity": row["sales_with_equity"], "gross_equity": float(row["gross_equity"] or 0),
-         "last_updated": row["last_updated"]}
+         "last_updated": row["last_updated"],
+         "next_sale_date": row["next_sale_date"].date().isoformat() if row["next_sale_date"] else None}
         for row in rows
     ]}
 
