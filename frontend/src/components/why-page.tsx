@@ -1,4 +1,4 @@
-import { ArrowUpRight, Briefcase, Building2, Landmark, ChartNoAxesCombined, FileSearch, Gauge, Handshake, Home, Layers, Map as MapIcon, ShieldAlert, Sparkles, TrendingUp, Users } from "lucide-react";
+import { ArrowUpRight, Briefcase, Building2, Globe, Landmark, ChartNoAxesCombined, FileSearch, Gauge, Handshake, Home, Layers, Map as MapIcon, ShieldAlert, Sparkles, TrendingUp, Users } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -8,6 +8,12 @@ import { STATES } from "@/lib/states";
 import styles from "./marketing-home.module.css";
 
 const ADVANTAGES = [
+  {
+    icon: Globe,
+    title: "The best deals, not just the nearest ones.",
+    text: `Sheriff and foreclosure sale listings from ${STATES.length} states, consolidated in one place. Compare opportunities across counties and states, and invest where the numbers are best, not only where you happen to live.`,
+    tags: [`${STATES.length} states`, "One portal"],
+  },
   {
     icon: Sparkles,
     title: "Equity, ranked for you.",
@@ -98,12 +104,12 @@ export function WhyPage() {
   </div>;
 }
 
-/** The three core features; also shown on the home page right under the hero. */
+/** The reasons to use the platform; also shown on the home page right under the hero. */
 export function Advantages({ link = false }: { link?: boolean }) {
   return <section id="why" className="why-advantages">
     <div className="container">
       <span className="eyebrow">WHY SHERIFF SALE HUNTER</span>
-      <h2>Three reasons every investor should use Sheriff Sale Hunter.</h2>
+      <h2>Four reasons every investor should use Sheriff Sale Hunter.</h2>
       <div className="why-advantage-list">{ADVANTAGES.map((item, index) => <article key={item.title} className="why-advantage">
         <span className="why-number">0{index + 1}</span>
         <div className="feature-icon"><item.icon size={21}/></div>
