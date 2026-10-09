@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.account import router as account_router
+from app.api.alerts import router as alerts_router
 from app.api.contact import router as contact_router
 from app.api.investor_profile import router as investor_profile_router
 from app.api.properties import router as properties_router
@@ -43,6 +44,7 @@ app.add_middleware(
 # lien details need the property inside the plan; data-maintenance and
 # warehouse routes are developer-only. Billing and account routes sign users in.
 app.include_router(account_router)
+app.include_router(alerts_router)
 app.include_router(contact_router)
 app.include_router(investor_profile_router)
 app.include_router(properties_router)

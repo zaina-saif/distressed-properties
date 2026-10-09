@@ -1,0 +1,60 @@
+name: Opportunity Alerts
+
+on:
+  schedule:
+    # 14:00 UTC (9–10 AM Eastern): daily alerts every day; weekly alerts on
+    # Mondays, after the Monday multi-state refresh.
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+    inputs:
+      frequency:
+        description: "Which subscribers to email"
+        type: choice
+        options: [daily, weekly]
+        default: daily
+      dry_run:
+        description: "Only list who would be emailed; send nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: opportunity-alerts
+  cancel-in-progress: false
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      ALERTS_SIGNING_SECRET: ${{ secrets.ALERTS_SIGNING_SECRET }}
+      ALERTS_POSTAL_ADDRESS: ${{ secrets.ALERTS_POSTAL_ADDRESS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send alerts
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            args=(--frequency "${{ inputs.frequency }}")
+            if [ "${{ inputs.dry_run }}" = "true" ]; then args+=(--dry-run); fi
+            python -m pipeline.send_opportunity_alerts "${args[@]}"
+          else
+            python -m pipeline.send_opportunity_alerts --frequency daily
+            if [ "$(date -u +%u)" = "1" ]; then python -m pipeline.send_opportunity_alerts --frequency weekly; fi
+          fi
