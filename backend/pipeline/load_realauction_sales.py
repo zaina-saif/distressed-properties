@@ -12,14 +12,15 @@ from pipeline.sale_listing_loader import Sale, load_sales, money
 from pipeline.scrape_realauction import SOURCES, snapshot_path
 
 SOURCE_SYSTEM = {"OH": "oh_realauction_sheriff_sale", "FL": "fl_realforeclose_clerk_sale",
-                 "CO": "co_realforeclose_public_trustee_sale"}
+                 "CO": "co_realforeclose_public_trustee_sale", "TX": "tx_realauction_tax_sale"}
 
 
 def address(fields, state):
     """Street, city and 5-digit ZIP from "Property Address" and its unlabelled second line
     ("CLEVELAND , 441050000" in Ohio, "HIALEAH, FL- 33015" in Florida)."""
     street = " ".join((fields.get("Property Address") or "").split())
-    second = fields.get("Property Address 2") or ""
+    # Texas adds ZIP+4 ("DALLAS, TX 75216-5234").
+    second = re.sub(r"(\d{5})-\d{4}\s*$", r"\1", fields.get("Property Address 2") or "")
     match = re.match(rf"\s*(.*?)\s*,?\s*(?:{state}\b)?\s*[,-]?\s*(\d{{5}})?\d*\s*$", second, re.I)
     city = match.group(1).strip(" ,-") if match else second.strip()
     return street, city or None, match.group(2) if match else None
@@ -34,8 +35,9 @@ def status(item, today):
 
 
 def case_number(fields):
-    """Ohio adds the sheriff's number in brackets: "CV11762673 (66355)"."""
-    raw = fields.get("Case #") or ""
+    """Ohio adds the sheriff's number in brackets: "CV11762673 (66355)"; Texas adds the
+    constable precinct: "TX-24-01693 (8)"."""
+    raw = fields.get("Case #") or fields.get("Cause Number") or ""
     match = re.match(r"\s*(.*?)\s*(?:\((\d+)\))?\s*$", raw)
     return (match.group(1) or raw.strip()), (match.group(2) if match else None)
 
@@ -47,6 +49,9 @@ def current_items(items, today):
         case, _ = case_number(item["fields"])
         if not case:
             continue
+        # One Texas tax suit can sell several tracts, so key by the appraisal account too.
+        if item["fields"].get("Account Number"):
+            case = f"{case}:{item['fields']['Account Number'].strip()}"
         key = (item["sale_date"], item["area"] == "W")
         if case not in best or key > (best[case]["sale_date"], best[case]["area"] == "W"):
             best[case] = item
@@ -74,12 +79,15 @@ def load(state, county):
             sale_date=date.fromisoformat(item["sale_date"]), status=status(item, date.today()),
             raw=raw,
             raw_status=f"{area} (auction {item['auction_id']})",
-            parcel=(fields.get("Parcel ID") or "").strip() or None,
+            parcel=(fields.get("Parcel ID") or fields.get("Account Number") or "").strip() or None,
             # Ohio's opening bid is the minimum bid (two-thirds of the appraisal);
             # Florida lists the final judgment and no opening bid.
             # Colorado sites show a placeholder "Final Judgment Amount" ($300.00 on every
             # El Paso sale) and hide the lender's bid, so no amount is taken there.
-            upset=money(fields.get("Opening Bid")),
+            # Texas lists the court's adjudged value (kept in the raw payload, it is
+            # not a judgment) and an estimated minimum bid: the taxes, costs and
+            # fees owed, which is the opening bid at a tax sale.
+            upset=money(fields.get("Opening Bid") or fields.get("Est. Min. Bid")),
             judgment=None if state == "CO" else money(fields.get("Final Judgment Amount")),
             result=fields.get("Case Status") or fields.get("Auction Type"), property_number=sheriff_number))
     return load_sales(state, county, SOURCE_SYSTEM[state], snapshot["source_url"], sales,

@@ -357,6 +357,8 @@ def list_properties(
                 THEN 'Court foreclosure auction (committee sale)'
                 WHEN ss.source_system='civilview_sheriff_sale' AND ss.state='TX'
                 THEN 'Sheriff or constable sale'
+                WHEN ss.source_system='tx_realauction_tax_sale'
+                THEN 'Tax foreclosure sale (sheriff/constable)'
                 ELSE 'Sheriff sale' END AS sale_type,
             COALESCE(ss.docket_number, ss.court_case_number)
                 AS court_case_number,

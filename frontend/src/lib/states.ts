@@ -16,4 +16,5 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "ID", name: "Idaho", view: [44.2, -114.6, 6] },
   { code: "OR", name: "Oregon", view: [44.0, -120.6, 7] },
   { code: "CT", name: "Connecticut", view: [41.6, -72.7, 8] },
+  { code: "TX", name: "Texas", view: [31.0, -98.5, 6] },
 ];

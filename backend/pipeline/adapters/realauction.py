@@ -1,8 +1,10 @@
 """RealAuction county auction sites: Ohio sheriff sales (*.sheriffsaleauction.ohio.gov),
-Florida clerk foreclosure sales and Colorado Public Trustee sales (*.realforeclose.com).
+Florida clerk foreclosure sales and Colorado Public Trustee sales (*.realforeclose.com),
+and Texas sheriff/constable tax foreclosure sales (*.texas.sheriffsaleauctions.com).
 
 Public pages only: the calendar lists sale days, and each day's auctions load
-ten at a time from the site's own AJAX endpoint. Tax-deed days are skipped."""
+ten at a time from the site's own AJAX endpoint. Tax-deed days are skipped, and tax
+sale days are taken only when asked for (Texas)."""
 import json
 import re
 import time
@@ -58,9 +60,9 @@ def parse_items(html):
 
 
 class RealAuctionAdapter:
-    def __init__(self, base_url, months=3, timeout=30):
+    def __init__(self, base_url, months=3, timeout=30, tax_sales=False):
         self.base_url = base_url.rstrip("/") + "/index.cfm"
-        self.months, self.timeout = months, timeout
+        self.months, self.timeout, self.tax_sales = months, timeout, tax_sales
 
     def _items(self, client, sale_day, area):
         """All auctions in one area of a sale day ("W" upcoming, "C" closed or cancelled)."""
@@ -96,7 +98,10 @@ class RealAuctionAdapter:
                     raise RuntimeError("RealAuction calendar not found")
                 for day, kind, count in calendar_days(page.text):
                     # Most sites label sale days "Foreclosure"; some (Mesa, CO) use "FC".
-                    if day >= today and count and ("foreclos" in kind.lower() or kind.strip().upper() == "FC"):
+                    # Texas sheriff and constable sites only hold property-tax
+                    # foreclosure sales, labelled "Tax Sale".
+                    if day >= today and count and (self.tax_sales and "tax" in kind.lower()
+                                                   or "foreclos" in kind.lower() or kind.strip().upper() == "FC"):
                         days[day] = kind
             for day in sorted(days):
                 client.get(self.base_url, params={"zaction": "AUCTION", "Zmethod": "PREVIEW",

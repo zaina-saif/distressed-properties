@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { saleTypeNote } from "@/lib/sale-notes";
 import type { Property } from "@/types/property";
 
 // "||" so an empty value from a Docker build falls back to the default.
@@ -316,6 +317,7 @@ function MobilePropertyList({
               <div><dt className="text-slate-500">Probability to auction</dt><dd className="font-semibold text-slate-900">{percent(p.sale_probability) || "—"}{p.sale_probability != null && <button type="button" onClick={() => onProbabilityReasonClick(p)} className={`ml-1.5 ${link}`}>Reason</button>}</dd></div>
             </dl>
             {facts.length > 0 && <p className="mt-2 text-xs text-slate-600">{facts.join(" · ")}</p>}
+            {saleTypeNote(p) && <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900">Texas tax sale: the former owner can buy it back after the sale. See More details.</p>}
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-2">
               <button type="button" onClick={() => onPropertyClick(p)} className={link}>More details</button>
               {p.court_case_number && <button type="button" onClick={() => onSalePageClick(p)} className={link}>Sale page</button>}

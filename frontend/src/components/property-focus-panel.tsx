@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { PropertyPhoto } from "@/components/property-photo";
 import { googleMapsUrl, zillowListingUrl } from "@/lib/zillow";
+import { saleTypeNote } from "@/lib/sale-notes";
 import type { Property } from "@/types/property";
 
 function currency(value: number | null | undefined): string {
@@ -95,6 +96,7 @@ export function PropertyFocusPanel({
           )} />
           <Metric label="Sale date" value={date(property.current_sale_date)} />
         </div>
+        {saleTypeNote(property) && <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{saleTypeNote(property)}</p>}
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
           {property.bedrooms != null && <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{property.bedrooms} beds</span>}

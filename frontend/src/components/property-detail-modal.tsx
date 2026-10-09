@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { saleTypeNote } from "@/lib/sale-notes";
 import { getLienCoverage, getLiens, getProfessionalTitleSearch } from "@/services/properties";
 import type { LienCoverageItem, LienItem, ProfessionalTitleSearch, Property } from "@/types/property";
 
@@ -288,10 +289,11 @@ export function PropertyDetailModal({
 
             <section className="rounded-xl border border-slate-200 p-4">
               <h3 className="mb-3 flex items-center gap-2 font-bold text-slate-900"><Gavel className="h-4 w-4 text-teal-600" />{property.sale_type ?? "Sheriff sale"}</h3>
+              {saleTypeNote(property) && <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{saleTypeNote(property)}</p>}
               <dl>
                 <Fact label="Status" value={property.current_status.replaceAll("_", " ")} />
                 <Fact label="Sale date" value={date(property.current_sale_date)} />
-                <Fact label="Upset price" value={currency(property.upset_price)} />
+                <Fact label={saleTypeNote(property) ? "Minimum bid" : "Upset price"} value={currency(property.upset_price)} />
                 <Fact label={property.sale_type === "Sheriff sale" ? "Sheriff number" : "Auction ID"} value={property.sheriff_number} />
                 <Fact label="Court case" value={property.court_case_number
                   ? <button type="button" onClick={() => onSalePageClick(property)} className="text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">{property.court_case_number}</button>

@@ -40,3 +40,18 @@ def test_calendar_and_items_parse():
     item = ('<div id="AITEM_57005" aid="57005">@A@E_DETAILS"><@I><tbody><tr><th @CAD_LBL" scope="row">Parcel ID:</th>'
             '<td @CAD_DTA"> 13714063@G</tbody></@I>@B')
     assert parse_items(item)[0]["fields"] == {"Parcel ID": "13714063"}
+
+
+def test_texas_address_drops_zip_plus_four():
+    fields = {"Property Address": "3322 UTAH AVE", "Property Address 2": "DALLAS, TX 75216-5234"}
+    assert address(fields, "TX") == ("3322 UTAH AVE", "DALLAS", "75216")
+
+
+def test_texas_cause_number_carries_precinct():
+    assert case_number({"Cause Number": "TX-24-01693 (8)"}) == ("TX-24-01693", "8")
+
+
+def test_texas_tracts_in_one_suit_stay_separate():
+    items = [{"area": "W", "sale_date": "2026-11-03",
+              "fields": {"Cause Number": "TX-24-01693 (8)", "Account Number": account}} for account in ("111", "222")]
+    assert sorted(current_items(items, date(2026, 10, 9))) == ["TX-24-01693:111", "TX-24-01693:222"]

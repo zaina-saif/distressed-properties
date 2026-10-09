@@ -39,7 +39,7 @@ const FAQ = [
   { q: "When will I be charged?", a: "Starter and Pro are billed through Stripe when you subscribe, then at the start of each month or year. The Free plan never needs a card." },
   { q: "How does annual billing work?", a: `Pay for a year up front and save ${ANNUAL_DISCOUNT * 100}% compared with paying monthly. The price shown is the monthly equivalent.` },
   { q: "Can I cancel or change plans?", a: "Yes. You can change or cancel at any time, and your plan stays active until the end of the period you have paid for." },
-  { q: "Which areas do you cover?", a: `Sheriff, clerk and court-officer foreclosure sales in ${STATES.map((s) => s.name).join(", ")}. We only list counties whose official sale listings we can collect, and we add more as new sources come online.` },
+  { q: "Which areas do you cover?", a: `Sheriff, clerk and court-officer foreclosure sales, plus Texas property-tax foreclosure sales, in ${STATES.map((s) => s.name).join(", ")}. We only list counties whose official sale listings we can collect, and we add more as new sources come online.` },
   { q: "How current is the data?", a: "Listings come from official county, clerk and court sources and are refreshed regularly. Each listing keeps its source link and status history, and sales can still be postponed or cancelled on the day, so always confirm with the source before bidding." },
   { q: "Is the lien screening a title search?", a: "No. Lien results are a pre-screening aid with an estimated priority and confidence. They are not legal advice or a guaranteed lien status. Get a professional title search before you bid." },
 ];

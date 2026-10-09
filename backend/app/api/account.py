@@ -25,7 +25,7 @@ from app.database.session import engine
 router = APIRouter(prefix="/api/v1", tags=["account"])
 
 # States with sale listings; plan coverage must be one of these.
-SUPPORTED_STATES = {"NJ", "PA", "OH", "FL", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT"}
+SUPPORTED_STATES = {"NJ", "PA", "OH", "FL", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX"}
 COVERAGE_CHANGE_DAYS = 30
 # Stripe subscription status -> plan_status.
 STATUS = {"active": "active", "trialing": "trialing", "past_due": "past_due", "unpaid": "past_due",

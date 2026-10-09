@@ -3,6 +3,8 @@
 Ohio: county sheriff sales on *.sheriffsaleauction.ohio.gov.
 Florida: clerk foreclosure sales on www.*.realforeclose.com.
 Colorado: Public Trustee foreclosure sales on *.realforeclose.com.
+Texas: sheriff and constable property-tax foreclosure sales on *.texas.sheriffsaleauctions.com
+and *.texas.realforeclose.com.
 
     python -m pipeline.scrape_realauction --state OH --all
     python -m pipeline.scrape_realauction --state FL --counties "Miami-Dade" Broward
@@ -48,10 +50,22 @@ CO_SITES = {
     "Mesa": "https://mesa.realforeclose.com", "Summit": "https://summit.realforeclose.com",
     "Weld": "https://weld.realforeclose.com"}
 
+# Texas counties whose tax foreclosure sales run on RealAuction, from the sites'
+# own "Jump To" menu. Montgomery and Travis use the realforeclose.com domain.
+TX_SITES = {county: f"https://{host}.texas.sheriffsaleauctions.com" for county, host in {
+    "Angelina": "angelina", "Aransas": "aransas", "Atascosa": "atascosa", "Caldwell": "caldwell",
+    "Cameron": "cameron", "Dallas": "dallas", "El Paso": "elpaso", "Ellis": "ellis", "Galveston": "galveston",
+    "Gregg": "gregg", "Hopkins": "hopkins", "Jackson": "jackson", "Kaufman": "kaufman", "Llano": "llano",
+    "Matagorda": "matagorda", "Nueces": "nueces", "Orange": "orange", "San Patricio": "sanpatricio",
+    "Smith": "smith", "Tyler": "tylercounty", "Victoria": "victoria", "Wilson": "wilson"}.items()}
+TX_SITES |= {"Montgomery": "https://montgomery.texas.realforeclose.com",
+             "Travis": "https://travis.texas.realforeclose.com"}
+
 SOURCES = {
     "OH": {county: f"https://{county.lower().replace(' ', '')}.sheriffsaleauction.ohio.gov" for county in OH_COUNTIES},
     "FL": {county: f"https://www.{site}.realforeclose.com" for county, site in FL_SITES.items()},
     "CO": CO_SITES,
+    "TX": TX_SITES,
 }
 
 
@@ -61,7 +75,7 @@ def snapshot_path(state, county):
 
 def scrape(state, county, months):
     url = SOURCES[state][county]
-    items = RealAuctionAdapter(url, months=months).fetch()
+    items = RealAuctionAdapter(url, months=months, tax_sales=state == "TX").fetch()
     snapshot = {"state": state, "county": county, "source_url": url, "parser_version": PARSER_VERSION,
                 "scraped_at": datetime.now(timezone.utc).isoformat(), "months": months, "items": items}
     path = snapshot_path(state, county)
