@@ -94,7 +94,7 @@
 .root :global(.pricing-faq summary:after) { content: '+'; font-size: 20px; font-weight: 400; color: var(--muted-foreground); }
 .root :global(.pricing-faq details[open] summary:after) { content: '−'; }
 .root :global(.pricing-faq details p) { font-size: 14px; line-height: 1.8; color: var(--muted-foreground); padding: 0 2px 20px; }
-@media(max-width:900px) { .root :global(.pricing-grid) { grid-template-columns: 1fr; max-width: 520px; } .root :global(.enterprise) { grid-template-columns: 1fr; margin-left: 22px; margin-right: 22px; } }
+@media(max-width:900px) { .root :global(.pricing-grid) { grid-template-columns: 1fr; max-width: 520px; } .root :global(.enterprise) { grid-template-columns: 1fr; width: auto; margin-left: 16px; margin-right: 16px; padding-left: 22px; padding-right: 22px; } .root :global(.enterprise > *) { min-width: 0; } }
 @media(max-width:600px) { .root :global(.pricing-hero) { padding-top: 44px; } .root :global(.pricing-hero h1) { font-size: 36px; } .root :global(.plan-price strong) { font-size: 38px; } .root :global(.pricing-faq) { padding-top: 50px; padding-bottom: 55px; } .root :global(.pricing-faq h2) { font-size: 26px; } }
 /* .site-button is declared after .lime-button above; restate the lime colours with higher specificity. */
 .root :global(.site-button.lime-button) { background: var(--accent); color: var(--foreground); height: 48px; }

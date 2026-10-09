@@ -183,6 +183,10 @@ export default function PropertyDashboard({
   const focusProperty = useCallback((property: Property) => {
     setFocusedProperty(property);
     setMobileView("list");
+    // On phones the page scrolls, so bring the opened listing into view.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      requestAnimationFrame(() => document.getElementById("property-results")?.scrollIntoView());
+    }
   }, []);
   const chooseCounty = useCallback((state: string, county: string) => {
     if (state !== selectedState || (lockedCounty && county !== lockedCounty)) return;
@@ -235,61 +239,65 @@ export default function PropertyDashboard({
   }
 
   return (
-    <main className="flex h-screen min-h-0 flex-col overflow-hidden bg-slate-100 text-slate-900">
+    <main className="flex min-h-dvh flex-col bg-slate-100 text-slate-900 lg:h-screen lg:min-h-0 lg:overflow-hidden">
       <header className="z-30 flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-slate-200 bg-white px-4 py-2.5 sm:px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex w-full items-center gap-3 sm:w-auto">
           <Link href="/" className="flex items-center gap-3" aria-label="Sheriff Sale Hunter home">
             <SheriffSaleHunterBrand />
           </Link>
+          <div className="ml-auto flex items-center gap-1 sm:hidden">
+            <Link href="/account" className="rounded-md p-2 text-slate-600 hover:bg-slate-100" aria-label={account?.is_developer ? "Developer account" : "Account"}><UserRound className="h-5 w-5" /></Link>
+            <button type="button" onClick={async () => { await signOut(); window.location.assign("/"); }} className="rounded-md p-2 text-slate-500 hover:bg-slate-100" aria-label="Sign out"><LogOut className="h-5 w-5" /></button>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={() => { setSpotlight((value) => !value); setFocusedProperty(null); setPage(1); }}
           aria-pressed={spotlight}
-          className={`flex flex-col rounded-xl px-3 py-1.5 text-left ring-1 ring-inset transition ${spotlight ? "bg-amber-500 text-white ring-amber-500 shadow-sm" : "bg-amber-50 text-amber-900 ring-amber-200 hover:bg-amber-100"}`}
+          className={`flex flex-col rounded-xl px-3 py-2 sm:py-1.5 text-left ring-1 ring-inset transition ${spotlight ? "bg-amber-500 text-white ring-amber-500 shadow-sm" : "bg-amber-50 text-amber-900 ring-amber-200 hover:bg-amber-100"}`}
         >
           <span className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 shrink-0" />
             <span className="leading-tight">
-              <span className="block text-sm font-bold">Investor Spotlight</span>
-              <span className={`block text-[10px] font-medium ${spotlight ? "text-amber-50" : "text-amber-700"}`}>(Highest equity / High probability to auction)</span>
+              <span className="block text-sm font-bold"><span className="hidden sm:inline">Investor </span>Spotlight</span>
+              <span className={`hidden text-[10px] font-medium sm:block ${spotlight ? "text-amber-50" : "text-amber-700"}`}>(Highest equity / High probability to auction)</span>
             </span>
           </span>
         </button>
 
-        <div className="ml-auto flex flex-col items-end gap-1.5">
-          <nav className="flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
+        <div className="max-sm:contents sm:ml-auto sm:flex sm:flex-col sm:items-end sm:gap-1.5">
+          <nav className="max-sm:ml-auto flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
             <button
               type="button"
               onClick={() => { setLoading(true); setError(null); setDesktopView("dashboard"); }}
-              className={`hidden items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold sm:flex ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold sm:px-3 ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
               aria-current={desktopView === "dashboard" ? "page" : undefined}
             >
-              <MapIcon className="h-4 w-4" />Dashboard
+              <MapIcon className="h-4 w-4" /><span className="hidden sm:inline">Dashboard</span><span className="sm:hidden">Browse</span>
             </button>
             <button
               type="button"
               onClick={() => { setLoading(true); setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold sm:px-3 ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
               aria-current={desktopView === "list" ? "page" : undefined}
             >
-              <ListFilter className="h-4 w-4" />List View
+              <ListFilter className="h-4 w-4" /><span className="hidden sm:inline">List View</span><span className="sm:hidden">Data</span>
             </button>
             <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
           </nav>
-          <div className="flex flex-wrap items-center justify-end gap-1.5">
-            <form onSubmit={submitSearch} className="flex w-full min-w-0 items-center rounded-md border border-slate-300 bg-white pl-2 focus-within:border-teal-500 sm:w-64">
+          <div className="flex w-full flex-wrap items-center justify-end gap-1.5 sm:w-auto">
+            <form onSubmit={submitSearch} className="flex w-full min-w-0 items-center rounded-md border border-slate-300 bg-white pl-2 focus-within:border-teal-500 sm:w-64" role="search">
               <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search address, city, ZIP, case, plaintiff…" className="min-w-0 flex-1 px-1.5 py-1 text-xs outline-none" />
+              <input value={searchInput} onChange={(event) => setSearchInput(event.target.value)} placeholder="Search address, city, ZIP, case, plaintiff…" className="min-w-0 flex-1 px-1.5 py-2 text-base outline-none sm:py-1 sm:text-xs" />
               {searchInput && <button type="button" onClick={() => { setSearchInput(""); if (searchQuery) { setSearchQuery(""); setPage(1); } }} className="rounded p-1 text-slate-400 hover:bg-slate-100" aria-label="Clear search text"><X className="h-3.5 w-3.5" /></button>}
-              <button className="rounded-r-md bg-teal-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-teal-700">Search</button>
+              <button className="self-stretch rounded-r-md bg-teal-600 px-3 py-1 text-sm sm:px-2.5 sm:text-xs font-semibold text-white hover:bg-teal-700">Search</button>
             </form>
             <select
               aria-label="State"
               value={selectedState}
               onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
-              className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
+              className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-1.5 py-2 text-base outline-none focus:border-teal-500 sm:w-32 sm:flex-none sm:py-1 sm:text-xs"
             >
               {allowedStates.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
             </select>
@@ -297,25 +305,25 @@ export default function PropertyDashboard({
               aria-label="County"
               value={selectedCounty}
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
-              className="w-32 rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs outline-none focus:border-teal-500"
+              className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-1.5 py-2 text-base outline-none focus:border-teal-500 sm:w-32 sm:flex-none sm:py-1 sm:text-xs"
             >
               {!lockedCounty && <option value="">All counties</option>}
               {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
             </select>
             <button type="button" onClick={resetFilters} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><X className="h-3 w-3" />Clear</button>
-            <Link href="/account" className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100" title={account?.email}><UserRound className="h-3.5 w-3.5" />{account?.is_developer ? "Developer" : "Account"}</Link>
-            <button type="button" onClick={async () => { await signOut(); window.location.assign("/"); }} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><LogOut className="h-3.5 w-3.5" />Sign out</button>
+            <Link href="/account" className="hidden items-center gap-1 rounded-md sm:flex px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100" title={account?.email}><UserRound className="h-3.5 w-3.5" />{account?.is_developer ? "Developer" : "Account"}</Link>
+            <button type="button" onClick={async () => { await signOut(); window.location.assign("/"); }} className="hidden items-center gap-1 rounded-md sm:flex px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><LogOut className="h-3.5 w-3.5" />Sign out</button>
           </div>
   
         </div>
       </header>
 
-      <section className="z-20 shrink-0 space-y-2 border-b border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
+      <section className="z-20 shrink-0 space-y-2 border-b empty:hidden border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
         {profilePrompt && (
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs text-teal-900">
-            <UserRound className="h-3.5 w-3.5" aria-hidden="true" />
-            <span><span className="font-semibold">Get opportunities that fit you.</span> Add your budget, states and strategy so we can send targeted investment opportunities. Optional, about a minute.</span>
-            <Link href="/profile" className="font-semibold underline">Set up my profile</Link>
+          <div className="flex items-center gap-x-3 gap-y-1 rounded-lg border border-teal-200 bg-teal-50 sm:flex-wrap px-3 py-1.5 text-xs text-teal-900">
+            <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span><span className="font-semibold">Get opportunities that fit you.</span><span className="hidden sm:inline"> Add your budget, states and strategy so we can send targeted investment opportunities. Optional, about a minute.</span></span>
+            <Link href="/profile" className="shrink-0 font-semibold underline">Set up my profile</Link>
             <button type="button" onClick={dismissProfilePrompt} className="ml-auto rounded p-0.5 text-teal-700 hover:bg-teal-100" aria-label="Dismiss"><X className="h-3.5 w-3.5" /></button>
           </div>
         )}
@@ -330,18 +338,18 @@ export default function PropertyDashboard({
                 <span className="rounded-full bg-white px-2 py-0.5 ring-1 ring-amber-200">Avg. gross equity <span className="font-bold">{wholeDollars(spotlightSummary.average_gross_equity)}</span></span>
               </span>
             )}
-            <span className="text-amber-800">Upcoming scheduled sales ranked by expected equity: gross equity (Zestimate minus minimum bid) × probability to auction at the next sale date.</span>
+            <span className="hidden text-amber-800 sm:inline">Upcoming scheduled sales ranked by expected equity: gross equity (Zestimate minus minimum bid) × probability to auction at the next sale date.</span>
             <button type="button" onClick={() => setSpotlight(false)} className="ml-auto font-semibold underline">Exit spotlight</button>
           </div>
         )}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         {countyCounts.length > 0 && (
-          <section className="w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2" aria-label={`${selectedState} county record counts`}>
+          <section className="hidden w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2 sm:block" aria-label={`${selectedState} county record counts`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-xs font-bold text-teal-950">{selectedState} county coverage</h2>
-              <span className="text-xs text-teal-800">Counties with available listings · click to filter</span>
+              <span className="hidden text-xs text-teal-800 sm:inline">Counties with available listings · click to filter</span>
             </div>
-            <div className="mt-1 flex w-full flex-wrap content-start text-xs leading-6">
+            <div className="mt-1 flex w-full flex-nowrap content-start overflow-x-auto text-xs leading-6 sm:flex-wrap">
               {countyCounts.map(({ county, count }, index, items) => (
                 <span key={county} className="flex shrink-0 items-center">
                   <button type="button" onClick={() => { setSelectedCounty(county); setPage(1); }} className={`flex items-center gap-1 rounded px-2 py-0.5 text-left hover:bg-white ${selectedCounty === county ? "bg-white ring-1 ring-teal-300" : ""}`}>
@@ -356,22 +364,22 @@ export default function PropertyDashboard({
         )}
       </section>
 
-      <div className={`shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
+      <div className={`sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
         <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
           <button onClick={() => setMobileView("map")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "map" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><MapIcon className="h-4 w-4" />Map</button>
           <button onClick={() => setMobileView("list")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><ListFilter className="h-4 w-4" />List</button>
         </div>
       </div>
 
-      <div className={`grid min-h-0 flex-1 overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]" : "grid-cols-1"}`}>
-        <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-full" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
+      <div className={`grid flex-1 grid-cols-1 lg:min-h-0 lg:overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]" : ""}`}>
+        <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-[75dvh]" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
           {desktopView === "dashboard" && (
             <PropertyMap properties={properties} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={focusProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} defaultView={stateInfo.view} />
           )}
         </div>
 
-        <section className={`${desktopView === "list" || mobileView === "list" ? "flex" : "hidden"} min-h-0 flex-col overflow-hidden bg-slate-50 lg:flex`}>
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+        <section id="property-results" className={`${desktopView === "list" || mobileView === "list" ? "flex" : "hidden"} scroll-mt-16 flex-col bg-slate-50 lg:flex lg:min-h-0 lg:overflow-hidden`}>
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-slate-200 bg-white px-4 py-2 sm:gap-3 sm:py-3">
             <div>
               <h2 className="font-bold text-slate-950">{loading ? "Loading properties…" : `${total.toLocaleString()} properties found`}</h2>
               <p className="text-xs text-slate-500">{mappedCount} mapped on this page{averageEquity != null ? ` · ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(averageEquity)} avg. equity` : ""}</p>
@@ -386,7 +394,7 @@ export default function PropertyDashboard({
                 <option value="address">Address</option>
               </select>
             </label>
-            {desktopView === "list" && <button type="button" onClick={exportProperties} disabled={exporting || loading} className="flex items-center gap-2 rounded-lg border border-teal-600 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 disabled:cursor-wait disabled:opacity-50"><Download className="h-4 w-4" />{exporting ? "Preparing Excel…" : "Download Excel"}</button>}
+            {desktopView === "list" && <button type="button" onClick={exportProperties} disabled={exporting || loading} className="flex items-center gap-2 rounded-lg border border-teal-600 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-50 disabled:cursor-wait disabled:opacity-50"><Download className="h-4 w-4" /><span className="hidden sm:inline">{exporting ? "Preparing Excel…" : "Download Excel"}</span><span className="sm:hidden">{exporting ? "…" : "Excel"}</span></button>}
           </div>
 
           {focusedProperty && desktopView === "dashboard" ? (
@@ -404,15 +412,15 @@ export default function PropertyDashboard({
           ) : desktopView === "list" ? (
             <PropertyTable properties={sortedProperties} onPropertyClick={chooseProperty} onLienSummaryClick={setSelectedLienSummaryProperty} onAdditionalDetailsClick={setSelectedComplaintsProperty} onProbabilityReasonClick={setSelectedProbabilityReasonProperty} onStatusHistoryClick={setSelectedHistoryProperty} onSalePageClick={setSalePageProperty} sort={sort} sortDirection={sortDirection} onSort={(column) => { setSortDirection(sort === column && sortDirection === "asc" ? "desc" : "asc"); setSort(column); setPage(1); }} />
           ) : (
-            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+            <div className="space-y-3 p-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
               {sortedProperties.map((property) => <PropertyCard key={property.sheriff_sale_id} property={property} selected={selectedProperty?.sheriff_sale_id === property.sheriff_sale_id} onClick={() => focusProperty(property)} />)}
             </div>
           )}
 
-          <footer className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
-            <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((value) => Math.max(1, value - 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40"><ChevronLeft className="h-4 w-4" />Previous</button>
-            <span className="text-xs text-slate-500">Showing <strong className="text-slate-800">{total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> of <strong className="text-slate-800">{total.toLocaleString()}</strong> rows · Page <strong className="text-slate-800">{page}</strong> of {totalPages}</span>
-            <button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40">Next<ChevronRight className="h-4 w-4" /></button>
+          <footer className="sticky bottom-0 z-20 flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
+            <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((value) => Math.max(1, value - 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40"><ChevronLeft className="h-4 w-4" /><span className="hidden sm:inline">Previous</span></button>
+            <span className="text-center text-xs text-slate-500"><span className="hidden sm:inline">Showing <strong className="text-slate-800">{total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}</strong> of <strong className="text-slate-800">{total.toLocaleString()}</strong> rows · </span>Page <strong className="text-slate-800">{page}</strong> of {totalPages}</span>
+            <button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((value) => Math.min(totalPages, value + 1))} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 disabled:opacity-40"><span className="hidden sm:inline">Next</span><ChevronRight className="h-4 w-4" /></button>
           </footer>
         </section>
       </div>

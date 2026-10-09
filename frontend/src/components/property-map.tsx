@@ -32,6 +32,7 @@ export function PropertyMap({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<LeafletMarker[]>([]);
+  const fitRef = useRef<(() => void) | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
@@ -126,7 +127,11 @@ export function PropertyMap({
 
   useEffect(() => {
     if (!mapRef.current) return;
-    const frame = window.requestAnimationFrame(() => mapRef.current?.invalidateSize());
+    // A map laid out while hidden (the phone list tab) has no size, so refit once it shows.
+    const frame = window.requestAnimationFrame(() => {
+      mapRef.current?.invalidateSize();
+      if (fitRef.current) fitRef.current();
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [visibilityKey]);
 
@@ -166,11 +171,16 @@ export function PropertyMap({
         bounds.extend([latitude, longitude]);
       }
 
-      if (bounds.isValid()) {
-        mapRef.current.fitBounds(bounds, { padding: [70, 70], maxZoom: 13 });
-      } else {
-        mapRef.current.setView([defaultView[0], defaultView[1]], defaultView[2]);
-      }
+      const fit = () => {
+        if (!mapRef.current) return;
+        if (bounds.isValid()) {
+          mapRef.current.fitBounds(bounds, { padding: [70, 70], maxZoom: 13 });
+        } else {
+          mapRef.current.setView([defaultView[0], defaultView[1]], defaultView[2]);
+        }
+      };
+      fitRef.current = fit;
+      fit();
     }
 
     void updateMarkers();

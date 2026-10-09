@@ -99,3 +99,10 @@ input {
   font-weight: 700;
   cursor: pointer;
 }
+
+@media (max-width: 639px) {
+  .dpp-brand { gap: 6px; font-size: 15px; }
+  .dpp-brand-symbol { width: 30px; height: 32px; }
+  .dpp-brand-symbol svg { width: 28px; }
+  .dpp-brand-second { font-size: 13px; }
+}

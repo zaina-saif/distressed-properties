@@ -220,7 +220,9 @@ export function PropertyTable({
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-auto bg-white">
+    <>
+    <MobilePropertyList properties={properties} onPropertyClick={onPropertyClick} onLienSummaryClick={onLienSummaryClick} onAdditionalDetailsClick={onAdditionalDetailsClick} onProbabilityReasonClick={onProbabilityReasonClick} onStatusHistoryClick={onStatusHistoryClick} onSalePageClick={onSalePageClick} />
+    <div className="hidden min-h-0 flex-1 overflow-auto bg-white md:block">
       <table className="w-max min-w-full border-separate border-spacing-0 text-left text-sm">
         <thead className="sticky top-0 z-10 bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
           <tr>
@@ -263,5 +265,68 @@ export function PropertyTable({
         </tbody>
       </table>
     </div>
+    </>
+  );
+}
+
+/** Phones get one card per sale instead of the wide table, with the same actions. */
+function MobilePropertyList({
+  properties,
+  onPropertyClick,
+  onLienSummaryClick,
+  onAdditionalDetailsClick,
+  onProbabilityReasonClick,
+  onStatusHistoryClick,
+  onSalePageClick,
+}: {
+  properties: Property[];
+  onPropertyClick: (property: Property) => void;
+  onLienSummaryClick: (property: Property) => void;
+  onAdditionalDetailsClick: (property: Property) => void;
+  onProbabilityReasonClick: (property: Property) => void;
+  onStatusHistoryClick: (property: Property) => void;
+  onSalePageClick: (property: Property) => void;
+}) {
+  const link = "text-xs font-semibold text-teal-700 underline decoration-teal-300 underline-offset-2";
+  return (
+    <ul className="space-y-3 p-3 md:hidden">
+      {properties.map((p) => {
+        const facts = [
+          apifyValue(p.apify_data?.bedrooms) ? `${apifyValue(p.apify_data?.bedrooms)} bd` : "",
+          apifyValue(p.apify_data?.bathrooms) ? `${apifyValue(p.apify_data?.bathrooms)} ba` : "",
+          apifyValue(p.apify_data?.livingArea) ? `${apifyValue(p.apify_data?.livingArea)} sqft` : "",
+          p.apify_data?.yearBuilt ? `Built ${p.apify_data.yearBuilt}` : "",
+          typeof p.apify_data?.homeType === "string" ? p.apify_data.homeType.replaceAll("_", " ").toLowerCase() : "",
+        ].filter(Boolean);
+        return (
+          <li key={p.sheriff_sale_id} className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+            <button type="button" onClick={() => onPropertyClick(p)} className="block w-full text-left">
+              <span className="block font-semibold text-slate-950">{p.street_address || p.normalized_address}</span>
+              <span className="block text-xs text-slate-500">{[p.city, p.state, p.zip_code].filter(Boolean).join(", ")}{p.county ? ` · ${p.county} County` : ""}</span>
+            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+              <span className="rounded-full bg-teal-50 px-2 py-0.5 font-semibold text-teal-800">{p.sale_type ?? "Sheriff sale"}</span>
+              {p.current_sale_date && <span className="rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-700">Sale {date(p.current_sale_date)}</span>}
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 capitalize text-slate-600">{p.current_status.replaceAll("_", " ")}</span>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+              <div><dt className="text-slate-500">Est. market value</dt><dd className="font-semibold text-slate-900">{typeof p.apify_data?.zestimate === "number" ? currency(p.apify_data.zestimate) : apifyValue(p.apify_data?.zestimate) || "—"}</dd></div>
+              <div><dt className="text-slate-500">Minimum bid</dt><dd className="font-semibold text-slate-900">{currency(p.upset_price ?? p.judgment_amount) || "—"}</dd></div>
+              <div><dt className="text-slate-500">Gross equity</dt><dd className="font-semibold text-teal-700">{currency(p.gross_equity) || "—"}{p.gross_equity_percent != null ? ` (${percent(p.gross_equity_percent)})` : ""}</dd></div>
+              <div><dt className="text-slate-500">Probability to auction</dt><dd className="font-semibold text-slate-900">{percent(p.sale_probability) || "—"}{p.sale_probability != null && <button type="button" onClick={() => onProbabilityReasonClick(p)} className={`ml-1.5 ${link}`}>Reason</button>}</dd></div>
+            </dl>
+            {facts.length > 0 && <p className="mt-2 text-xs text-slate-600">{facts.join(" · ")}</p>}
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-2">
+              <button type="button" onClick={() => onPropertyClick(p)} className={link}>More details</button>
+              {p.court_case_number && <button type="button" onClick={() => onSalePageClick(p)} className={link}>Sale page</button>}
+              <button type="button" onClick={() => onLienSummaryClick(p)} className={link}>Liens summary</button>
+              <button type="button" onClick={() => onStatusHistoryClick(p)} className={link}>Status history</button>
+              <button type="button" onClick={() => onAdditionalDetailsClick(p)} className={link}>Complaints</button>
+              <a href={titleSearchProviderUrl} target="_blank" rel="noopener noreferrer" className={link}>Title search</a>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
