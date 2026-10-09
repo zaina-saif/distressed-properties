@@ -30,6 +30,58 @@ npm run lint
 
 Next.js here is v16 with breaking changes from older versions — read `frontend/AGENTS.md` and the guides in `node_modules/next/dist/docs/` before writing frontend code.
 
+## Running the pipelines
+
+Run everything from `backend/` with the venv active. The two refresh orchestrators are what keep the live site current; both send per-record output (which includes addresses) to `<run-dir>/refresh.log` and write counts to `<run-dir>/report.json`. The Zillow stage is paid (Apify), so use `--skip-zillow` for test runs.
+
+```bash
+# NJ: CivilView open + sold/cancelled for every NJ county, plus Ocean County's PDF.
+# Stages: scrape load link zillow score report (default: all)
+python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
+python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
+
+# Every other state (RealAuction OH/FL/CO/TX, CivilView states, PA portals, SC, IL TJSC, CT).
+# Stages: scrape load zillow score report. Default run dir: .local/multistate-refresh/
+python -m pipeline.multistate_refresh --run-dir /tmp/ms-refresh --max-zillow-addresses 600
+
+# Opportunity alert emails (needs RESEND_API_KEY, ALERTS_SIGNING_SECRET, ALERTS_POSTAL_ADDRESS)
+python -m pipeline.send_opportunity_alerts --frequency daily --dry-run
+
+# One source at a time: scrape, then load (the SOURCES list in multistate_refresh.py has every pair)
+python -m pipeline.scrape_realauction --state OH --all && python -m pipeline.load_realauction_sales --state OH --all
+
+# Create or reset a developer login (needs SUPABASE_SERVICE_ROLE_KEY; trusted machine only)
+python -m app.create_developer --email you@example.com
+```
+
+The sale-probability model the `score` stage uses is `backend/models/<MODEL_VERSION>.joblib`, built by `pipeline.train_sale_probability_model`. The `import_*` warehouse importers run by hand on the operator's machine, never in CI.
+
+**Scheduled runs** (`.github/workflows/`, Python 3.12, `pip install -r requirements.txt` in `backend/`; each can also be started by hand with `workflow_dispatch`, with `skip_zillow` / `max_zillow_addresses` inputs):
+
+| Workflow | Schedule (UTC) | Runs |
+|---|---|---|
+| `nj-sale-refresh.yml` | 11:00 on the 1st and 15th | `pipeline.nj_sale_refresh` (Zillow cap 400) |
+| `multistate-sale-refresh.yml` | Mondays 10:00 | `pipeline.multistate_refresh` (Zillow cap 600) |
+| `opportunity-alerts.yml` | daily 14:00 | `send_opportunity_alerts` daily, plus weekly on Mondays |
+
+Their secrets are GitHub repository secrets: `DATABASE_URL`, `APIFY_API_TOKEN`, `RESEND_API_KEY`, `ALERTS_SIGNING_SECRET`, `ALERTS_POSTAL_ADDRESS`.
+
+## Environment and config locations
+
+Never commit secrets or print their values; the `.example` files list every setting with comments.
+
+| Where | What |
+|---|---|
+| `backend/.env` (template `backend/.env.example`) | Loaded by `python-dotenv` in `app/database/session.py`. `DATABASE_URL`, `WAREHOUSE_DATABASE_URL`, `ALLOW_WAREHOUSE_FALLBACK`, `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_*` (secret, webhook, four price IDs), `FRONTEND_URL`, `RESEND_API_KEY` / `CONTACT_*`, `ALERTS_*`, `APIFY_API_TOKEN`, `REALIE_API_KEY`, `GOOGLE_MAPS_API_KEY`, `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, `ENABLE_WAREHOUSE_API`, `SODA_ENDPOINTS_JSON` / `ARCGIS_TAX_ENDPOINTS_JSON`, `TITLE_SEARCH_PROVIDER_*` |
+| `frontend/.env.local` (template `frontend/.env.local.example`) | `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (publishable key only), `NEXT_PUBLIC_GEOAPIFY_API_KEY`. Compiled in at build time. |
+| `backend/app/config.py` | API settings read from the environment |
+| `backend/data/*_sheriff_sale_sources.json` | Source lists per state (NJ, NY, PA) |
+| `backend/data/sheriff_sales/` | Scraped JSON snapshots |
+| `backend/models/` | Trained model artifacts (sale probability, AVMs) |
+| `backend/migrations/NNN_*.sql` | Schema, applied by hand in order with `psql` |
+| `backend/railway.json`, `frontend/railway.json` | Railway build/deploy config (Dockerfile builder; health checks `/health` and `/`) |
+| `.local/` | Browser profiles, PDF caches and refresh run dirs for local runs |
+
 ## Architecture
 
 **Two databases** (`backend/app/database/session.py`):
@@ -63,7 +115,7 @@ Other states load complete snapshots of each county's upcoming sales through `sa
 
 ## Hosting
 
-`DEPLOYMENT.md` covers production: the API runs from `backend/Dockerfile` (Railway reads `backend/railway.json`), the frontend on Vercel with `NEXT_PUBLIC_API_URL`, and refreshes in GitHub Actions. The API's allowed browser origins come from `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, and `ENABLE_WAREHOUSE_API=0` drops the warehouse routes on hosts that cannot reach the warehouse.
+`DEPLOYMENT.md` covers production. Both services run on Railway in one project and deploy automatically on every push to `main` (a build takes a few minutes): the API (`api.sheriffsalehunter.ai`) from `backend/Dockerfile` with `backend/railway.json`, and the frontend (`www.sheriffsalehunter.ai`) from `frontend/Dockerfile` with `frontend/railway.json`. Production env vars are set in each Railway service's Variables, not in files; the frontend's `NEXT_PUBLIC_*` values are baked in at build time, so changing them needs a redeploy. To check a deploy: `gh api repos/zaina-saif/distressed-properties/commits/<sha>/status` shows Railway's status per service. Data refreshes run in GitHub Actions (see Running the pipelines). The API's allowed browser origins come from `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, and `ENABLE_WAREHOUSE_API=0` drops the warehouse routes on hosts that cannot reach the warehouse.
 
 **Access control** (`backend/app/auth.py`, `app/api/account.py`): Supabase Auth tokens are verified against the project's JWKS (`SUPABASE_URL`); `user_accounts` holds role, plan and coverage (Free one county, Starter one state, Pro all; `role = developer` sees everything). Data routes depend on `require_access` / `require_property_access` and must apply the user's `scope_state` / `scope_county`; maintenance routes use `require_developer`; only aggregate facets are public. Stripe Checkout and its webhook set plans. Every table in `public` has RLS on with no access for the `anon`/`authenticated` roles (migration 034), because the browser holds the publishable key: keep RLS on for new tables and never query data from the browser with Supabase.
 
