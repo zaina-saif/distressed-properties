@@ -193,7 +193,9 @@
 @media(max-width: 600px) { .root :global(.why-hero) { padding-top: 45px; padding-bottom: 45px; } .root :global(.why-hero h1) { font-size: 34px; } .root :global(.why-intro) { font-size: 14px; } .root :global(.why-section), .root :global(.why-advantages) { padding: 50px 0; } .root :global(.why-advantages h2) { font-size: 28px; } .root :global(.why-advantage) { grid-template-columns: 1fr; gap: 12px; padding: 20px; } .root :global(.audience-grid) { grid-template-columns: 1fr; gap: 24px; } }
 .root :global(.why-hero .hero-buttons .site-button) { height: 48px; padding: 0 21px; font-size: 13px; }
 .root :global(.founder-property) { margin: 10px 0 14px; font-size: 13px !important; line-height: 1.6; } .root :global(.founder-property b) { color: var(--foreground); font-size: 15px; }
-.root :global(.founder-photos) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; } .root :global(.founder-photos img) { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.root :global(.founder-photo) { margin: 4px 0 22px; } .root :global(.founder-photo img) { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); } .root :global(.founder-photo figcaption) { margin-top: 10px; font-size: 13px; font-weight: 600; color: var(--equity); }
 .root :global(.hero-why-link) { margin-left: 4px; font-weight: 650; color: var(--equity); text-decoration: underline; text-underline-offset: 3px; } .root :global(#why) { scroll-margin-top: 20px; }
 .root :global(.hero-copy>p.hero-kicker) { max-width: 660px; margin-top: 0; margin-bottom: 18px; font-family: var(--font-display); font-size: 30px; font-weight: 750; line-height: 1.2; color: var(--foreground); }
 @media(max-width: 600px) { .root :global(.hero-copy>p.hero-kicker) { font-size: 22px; margin-bottom: 14px; } }
+.root :global(.founder-heading) { margin-bottom: 14px; font-size: 38px; font-weight: 700; line-height: 1.1; color: var(--foreground); }
+@media(max-width: 600px) { .root :global(.founder-heading) { font-size: 30px; } }

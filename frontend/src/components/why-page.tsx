@@ -121,21 +121,21 @@ export function Advantages({ link = false }: { link?: boolean }) {
   </section>;
 }
 
-// Photos of the founder's sheriff-sale condo, served from public/marketing/founder/.
-// Add the owner's own photos here; the gallery is hidden while the list is empty.
-const FOUNDER_PHOTOS: { src: string; alt: string }[] = [];
 
 /** The founder's sheriff-sale experience; also shown on the home page. */
 export function FounderStory({ link = false }: { link?: boolean }) {
   return <section id="story" className="testimonial">
     <div className="testimonial-inner container">
       <div className="testimonial-result">
+        <h2 className="founder-heading">Our Story</h2>
         <span>WHY WE BUILT THIS</span>
         <p className="founder-property"><b>51 Hiering Ave, Unit B14</b><br/>Seaside Heights, NJ · bought at sheriff sale</p>
+        <figure className="founder-photo">
+          <Image src="/marketing/founder/seaside-balcony-view.jpg" alt="Ocean view from the balcony of the founder's Seaside Heights condo" width={1400} height={1050} sizes="(max-width: 900px) 90vw, 400px"/>
+          <figcaption>Now running successfully as a short-term rental.</figcaption>
+        </figure>
         <strong>≈$200K</strong>
         <p>in equity at purchase</p>
-        {FOUNDER_PHOTOS.length > 0 && <div className="founder-photos">{FOUNDER_PHOTOS.map((photo) =>
-          <Image key={photo.src} src={photo.src} alt={photo.alt} width={480} height={360} sizes="(max-width: 600px) 45vw, 220px"/>)}</div>}
       </div>
       <div className="quote-area">
         <blockquote>“Before I bought my condo, I spent <strong>hundreds of hours</strong> searching for the right property. Even when I found one, I made trip after trip to the sheriff&apos;s office with certified checks, only to see the property <strong>not sold or rescheduled.</strong> That&apos;s what gave me the idea for Sheriff Sale Hunter: calculate the equity, predict whether the sale will happen, give a preliminary lien risk, and show the top properties not just in one area but <strong>across the region, and ultimately the whole country, from one portal.</strong>”</blockquote>
