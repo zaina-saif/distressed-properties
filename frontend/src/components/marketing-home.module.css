@@ -195,5 +195,5 @@
 .root :global(.founder-property) { margin: 10px 0 14px; font-size: 13px !important; line-height: 1.6; } .root :global(.founder-property b) { color: var(--foreground); font-size: 15px; }
 .root :global(.founder-photos) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; } .root :global(.founder-photos img) { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
 .root :global(.hero-why-link) { margin-left: 4px; font-weight: 650; color: var(--equity); text-decoration: underline; text-underline-offset: 3px; } .root :global(#why) { scroll-margin-top: 20px; }
-.root :global(.hero-tagline) { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; padding: 11px 16px; border-radius: 6px; background: var(--accent); color: var(--foreground); font-size: 18px; font-weight: 650; max-width: 640px; line-height: 1.4; box-shadow: var(--shadow); } .root :global(.hero-tagline strong) { font-weight: 800; } .root :global(.hero-tagline .status-dot) { flex-shrink: 0; width: 8px; height: 8px; background: var(--primary); }
-@media(max-width: 600px) { .root :global(.hero-tagline) { font-size: 14px; padding: 10px 13px; margin-bottom: 20px; } }
+.root :global(.hero-copy>p.hero-kicker) { max-width: 660px; margin-top: 0; margin-bottom: 18px; font-family: var(--font-display); font-size: 30px; font-weight: 750; line-height: 1.2; color: var(--foreground); }
+@media(max-width: 600px) { .root :global(.hero-copy>p.hero-kicker) { font-size: 22px; margin-bottom: 14px; } }
