@@ -17,3 +17,15 @@ def test_sale_ids_limit_the_list_to_those_sales():
 
     assert parameters == {"states": ["FL"], "sale_ids": ["abc"]}
     assert "ss.id::text = ANY(:sale_ids)" in conditions
+
+
+def test_spotlight_is_the_top_ten_within_the_plan_scope():
+    access = Access(user_id="u", email="u@example.com", plan="starter", plan_status="active", coverage_state="OH")
+    conditions, parameters = _property_filters(access, state=[], county=[], investor_spotlight=True)
+
+    # One condition: the ranking subquery, which applies the plan scope before picking the top ten.
+    assert len(conditions) == 1
+    assert "p.state = :scope_state" in conditions[0]
+    assert "probability_rank >= 0.5" in conditions[0]
+    assert conditions[0].rstrip().endswith("LIMIT 10)")
+    assert parameters["scope_state"] == "OH"

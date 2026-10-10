@@ -25,7 +25,7 @@ export function plans(stateCount: number, countyCount: number | null): PlanCard[
     {
       id: "starter", name: "Starter", monthly: 19.99, tagline: "Work a whole state.", coverage: "Every county in one state", cta: "Choose Starter",
       features: ["Everything in Free", "Unlimited property reports", "Probability each sale reaches auction, with the reasons",
-        "Preliminary lien pre-screening", "Investor Spotlight ranking by expected equity", "Change your state every 30 days"],
+        "Preliminary lien pre-screening", "Investor Spotlight: top 10 by equity and auction odds", "Change your state every 30 days"],
     },
     {
       id: "pro", name: "Pro", monthly: 49.99, tagline: "See every opportunity we track.", coverage: everywhere, cta: "Choose Pro", popular: true,

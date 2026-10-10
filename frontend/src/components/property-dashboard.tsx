@@ -340,7 +340,7 @@ export default function PropertyDashboard({
             <Sparkles className="h-4 w-4 shrink-0" />
             <span className="leading-tight">
               <span className="block text-sm font-bold"><span className="hidden sm:inline">Investor </span>Spotlight</span>
-              <span className={`hidden text-[10px] font-medium sm:block ${spotlight ? "text-amber-50" : "text-amber-700"}`}>(Highest equity / High probability to auction)</span>
+              <span className={`hidden text-[10px] font-medium sm:block ${spotlight ? "text-amber-50" : "text-amber-700"}`}>(Top 10: highest equity, better auction odds)</span>
             </span>
           </span>
         </button>
@@ -423,12 +423,12 @@ export default function PropertyDashboard({
             <span className="font-semibold">Investor Spotlight:</span>
             {spotlightSummary && (
               <span className="flex flex-wrap items-center gap-1.5">
-                <span className="rounded-full bg-white px-2 py-0.5 font-bold ring-1 ring-amber-200">{spotlightSummary.count.toLocaleString()} properties{selectedCounty ? ` in ${selectedCounty}` : ""}</span>
+                <span className="rounded-full bg-white px-2 py-0.5 font-bold ring-1 ring-amber-200">Top {spotlightSummary.count.toLocaleString()}{selectedCounty ? ` in ${selectedCounty}` : ""}</span>
                 <span className="rounded-full bg-white px-2 py-0.5 ring-1 ring-amber-200">Total gross equity <span className="font-bold">{wholeDollars(spotlightSummary.total_gross_equity)}</span></span>
                 <span className="rounded-full bg-white px-2 py-0.5 ring-1 ring-amber-200">Avg. gross equity <span className="font-bold">{wholeDollars(spotlightSummary.average_gross_equity)}</span></span>
               </span>
             )}
-            <span className="hidden text-amber-800 sm:inline">Upcoming scheduled sales ranked by expected equity: gross equity (Zestimate minus minimum bid) × probability to auction at the next sale date.</span>
+            <span className="hidden text-amber-800 sm:inline">The upcoming sales with the highest gross equity (Zestimate minus minimum bid), from those with better-than-typical odds of going to auction in their state.</span>
             <button type="button" onClick={() => setSpotlight(false)} className="ml-auto font-semibold underline">Exit spotlight</button>
           </div>
         )}

@@ -149,10 +149,28 @@ MINIMUM_BID_BASIS_SQL = (
 # Sale status as shown: unverified secondary-source listings whose date has passed read as date_passed_unverified.
 EFFECTIVE_STATUS_SQL = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
 
-# Investor Spotlight ranks by expected equity: gross equity (Zestimate minus the
-# minimum bid) weighted by the probability that the next sale date goes to auction.
+# Investor Spotlight: the SPOTLIGHT_SIZE properties with the highest gross equity
+# (Zestimate minus the minimum bid) among those in the upper half of their state's
+# probability that the next sale date goes to auction.
+SPOTLIGHT_SIZE = 10
 SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
 SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
+# The joins the spotlight ranking needs; filters may also use ra (risk).
+SPOTLIGHT_JOINS = """
+    LEFT JOIN LATERAL (
+        SELECT zestimate FROM apify_zillow_results
+        WHERE property_id = p.id AND is_current = TRUE AND match_status <> 'invalid'
+        ORDER BY retrieved_at DESC, id DESC LIMIT 1
+    ) AS azr ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT probability FROM sale_predictions
+        WHERE sheriff_sale_id = ss.id AND prediction_target = 'reaches_auction'
+        ORDER BY predicted_at DESC LIMIT 1
+    ) AS sp ON TRUE
+    LEFT JOIN LATERAL (
+        SELECT risk_score FROM risk_assessments
+        WHERE sheriff_sale_id = ss.id ORDER BY calculated_at DESC LIMIT 1
+    ) AS ra ON TRUE"""
 
 
 def _property_filters(
@@ -239,6 +257,20 @@ def _property_filters(
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
         conditions.append(f"{SPOTLIGHT_GROSS_EQUITY} > 0")
         conditions.append("sp.probability IS NOT NULL")
+        # Of those, the upper half by auction probability within each state (states score
+        # differently, so a fixed cutoff would leave some out), then the highest equity.
+        conditions = [f"""ss.id IN (
+            SELECT ranked.id FROM (
+                SELECT ss.id, {SPOTLIGHT_GROSS_EQUITY} AS gross_equity,
+                       PERCENT_RANK() OVER (PARTITION BY ss.state ORDER BY sp.probability) AS probability_rank
+                FROM sheriff_sales AS ss
+                JOIN properties AS p ON p.id = ss.property_id
+                {SPOTLIGHT_JOINS}
+                WHERE {" AND ".join(conditions)}
+            ) AS ranked
+            WHERE ranked.probability_rank >= 0.5
+            ORDER BY ranked.gross_equity DESC, ranked.id
+            LIMIT {SPOTLIGHT_SIZE})"""]
 
     return conditions, parameters
 
@@ -304,7 +336,7 @@ def list_properties(
         "coordinate-source": "coordinate_source", "valuation-retrieved": "valuation_retrieved_at",
         "lien-risk-calculated": "lien_risk_calculated_at", "lien-risk-summary": "lien_risk_calculated_at",
         "foreclosure-source": "ss.source_url",
-        "investor-spotlight": SPOTLIGHT_SCORE,
+        "investor-spotlight": SPOTLIGHT_GROSS_EQUITY,
         # Backward-compatible values used by the existing sort menu.
         "value-desc": "market_value", "equity-desc": "gross_equity",
     }
