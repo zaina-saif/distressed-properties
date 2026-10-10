@@ -68,11 +68,13 @@ export default function PropertyDashboard({
   initialCounty = "",
   initialQuery = "",
   initialSpotlight = false,
+  initialView = "dashboard",
 }: {
   initialState?: string;
   initialCounty?: string;
   initialQuery?: string;
   initialSpotlight?: boolean;
+  initialView?: "dashboard" | "list" | "analytics";
 }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
@@ -127,7 +129,7 @@ export default function PropertyDashboard({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
-  const [desktopView, setDesktopView] = useState<"dashboard" | "list" | "analytics">("dashboard");
+  const [desktopView, setDesktopView] = useState<"dashboard" | "list" | "analytics">(initialView);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
