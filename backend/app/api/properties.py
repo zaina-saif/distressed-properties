@@ -155,31 +155,25 @@ SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
 SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
 
 
-@router.get("", dependencies=[Depends(per_user("property_list", 600))])
-def list_properties(
-    state: list[str] = Query(default=[]),
-    county: list[str] = Query(default=[]),
-    q: Optional[str] = Query(default=None, max_length=200),
+def _property_filters(
+    access: Access,
+    state: list[str],
+    county: list[str],
+    q: Optional[str] = None,
     zip_code: Optional[str] = None,
     status: Optional[str] = None,
-    status_contains: Optional[str] = Query(default=None, max_length=100),
+    status_contains: Optional[str] = None,
     future_only: bool = False,
     min_equity: Optional[float] = None,
     max_risk: Optional[int] = None,
     investor_spotlight: bool = False,
-    sort: str = "sale-date",
-    sort_direction: Literal["asc", "desc"] = "asc",
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=50, ge=1, le=200),
-    access: Access = Depends(require_access),
-):
-    offset = (page - 1) * page_size
+    sale_id: list[str] = (),
+) -> tuple[list[str], dict]:
+    """WHERE conditions and parameters shared by the property list and its map points.
 
+    They expect the list query's aliases: ss, p, azr (Zillow), ra (risk) and sp (probability)."""
     conditions = ["ss.property_id IS NOT NULL"]
-    parameters = {
-        "limit": page_size,
-        "offset": offset,
-    }
+    parameters: dict = {}
 
     # The plan's coverage always applies, on top of any filters in the request.
     if access.scope_state:
@@ -196,6 +190,10 @@ def list_properties(
     if county:
         conditions.append("LOWER(p.county) = ANY(:counties)")
         parameters["counties"] = [value.lower() for value in county]
+
+    if sale_id:
+        conditions.append("ss.id::text = ANY(:sale_ids)")
+        parameters["sale_ids"] = list(sale_id)
 
     if q and q.strip():
         conditions.append(
@@ -241,6 +239,36 @@ def list_properties(
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
         conditions.append(f"{SPOTLIGHT_GROSS_EQUITY} > 0")
         conditions.append("sp.probability IS NOT NULL")
+
+    return conditions, parameters
+
+
+@router.get("", dependencies=[Depends(per_user("property_list", 600))])
+def list_properties(
+    state: list[str] = Query(default=[]),
+    county: list[str] = Query(default=[]),
+    q: Optional[str] = Query(default=None, max_length=200),
+    zip_code: Optional[str] = None,
+    status: Optional[str] = None,
+    status_contains: Optional[str] = Query(default=None, max_length=100),
+    future_only: bool = False,
+    min_equity: Optional[float] = None,
+    max_risk: Optional[int] = None,
+    investor_spotlight: bool = False,
+    sort: str = "sale-date",
+    sort_direction: Literal["asc", "desc"] = "asc",
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=200),
+    sale_id: list[str] = Query(default=[]),
+    access: Access = Depends(require_access),
+):
+    offset = (page - 1) * page_size
+
+    conditions, parameters = _property_filters(
+        access, state, county, q, zip_code, status, status_contains, future_only,
+        min_equity, max_risk, investor_spotlight, sale_id,
+    )
+    parameters.update({"limit": page_size, "offset": offset})
 
     where_clause = " AND ".join(conditions)
     sort_columns = {
@@ -778,6 +806,59 @@ def list_properties(
     return response
 
 
+@router.get("/map-points", dependencies=[Depends(per_user("property_map", 300))])
+def property_map_points(
+    state: list[str] = Query(default=[]),
+    county: list[str] = Query(default=[]),
+    q: Optional[str] = Query(default=None, max_length=200),
+    status_contains: Optional[str] = Query(default=None, max_length=100),
+    investor_spotlight: bool = False,
+    access: Access = Depends(require_access),
+):
+    """Coordinates for every property matching the list filters, not just one page,
+    so the map can mark them all. Coordinates are picked in the list's order."""
+    conditions, parameters = _property_filters(
+        access, state, county, q, status_contains=status_contains, investor_spotlight=investor_spotlight)
+    query = text(f"""
+        SELECT ss.id::text AS sheriff_sale_id, p.id::text AS property_id, p.normalized_address,
+               COALESCE(canonical_parcel.latitude, avm_subject.latitude, p.latitude,
+                        (azr.raw_payload->'coordinates'->>'latitude')::DOUBLE PRECISION) AS latitude,
+               COALESCE(canonical_parcel.longitude, avm_subject.longitude, p.longitude,
+                        (azr.raw_payload->'coordinates'->>'longitude')::DOUBLE PRECISION) AS longitude
+        FROM sheriff_sales AS ss
+        JOIN properties AS p ON p.id = ss.property_id
+        LEFT JOIN LATERAL (
+            SELECT zestimate, raw_payload FROM apify_zillow_results
+            WHERE property_id = p.id AND is_current = TRUE AND match_status <> 'invalid'
+            ORDER BY retrieved_at DESC, id DESC LIMIT 1
+        ) AS azr ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT probability FROM sale_predictions
+            WHERE sheriff_sale_id = ss.id AND prediction_target = 'reaches_auction'
+            ORDER BY predicted_at DESC LIMIT 1
+        ) AS sp ON TRUE
+        LEFT JOIN property_avm_features AS f ON f.property_id = p.id
+        LEFT JOIN LATERAL (
+            SELECT cp.latitude, cp.longitude
+            FROM sheriff_sale_parcels AS ssp JOIN parcels AS cp ON cp.id = ssp.parcel_id
+            WHERE ssp.sheriff_sale_id = ss.id AND ssp.match_status IN ('VERIFIED', 'MANUALLY_VERIFIED')
+            ORDER BY CASE WHEN ssp.relationship = 'PRIMARY' THEN 0 ELSE 1 END, ssp.match_score DESC NULLS LAST
+            LIMIT 1
+        ) AS canonical_parcel ON TRUE
+        LEFT JOIN LATERAL (
+            SELECT latitude, longitude FROM nj_avm_training_sales
+            WHERE municipality_code = f.municipality_code AND block = f.block AND lot = f.lot
+              AND COALESCE(qualifier, '') = COALESCE(f.qualifier, '')
+            ORDER BY deed_date DESC LIMIT 1
+        ) AS avm_subject ON TRUE
+        WHERE {" AND ".join(conditions)}
+    """)
+    with engine.connect() as connection:
+        rows = connection.execute(query, parameters).mappings().all()
+    points = [dict(row) for row in rows if row["latitude"] is not None and row["longitude"] is not None]
+    return {"total": len(rows), "points": points}
+
+
 @router.get("/export.xlsx", dependencies=[Depends(per_user("export", 20))])
 def export_properties_xlsx(
     state: list[str] = Query(default=[]),
@@ -798,7 +879,7 @@ def export_properties_xlsx(
         state=state, county=county, q=q, zip_code=zip_code, status=status,
         status_contains=status_contains, future_only=future_only,
         min_equity=min_equity, sort=sort, sort_direction=sort_direction,
-        page=page, page_size=page_size, access=access,
+        page=page, page_size=page_size, sale_id=[], access=access,
     )
     rows = list(result["items"])
 

@@ -1,9 +1,9 @@
 "use client";
 
-import type { Map as LeafletMap, Marker as LeafletMarker } from "leaflet";
+import type { CircleMarker, LayerGroup, Map as LeafletMap } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 
-import type { Property } from "@/types/property";
+import type { MapPoint } from "@/services/properties";
 
 type GeocodeResult = {
   county?: string;
@@ -12,18 +12,25 @@ type GeocodeResult = {
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
 const NJ_VIEW: [number, number, number] = [40.1, -74.6, 8];
+// Drawn on a canvas: "All states" maps thousands of sales, too many for DOM markers.
+const MARKER = { radius: 6, color: "#ffffff", weight: 2, fillColor: "#dc2626", fillOpacity: 1 };
+const MARKER_HOVER = { radius: 8, fillColor: "#b91c1c" };
+const MARKER_SELECTED = { radius: 9, color: "#fca5a5", weight: 4, fillColor: "#991b1b", fillOpacity: 1 };
 
 export function PropertyMap({
-  properties,
+  points,
+  total,
   selectedPropertyId,
   onPropertyClick,
   onCountySelect,
   visibilityKey,
   defaultView = NJ_VIEW,
 }: {
-  properties: Property[];
+  points: MapPoint[];
+  /** Matching properties, including those without coordinates. */
+  total: number;
   selectedPropertyId?: string;
-  onPropertyClick: (property: Property) => void;
+  onPropertyClick: (point: MapPoint) => void;
   onCountySelect: (state: string, county: string) => void;
   visibilityKey: string;
   /** Latitude, longitude and zoom shown when no property has coordinates. */
@@ -31,13 +38,19 @@ export function PropertyMap({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
-  const markersRef = useRef<LeafletMarker[]>([]);
+  const layerRef = useRef<LayerGroup | null>(null);
+  const markersRef = useRef(new Map<string, CircleMarker>());
+  const selectedRef = useRef(selectedPropertyId);
+  // Read at click time, so a new handler (the list's page changed) does not redraw every marker.
+  const clickRef = useRef(onPropertyClick);
+  useEffect(() => { clickRef.current = onPropertyClick; }, [onPropertyClick]);
   const fitRef = useRef<(() => void) | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    const markers = markersRef.current;
 
     async function initializeMap() {
       if (!containerRef.current || mapRef.current) return;
@@ -118,8 +131,8 @@ export function PropertyMap({
     void initializeMap();
     return () => {
       active = false;
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
+      markers.clear();
+      layerRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
@@ -143,33 +156,28 @@ export function PropertyMap({
       const L = await import("leaflet");
       if (!active || !mapRef.current) return;
 
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
+      layerRef.current?.remove();
+      markersRef.current.clear();
+      const layer = L.layerGroup().addTo(mapRef.current);
+      layerRef.current = layer;
+      const renderer = L.canvas({ padding: 0.5 });
       const bounds = L.latLngBounds([]);
 
-      for (const property of properties) {
-        if (property.latitude == null || property.longitude == null) continue;
-        const latitude = Number(property.latitude);
-        const longitude = Number(property.longitude);
+      for (const point of points) {
+        const latitude = Number(point.latitude);
+        const longitude = Number(point.longitude);
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
-
-        const marker = L.marker([latitude, longitude], {
-          icon: L.divIcon({
-            className: property.property_id === selectedPropertyId
-              ? "property-map-marker property-map-marker-selected"
-              : "property-map-marker",
-            html: "",
-            iconSize: [14, 14],
-            iconAnchor: [7, 7],
-          }),
-          keyboard: true,
-          title: `View ${property.normalized_address}`,
-        })
-          .on("click", () => onPropertyClick(property))
-          .addTo(mapRef.current);
-        markersRef.current.push(marker);
+        const selected = point.property_id === selectedRef.current;
+        const marker = L.circleMarker([latitude, longitude], { renderer, bubblingMouseEvents: false, ...(selected ? MARKER_SELECTED : MARKER) })
+          .bindTooltip(point.normalized_address, { direction: "top", offset: [0, -6] })
+          .on("click", () => clickRef.current(point))
+          .on("mouseover", () => { if (point.property_id !== selectedRef.current) marker.setStyle(MARKER_HOVER); })
+          .on("mouseout", () => { if (point.property_id !== selectedRef.current) marker.setStyle(MARKER); })
+          .addTo(layer);
+        markersRef.current.set(point.property_id, marker);
         bounds.extend([latitude, longitude]);
       }
+      markersRef.current.get(selectedRef.current ?? "")?.bringToFront();
 
       const fit = () => {
         if (!mapRef.current) return;
@@ -185,14 +193,16 @@ export function PropertyMap({
 
     void updateMarkers();
     return () => { active = false; };
-  }, [defaultView, mapReady, onPropertyClick, properties, selectedPropertyId]);
+  }, [defaultView, mapReady, points]);
 
-  const mappedCount = properties.filter((property) =>
-    property.latitude != null
-      && property.longitude != null
-      && Number.isFinite(Number(property.latitude))
-      && Number.isFinite(Number(property.longitude)),
-  ).length;
+  // Restyle only the old and new selection; redrawing every marker would also refit the map.
+  useEffect(() => {
+    const previous = selectedRef.current;
+    selectedRef.current = selectedPropertyId;
+    if (previous && previous !== selectedPropertyId) markersRef.current.get(previous)?.setStyle(MARKER);
+    const marker = selectedPropertyId ? markersRef.current.get(selectedPropertyId) : undefined;
+    marker?.setStyle(MARKER_SELECTED).bringToFront();
+  }, [selectedPropertyId]);
 
   return (
     <section className="relative isolate h-full min-h-96 overflow-hidden bg-slate-100" aria-label="Property map">
@@ -205,7 +215,7 @@ export function PropertyMap({
       )}
 
       <div className="absolute bottom-4 left-4 z-[1000] rounded-lg border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-600 shadow">
-        <span className="font-semibold text-slate-900">{mappedCount}</span> of {properties.length} loaded properties have verified coordinates
+        <span className="font-semibold text-slate-900">{points.length.toLocaleString()}</span> of {total.toLocaleString()} properties mapped
       </div>
     </section>
   );

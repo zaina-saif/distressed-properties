@@ -36,6 +36,17 @@ export interface PropertyFilters {
   sortDirection?: "asc" | "desc";
   page?: number;
   pageSize?: number;
+  /** Only these sales (used to open a sale picked on the map). */
+  saleIds?: string[];
+}
+
+/** One mapped sale; the full listing loads when it is opened. */
+export interface MapPoint {
+  sheriff_sale_id: string;
+  property_id: string;
+  normalized_address: string;
+  latitude: number;
+  longitude: number;
 }
 
 export async function getProperties(
@@ -85,6 +96,8 @@ export async function getProperties(
     params.set("sort_direction", filters.sortDirection);
   }
 
+  filters.saleIds?.forEach((id) => params.append("sale_id", id));
+
   params.set("page", String(filters.page ?? 1));
   params.set("page_size", String(filters.pageSize ?? 50));
 
@@ -101,6 +114,21 @@ export async function getProperties(
     );
   }
 
+  return response.json();
+}
+
+/** Coordinates for every property matching the filters, for the map (the list is paged). */
+export async function getMapPoints(
+  filters: Pick<PropertyFilters, "states" | "counties" | "query" | "statusContains" | "investorSpotlight">,
+): Promise<{ total: number; points: MapPoint[] }> {
+  const params = new URLSearchParams();
+  filters.states?.forEach((state) => params.append("state", state));
+  filters.counties?.forEach((county) => params.append("county", county));
+  if (filters.query) params.set("q", filters.query);
+  if (filters.statusContains) params.set("status_contains", filters.statusContains);
+  if (filters.investorSpotlight) params.set("investor_spotlight", "true");
+  const response = await authFetch(`${API_URL}/api/v1/properties/map-points?${params.toString()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Failed to load map points: ${response.status}`);
   return response.json();
 }
 

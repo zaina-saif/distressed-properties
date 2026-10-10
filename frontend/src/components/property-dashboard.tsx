@@ -38,7 +38,7 @@ import { formatSaleDate, STATES } from "@/lib/states";
 
 const ALL_STATES = "ALL";
 const ALL_STATES_INFO = { code: ALL_STATES, name: "All states", view: [39.5, -96, 4] as [number, number, number] };
-import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
+import { downloadPropertiesXlsx, getMapPoints, getProperties, getPropertyCoverage, type MapPoint } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
 const PAGE_SIZE = 24;
@@ -200,6 +200,23 @@ export default function PropertyDashboard({
     return () => { active = false; };
   }, [coverageLoaded, desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
 
+  // Every matching property goes on the map, not just the list's current page.
+  const [mapPoints, setMapPoints] = useState<{ total: number; points: MapPoint[] }>({ total: 0, points: [] });
+  useEffect(() => {
+    if (selectedState === "TX" && !coverageLoaded) return;
+    let active = true;
+    getMapPoints({
+      states: stateFilter,
+      counties: selectedCounty ? [selectedCounty] : undefined,
+      query: searchQuery || undefined,
+      statusContains: statusFilter,
+      investorSpotlight: spotlight || undefined,
+    })
+      .then((response) => { if (active) setMapPoints(response); })
+      .catch(() => { if (active) setMapPoints({ total: 0, points: [] }); });
+    return () => { active = false; };
+  }, [coverageLoaded, refreshKey, searchQuery, selectedCounty, selectedState, spotlight, stateFilter, statusFilter]);
+
   const counties = useMemo(
     () => (showRecentSale ? recentCoverage : coverage)
       .filter((item) => item.state === selectedState && (!lockedCounty || item.county === lockedCounty))
@@ -224,7 +241,6 @@ export default function PropertyDashboard({
     const dates = properties.map((property) => property.current_sale_date).filter((value): value is string => Boolean(value)).sort();
     return dates.length ? new Date(dates[dates.length - 1]) : null;
   }, [properties]);
-  const mappedCount = properties.filter((property) => property.latitude != null && property.longitude != null).length;
 
   const chooseProperty = useCallback((property: Property) => setSelectedProperty(property), []);
   const focusProperty = useCallback((property: Property) => {
@@ -235,6 +251,17 @@ export default function PropertyDashboard({
       requestAnimationFrame(() => document.getElementById("property-results")?.scrollIntoView());
     }
   }, []);
+  // A point off the list's current page loads its listing before it opens.
+  const openMapPoint = useCallback((point: MapPoint) => {
+    const loaded = properties.find((property) => property.sheriff_sale_id === point.sheriff_sale_id);
+    if (loaded) {
+      focusProperty(loaded);
+      return;
+    }
+    getProperties({ saleIds: [point.sheriff_sale_id], page: 1, pageSize: 1 })
+      .then((response) => { if (response.items[0]) focusProperty(response.items[0]); })
+      .catch(() => setError("Unable to open that property."));
+  }, [focusProperty, properties]);
   const chooseCounty = useCallback((state: string, county: string) => {
     if (lockedCounty && county !== lockedCounty) return;
     // From "All states", a county on the map opens its state.
@@ -447,7 +474,7 @@ export default function PropertyDashboard({
       <div className={`grid flex-1 grid-cols-1 lg:min-h-0 lg:overflow-hidden ${desktopView === "dashboard" ? "lg:grid-cols-[minmax(0,2fr)_minmax(22rem,1fr)]" : ""}`}>
         <div className={`${desktopView === "list" ? "hidden" : mobileView === "map" ? "block h-[75dvh]" : "hidden"} min-h-0 overflow-hidden border-r border-slate-200 lg:h-auto ${desktopView === "dashboard" ? "lg:block" : "lg:hidden"}`}>
           {desktopView === "dashboard" && (
-            <PropertyMap properties={properties} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={focusProperty} onCountySelect={chooseCounty} visibilityKey={mobileView} defaultView={stateInfo.view} />
+            <PropertyMap points={mapPoints.points} total={mapPoints.total} selectedPropertyId={focusedProperty?.property_id ?? selectedProperty?.property_id} onPropertyClick={openMapPoint} onCountySelect={chooseCounty} visibilityKey={mobileView} defaultView={stateInfo.view} />
           )}
         </div>
 
@@ -461,7 +488,7 @@ export default function PropertyDashboard({
                   Next scheduled sale: <span className="font-semibold text-teal-800">{formatSaleDate(nextSaleDate)}</span>
                 </p>
               )}
-              <p className="text-xs text-slate-500">{mappedCount} mapped on this page{averageEquity != null ? ` · ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(averageEquity)} avg. equity` : ""}</p>
+              <p className="text-xs text-slate-500">{mapPoints.points.length.toLocaleString()} on the map{averageEquity != null ? ` · ${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(averageEquity)} avg. equity` : ""}</p>
             </div>
             <label className="flex items-center gap-2 text-xs text-slate-500">
               <SlidersHorizontal className="h-4 w-4" />
