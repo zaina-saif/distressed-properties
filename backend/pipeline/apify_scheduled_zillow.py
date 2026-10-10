@@ -72,7 +72,7 @@ def search_address(row):
     return f"{clean_street(row['street_address'])}, {place}"
 
 
-def prepare(only_missing=False, retry_unmatched=False, sold_results=False):
+def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer=None):
     if (OUTPUT / "submission.json").exists():
         raise RuntimeError("A submission already exists. Resume it; do not replace its manifest.")
     with engine.connect() as connection:
@@ -88,6 +88,7 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False):
                     AND ss.current_sale_date<CURRENT_DATE
                     AND ss.current_status='scheduled_unverified'
                 THEN 'date_passed_unverified' ELSE ss.current_status END), :status) > 0 END)
+              AND (CAST(:buyer AS TEXT) IS NULL OR ss.sold_buyer = :buyer)
               AND (NOT :only_missing OR NOT EXISTS (
                 SELECT 1 FROM apify_zillow_results z
                 WHERE z.property_id=p.id AND z.is_current
@@ -98,7 +99,7 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False):
                   AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'))
             ORDER BY p.normalized_address, ss.id
         """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
-                "retry_unmatched": retry_unmatched, "sold_results": sold_results}).mappings().all()
+                "retry_unmatched": retry_unmatched, "sold_results": sold_results, "buyer": buyer}).mappings().all()
     manifest = [dict(row) for row in rows]
     for row in manifest:
         if retry_unmatched:
@@ -201,8 +202,10 @@ if __name__ == "__main__":
                              "house, searched again by cleaned street and ZIP")
     parser.add_argument("--sold-results", action="store_true",
                         help="prepare: sold sales with a parsed result (pipeline.sale_results) instead of a status")
+    parser.add_argument("--buyer", choices=["third_party", "plaintiff", "cwpp", "not_stated"],
+                        help="prepare with --sold-results: only sales this buyer won (analytics compare third-party bids)")
     args = parser.parse_args()
     if args.action == "prepare":
-        prepare(args.only_missing, args.retry_unmatched, args.sold_results)
+        prepare(args.only_missing, args.retry_unmatched, args.sold_results, args.buyer)
     else:
         {"submit": submit, "watch": watch}[args.action]()
