@@ -46,8 +46,9 @@ export interface SaleAnalytics {
 }
 
 /** Past-sale outcomes and winning bids for the user's coverage (the API applies the plan's limits). */
-export async function getSaleAnalytics(filters: { state: string; county?: string; months?: number }): Promise<SaleAnalytics> {
-  const params = new URLSearchParams({ state: filters.state });
+export async function getSaleAnalytics(filters: { state?: string; county?: string; months?: number }): Promise<SaleAnalytics> {
+  const params = new URLSearchParams();
+  if (filters.state) params.set("state", filters.state);
   if (filters.county) params.append("county", filters.county);
   if (filters.months) params.set("months", String(filters.months));
   const response = await authFetch(`${API_URL}/api/v1/analytics/sales?${params.toString()}`, { cache: "no-store" });

@@ -225,12 +225,12 @@ function binned(points: PricedSale[], ratio: (p: PricedSale) => number | null, b
 }
 
 /** The dashboard's Analytics tab: past sale outcomes and winning bids for the selected state and county. */
-export function SaleAnalyticsView({ state, county, stateName }: { state: string; county: string; stateName: string }) {
+export function SaleAnalyticsView({ state, county, stateName }: { state?: string; county: string; stateName: string }) {
   const [months, setMonths] = useState<number | undefined>(24);
   const [data, setData] = useState<SaleAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Loading until the response for the current selection arrives; the previous render stays on screen.
-  const requestKey = `${state}|${county}|${months ?? "all"}`;
+  const requestKey = `${state ?? "ALL"}|${county}|${months ?? "all"}`;
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const loading = loadedKey !== requestKey;
   useEffect(() => {

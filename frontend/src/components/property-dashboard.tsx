@@ -35,6 +35,9 @@ import { PropertyTable } from "@/components/property-table";
 import { SaleAnalyticsView } from "@/components/sale-analytics";
 import { getProfile } from "@/lib/profile";
 import { formatSaleDate, STATES } from "@/lib/states";
+
+const ALL_STATES = "ALL";
+const ALL_STATES_INFO = { code: ALL_STATES, name: "All states", view: [39.5, -96, 4] as [number, number, number] };
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
@@ -118,10 +121,16 @@ export default function PropertyDashboard({
     [account],
   );
   const lockedCounty = account && !account.is_developer && account.plan === "free" ? account.coverage_county : null;
+  // "All states" for plans that cover more than one state; counties repeat across
+  // states (Lake County is in OH, IL and FL), so it has no county filter.
+  const canShowAll = allowedStates.length > 1;
   const [selectedState, setSelectedState] = useState(
-    allowedStates.some((item) => item.code === initialState.toUpperCase()) ? initialState.toUpperCase() : allowedStates[0]?.code ?? "NJ",
+    canShowAll && initialState.toUpperCase() === ALL_STATES ? ALL_STATES
+      : allowedStates.some((item) => item.code === initialState.toUpperCase()) ? initialState.toUpperCase() : allowedStates[0]?.code ?? "NJ",
   );
-  const stateInfo = STATES.find((item) => item.code === selectedState) ?? STATES[0];
+  const allStates = selectedState === ALL_STATES;
+  const stateFilter = useMemo(() => (allStates ? undefined : [selectedState]), [allStates, selectedState]);
+  const stateInfo = allStates ? ALL_STATES_INFO : STATES.find((item) => item.code === selectedState) ?? STATES[0];
   const [selectedCounty, setSelectedCounty] = useState(lockedCounty ?? initialCounty);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
@@ -146,7 +155,7 @@ export default function PropertyDashboard({
   useEffect(() => {
     let active = true;
     getProperties({
-      states: [selectedState],
+      states: stateFilter,
       counties: selectedCounty ? [selectedCounty] : undefined,
       investorSpotlight: true,
       sort: "investor-spotlight",
@@ -157,14 +166,14 @@ export default function PropertyDashboard({
       .then((response) => { if (active) setSpotlightSummary(response.spotlight_summary ?? null); })
       .catch(() => { if (active) setSpotlightSummary(null); });
     return () => { active = false; };
-  }, [refreshKey, selectedCounty, selectedState]);
+  }, [refreshKey, selectedCounty, stateFilter]);
 
   useEffect(() => {
     // Wait for coverage so Texas does not flash "no properties" before its fallback.
     if (selectedState === "TX" && !coverageLoaded) return;
     let active = true;
     getProperties({
-      states: [selectedState],
+      states: stateFilter,
       counties: selectedCounty ? [selectedCounty] : undefined,
       query: searchQuery || undefined,
       statusContains: statusFilter,
@@ -189,7 +198,7 @@ export default function PropertyDashboard({
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [coverageLoaded, desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, statusFilter]);
+  }, [coverageLoaded, desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
 
   const counties = useMemo(
     () => (showRecentSale ? recentCoverage : coverage)
@@ -227,10 +236,15 @@ export default function PropertyDashboard({
     }
   }, []);
   const chooseCounty = useCallback((state: string, county: string) => {
-    if (state !== selectedState || (lockedCounty && county !== lockedCounty)) return;
+    if (lockedCounty && county !== lockedCounty) return;
+    // From "All states", a county on the map opens its state.
+    if (state !== selectedState) {
+      if (selectedState !== ALL_STATES || !allowedStates.some((item) => item.code === state)) return;
+      setSelectedState(state);
+    }
     setSelectedCounty(county);
     setPage(1);
-  }, [lockedCounty, selectedState]);
+  }, [allowedStates, lockedCounty, selectedState]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
@@ -253,7 +267,7 @@ export default function PropertyDashboard({
     setExporting(true);
     try {
       const blob = await downloadPropertiesXlsx({
-        states: [selectedState],
+        states: stateFilter,
         counties: selectedCounty ? [selectedCounty] : undefined,
         query: searchQuery || undefined,
         statusContains: statusFilter,
@@ -266,7 +280,7 @@ export default function PropertyDashboard({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `${selectedState.toLowerCase()}-sheriff-properties.xlsx`;
+      anchor.download = `${allStates ? "all-states" : selectedState.toLowerCase()}-sheriff-properties.xlsx`;
       anchor.click();
       URL.revokeObjectURL(url);
     } catch {
@@ -345,11 +359,14 @@ export default function PropertyDashboard({
               onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
               className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-1.5 py-2 text-base outline-none focus:border-teal-500 sm:w-32 sm:flex-none sm:py-1 sm:text-xs"
             >
+              {canShowAll && <option value={ALL_STATES}>All states</option>}
               {allowedStates.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
             </select>
             <select
               aria-label="County"
               value={selectedCounty}
+              disabled={allStates}
+              title={allStates ? "Choose a state to filter by county" : undefined}
               onChange={(event) => { setSelectedCounty(event.target.value); setPage(1); }}
               className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-1.5 py-2 text-base outline-none focus:border-teal-500 sm:w-32 sm:flex-none sm:py-1 sm:text-xs"
             >
@@ -398,7 +415,7 @@ export default function PropertyDashboard({
           </div>
         )}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
-        {countyCounts.length > 0 && (
+        {countyCounts.length > 0 && !allStates && (
           <section className="hidden w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2 sm:block" aria-label={`${selectedState} county record counts`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-xs font-bold text-teal-950">{selectedState} county coverage</h2>
@@ -419,7 +436,7 @@ export default function PropertyDashboard({
         )}
       </section>
 
-      {desktopView === "analytics" ? <SaleAnalyticsView state={selectedState} county={selectedCounty} stateName={stateInfo.name} /> : <>
+      {desktopView === "analytics" ? <SaleAnalyticsView state={allStates ? undefined : selectedState} county={selectedCounty} stateName={stateInfo.name} /> : <>
       <div className={`sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
         <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
           <button onClick={() => setMobileView("map")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "map" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><MapIcon className="h-4 w-4" />Map</button>
