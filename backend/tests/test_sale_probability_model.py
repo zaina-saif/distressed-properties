@@ -118,3 +118,11 @@ def test_typical_sale_is_taken_within_each_state():
     assert typical["OH"]["county"] == "Cuyahoga"
     assert "CO" not in typical
     assert typical["ALL"]["county"] == "Cuyahoga"
+
+
+def test_indiana_minimum_bid_is_not_a_feature():
+    from pipeline.train_sale_probability_model import build_features
+
+    features = build_features({"state": "IN", "upset_price": 95000, "judgment_amount": 143000}, [], None)
+    assert features["minimum_bid"] == 143000
+    assert features["has_upset_price"] == 0

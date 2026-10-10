@@ -37,6 +37,9 @@ class Sale:
     attorney: str | None = None
     result: str | None = None
     property_number: str | None = None
+    # Coordinates published by the source (SRI); a property's existing ones are kept.
+    latitude: float | None = None
+    longitude: float | None = None
     extra: dict = field(default_factory=dict)
 
 
@@ -98,13 +101,14 @@ def _upsert(connection, state, county, source, source_url, sale, run, now, keep_
                   else f"{sale.street}, {sale.city}, {state}")
     address_hash = hashlib.sha256(f"{state}|{county}|{normalized.upper()}".encode()).hexdigest()
     property_id = connection.execute(text("""INSERT INTO properties(id,normalized_address,street_address,
-        city,municipality,county,state,zip_code,parcel_number,address_hash,data_quality_score)
-        VALUES(:id,:normalized,:street,:city,:city,:county,:state,:zip,:parcel,:hash,70)
+        city,municipality,county,state,zip_code,parcel_number,address_hash,data_quality_score,latitude,longitude)
+        VALUES(:id,:normalized,:street,:city,:city,:county,:state,:zip,:parcel,:hash,70,:latitude,:longitude)
         ON CONFLICT(address_hash) DO UPDATE SET parcel_number=COALESCE(properties.parcel_number,
-        EXCLUDED.parcel_number),updated_at=NOW() RETURNING id"""),
+        EXCLUDED.parcel_number),latitude=COALESCE(properties.latitude,EXCLUDED.latitude),
+        longitude=COALESCE(properties.longitude,EXCLUDED.longitude),updated_at=NOW() RETURNING id"""),
         {"id": str(uuid.uuid4()), "normalized": normalized, "street": sale.street, "city": sale.city,
          "county": county, "state": state, "zip": sale.zip_code, "parcel": sale.parcel,
-         "hash": address_hash}).scalar_one()
+         "hash": address_hash, "latitude": sale.latitude, "longitude": sale.longitude}).scalar_one()
     content_hash = hashlib.sha256(json.dumps(sale.raw, sort_keys=True, default=str).encode()).hexdigest()
     connection.execute(text("""INSERT INTO raw_scrape_records(id,scrape_run_id,state,county,source_record_id,
         source_url,raw_payload,content_hash,parsing_status,scraped_at) VALUES(:id,:run,:state,:county,:case,

@@ -32,7 +32,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-MODEL_VERSION = "sale_probability_gradient_boosting_v4"
+MODEL_VERSION = "sale_probability_gradient_boosting_v5"
 MODEL_NAME = "sale_probability_gradient_boosting"
 TARGET = "reaches_auction"
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
@@ -48,6 +48,12 @@ NEGATIVE_TERMINAL = (
     "cancel", "settled", "redeem", "writ_expired", "withdraw", "dismiss",
     "closed", "expired", "bankrupt",
 )
+
+
+# States whose minimum bid is only set shortly before the sale (Indiana's sheriff
+# fills it in near the date; it stays "Pending" before). Whether it is set shows
+# how far a case got, not whether it will sell, so these use the judgment only.
+UPSET_SET_LATE = {"IN"}
 
 
 def _norm(value: Any) -> str:
@@ -108,6 +114,8 @@ def build_features(sale: dict[str, Any], prior_events: list[dict[str, Any]], eve
     days_until_sale = (sale_date - event_date).days if sale_date and event_date else 0
     upset = sale.get("upset_price")
     judgment = sale.get("judgment_amount")
+    if str(sale.get("state") or "").upper() in UPSET_SET_LATE:
+        upset = None
     try:
         minimum_bid = float(upset if upset is not None else judgment) if (upset is not None or judgment is not None) else 0.0
     except (TypeError, ValueError):
@@ -505,7 +513,7 @@ def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, 
             no_history = feature_row["state"] not in trained_states and bool(trained_states)
             explanations = {
                 "methodology": (
-                    "Calibrated gradient boosting trained on past sale dates in NJ, OH and FL that have already "
+                    "Calibrated gradient boosting trained on past sale dates in NJ, OH, FL and IN that have already "
                     "passed, including published auction results, using only the history known before each date."
                 ),
                 "target": "Next scheduled event reaches a sold/purchased terminal outcome",

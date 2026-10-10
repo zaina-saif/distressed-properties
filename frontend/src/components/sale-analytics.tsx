@@ -257,7 +257,7 @@ export function SaleAnalyticsView({ state, county, stateName }: { state?: string
 
       {error && <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {!data && loading && <p className="p-8 text-center text-sm text-slate-500">Loading sale analytics…</p>}
-      {data && s && s.completed === 0 && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600"><p className="font-semibold text-slate-900">No completed sales with published results for {place} yet.</p><p className="mt-1">Sale results are published for New Jersey, Ohio and Florida so far. As other states publish outcomes, they will appear here.</p></div>}
+      {data && s && s.completed === 0 && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600"><p className="font-semibold text-slate-900">No completed sales with published results for {place} yet.</p><p className="mt-1">Sale results are published for New Jersey, Ohio, Florida and Indiana so far. As other states publish outcomes, they will appear here.</p></div>}
 
       {data && s && s.completed > 0 && <div className={`space-y-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -288,7 +288,7 @@ export function SaleAnalyticsView({ state, county, stateName }: { state?: string
           <Card title="Third-party win rate by county" subtitle="Share of sales with a published buyer that an outside bidder won, and how many. Counties with at least 5 such sales.">
             <CountyWinRates counties={data.counties} showState={new Set(data.counties.map((c) => c.state)).size > 1} />
           </Card>
-          <Card title="Postponements before the sale" subtitle="How many times sold properties were postponed before they finally sold. Postponement history is fullest for New Jersey; the Ohio and Florida sale sites rarely list postponements (Florida usually cancels and re-lists).">
+          <Card title="Postponements before the sale" subtitle="How many times sold properties were postponed before they finally sold. Postponement history is fullest for New Jersey; the Ohio, Florida and Indiana sale sites rarely list postponements (Florida usually cancels and re-lists).">
             <Columns data={data.postponements.map((p) => ({ label: p.postponements, value: p.sales }))} label="Sold properties by number of postponements" />
           </Card>
         </div>
@@ -297,7 +297,7 @@ export function SaleAnalyticsView({ state, county, stateName }: { state?: string
           <RecentSales points={data.points} />
         </Card>
 
-        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the official sale sites: the sheriff&apos;s CivilView status history in New Jersey and the county RealAuction sites in Ohio and Florida. The ask is the minimum bid: in New Jersey the published upset price, or the judgment where none is listed; in Ohio the opening bid (two-thirds of the appraisal); in Florida the final judgment. &ldquo;No bids&rdquo; means the property was offered and nobody bid the opening price. Estimated value is the Zillow Zestimate looked up after the sale. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
+        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the official sale sites: the sheriff&apos;s CivilView status history in New Jersey the county RealAuction sites in Ohio and Florida, and SRI Services in Indiana. The ask is the minimum bid: in New Jersey the published upset price, or the judgment where none is listed; in Ohio the opening bid (two-thirds of the appraisal); in Florida the final judgment; in Indiana the minimum bid once the sheriff sets it, otherwise the judgment. &ldquo;No bids&rdquo; means the property was offered and nobody bid the opening price. Estimated value is the Zillow Zestimate looked up after the sale. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
       </div>}
     </div>
   </div>;

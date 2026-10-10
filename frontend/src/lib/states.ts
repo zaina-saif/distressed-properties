@@ -4,6 +4,7 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "PA", name: "Pennsylvania", view: [40.9, -77.6, 7] },
   { code: "OH", name: "Ohio", view: [40.3, -82.8, 7] },
   { code: "FL", name: "Florida", view: [27.8, -82.6, 6] },
+  { code: "IN", name: "Indiana", view: [39.9, -86.3, 7] },
   { code: "IL", name: "Illinois", view: [40.0, -89.2, 6] },
   { code: "SC", name: "South Carolina", view: [33.8, -80.9, 7] },
   { code: "DE", name: "Delaware", view: [39.1, -75.5, 8] },

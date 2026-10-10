@@ -40,7 +40,7 @@ Run everything from `backend/` with the venv active. The two refresh orchestrato
 python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
 python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
 
-# Every other state (RealAuction OH/FL/CO/TX, CivilView states, PA portals, SC, IL TJSC, CT).
+# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT).
 # Stages: scrape load zillow score report. Default run dir: .local/multistate-refresh/
 python -m pipeline.multistate_refresh --run-dir /tmp/ms-refresh --max-zillow-addresses 600
 
@@ -55,6 +55,10 @@ python -m pipeline.scrape_realauction --state OH --all && python -m pipeline.loa
 
 # RealAuction past results (OH/FL sold, amount, buyer) into history/; --history loads them without retiring open sales
 python -m pipeline.scrape_realauction --state OH --all --history-from 2025-10-01 && python -m pipeline.load_realauction_sales --state OH --all --history
+
+# Indiana sheriff sales from SRI Services (public sriservices.com API); --history-from for past results
+python -m pipeline.scrape_sri --all && python -m pipeline.load_sri_sales --all
+python -m pipeline.scrape_sri --all --history-from 2025-10-01 && python -m pipeline.load_sri_sales --all --history
 
 # Create or reset a developer login (needs SUPABASE_SERVICE_ROLE_KEY; trusted machine only)
 python -m app.create_developer --email you@example.com
@@ -103,7 +107,7 @@ Never commit secrets or print their values; the `.example` files list every sett
 
 Base NJ flow: `scrape_civilview` → `load_to_supabase` → `create_properties` (normalizes and deduplicates addresses) → `import_property_analysis_csv` (valuations and equity).
 
-Other states load complete snapshots of each county's upcoming sales through `sale_listing_loader.load_sales`, which also marks open sales missing from a snapshot `sold_or_cancelled_unverified`: `scrape_realauction`/`load_realauction_sales` (OH sheriff sales, FL clerk sales, CO Public Trustee sales, TX sheriff/constable property-tax sales, which carry a redemption-period warning in the UI), `scrape_civilview_states`/`load_civilview_states` (non-NJ CivilView counties: DE, PA Philadelphia/Montgomery/Lehigh, IL Lake, some TX/GA), `scrape_sc_master_in_equity`/`load_sc_master_in_equity`, and `scrape_pa_sale_listing`/`load_pa_sales`. New listings get coordinates, Zestimates and photos from `apify_scheduled_zillow` (paid; `--only-missing`, then `--retry-unmatched`) and probabilities from the sale-probability model's `score_current`.
+Other states load complete snapshots of each county's upcoming sales through `sale_listing_loader.load_sales`, which also marks open sales missing from a snapshot `sold_or_cancelled_unverified`: `scrape_realauction`/`load_realauction_sales` (OH sheriff sales, FL clerk sales, CO Public Trustee sales, TX sheriff/constable property-tax sales, which carry a redemption-period warning in the UI), `scrape_civilview_states`/`load_civilview_states` (non-NJ CivilView counties: DE, PA Philadelphia/Montgomery/Lehigh, IL Lake, some TX/GA), `scrape_sri`/`load_sri_sales` (IN sheriff sales from SRI Services, with coordinates, judgment and sale price), `scrape_sc_master_in_equity`/`load_sc_master_in_equity`, and `scrape_pa_sale_listing`/`load_pa_sales`. New listings get coordinates, Zestimates and photos from `apify_scheduled_zillow` (paid; `--only-missing`, then `--retry-unmatched`) and probabilities from the sale-probability model's `score_current`.
 
 **Lien pre-screening** lives in `backend/app/liens/` (identity → source matching → risk/summary), exposed through `app/api/liens.py` including a lien-ingestion jobs router.
 
