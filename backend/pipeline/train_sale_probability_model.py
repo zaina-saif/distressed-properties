@@ -22,17 +22,17 @@ import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.frozen import FrozenEstimator
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OrdinalEncoder
 from sqlalchemy import text
 
 from app.database.session import engine
 
-MODEL_VERSION = "sale_probability_gradient_boosting_v3"
+MODEL_VERSION = "sale_probability_gradient_boosting_v4"
 MODEL_NAME = "sale_probability_gradient_boosting"
 TARGET = "reaches_auction"
 MODEL_DIR = Path(__file__).resolve().parents[1] / "models"
@@ -41,6 +41,8 @@ METRICS_PATH = MODEL_DIR / f"{MODEL_VERSION}_metrics.json"
 
 POSITIVE_TERMINAL = (
     "sold", "purchased", "plaintiff_buy_back", "buy_back", "purchased_-_",
+    # Ohio: auctioned with no bid at the opening price. The sale went to auction.
+    "unsold",
 )
 NEGATIVE_TERMINAL = (
     "cancel", "settled", "redeem", "writ_expired", "withdraw", "dismiss",
@@ -121,12 +123,19 @@ def build_features(sale: dict[str, Any], prior_events: list[dict[str, Any]], eve
         "court_adjournment_count": court,
         "bankruptcy_count": bankruptcy,
         "distinct_status_count": len(set(statuses)),
+        # Earlier sale dates' results: Ohio re-offers a property after an
+        # auction with no bids, and Florida resets cancelled sales.
+        "cancelled_count": sum("cancel" in status for status in statuses),
+        "unsold_count": sum(status == "unsold" for status in statuses),
+        "prior_sold_count": sum(status.startswith(("sold", "purchased")) and "unverified" not in status
+                                for status in statuses),
         "days_in_process": max(0, days_in_process),
         "days_since_previous_event": max(0, days_since_previous),
         "days_until_sale": days_until_sale,
         # Month of the scheduled date being predicted. The sale's final date
         # (current_sale_date) would reveal later adjournments during training.
         "sale_month": event_date.month if event_date else (sale_date.month if sale_date else 0),
+        "sale_weekday": (event_date or sale_date).weekday() if (event_date or sale_date) else 0,
         "minimum_bid": minimum_bid,
         "has_upset_price": int(upset is not None),
     }
@@ -144,6 +153,9 @@ def build_training_rows(
     for sale in sales:
         events = _sorted_events(histories.get(str(sale["id"]), []))
         schedule_indexes = [i for i, event in enumerate(events) if _is_scheduled(event)]
+        if not schedule_indexes:
+            rows.extend(_auction_result_rows(sale, events, as_of))
+            continue
         for index in schedule_indexes:
             event_date = _as_date(events[index].get("sale_date"))
             if as_of is not None and (event_date is None or event_date >= as_of):
@@ -163,6 +175,31 @@ def build_training_rows(
             row["sale_id"] = str(sale["id"])
             row["event_date"] = event_date.isoformat() if event_date else None
             rows.append(row)
+    return rows
+
+
+def _auction_result_rows(sale: dict[str, Any], events: list[dict[str, Any]],
+                         as_of: date | None) -> list[dict[str, Any]]:
+    """Rows for a sale known only from published auction results (RealAuction's
+    closed calendars for OH and FL): each dated outcome, such as "cancelled" on
+    one date and "sold" on a later one, stands for a sale date with that result.
+    Features use only the outcomes before it."""
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[date, int]] = set()
+    for index, event in enumerate(events):
+        event_date = _as_date(event.get("sale_date"))
+        outcome = _terminal_label(event)
+        if outcome is None or event_date is None or (as_of is not None and event_date >= as_of):
+            continue
+        if (event_date, outcome) in seen:
+            continue
+        seen.add((event_date, outcome))
+        prior = [e for e in events[:index] if (_as_date(e.get("sale_date")) or date.min) < event_date]
+        row = build_features(sale, prior, event_date)
+        row["label"] = outcome
+        row["sale_id"] = str(sale["id"])
+        row["event_date"] = event_date.isoformat()
+        rows.append(row)
     return rows
 
 
@@ -192,30 +229,34 @@ def _load_db_rows() -> tuple[list[dict[str, Any]], dict[str, list[dict[str, Any]
 # always 0. Built for reference only, never trained on.
 LEAKY_FEATURES = {"days_until_sale"}
 
-DEFAULT_PARAMS = {"n_estimators": 120, "learning_rate": 0.04, "max_depth": 2, "min_samples_leaf": 8}
+DEFAULT_PARAMS = {"learning_rate": 0.05, "max_iter": 300, "max_leaf_nodes": 15, "min_samples_leaf": 40,
+                  "l2_regularization": 1.0}
 PARAM_GRID = [
-    {"n_estimators": n, "learning_rate": lr, "max_depth": depth, "min_samples_leaf": leaf}
-    for n in (120, 250) for lr in (0.04, 0.08) for depth in (2, 3) for leaf in (8, 20)
+    {"learning_rate": lr, "max_iter": 300, "max_leaf_nodes": leaves, "min_samples_leaf": leaf, "l2_regularization": 1.0}
+    for lr in (0.03, 0.05) for leaves in (15, 31) for leaf in (20, 40, 80)
+]
+CATEGORICAL = ["state", "county"]
+NUMERIC = [
+    "prior_event_count", "prior_scheduled_count", "adjournment_count",
+    "plaintiff_adjournment_count", "defendant_adjournment_count", "court_adjournment_count",
+    "bankruptcy_count", "distinct_status_count", "cancelled_count", "unsold_count", "prior_sold_count",
+    "days_in_process", "days_since_previous_event", "sale_month", "sale_weekday", "minimum_bid", "has_upset_price",
 ]
 
 
 def _make_estimator(params: dict[str, Any] | None = None):
-    categorical = ["state", "county"]
-    numeric = [
-        "prior_event_count", "prior_scheduled_count", "adjournment_count",
-        "plaintiff_adjournment_count", "defendant_adjournment_count", "court_adjournment_count",
-        "bankruptcy_count", "distinct_status_count", "days_in_process",
-        "days_since_previous_event", "sale_month", "minimum_bid", "has_upset_price",
-    ]
+    # Histogram boosting splits on state and county natively, which beats
+    # one-hot columns for the ~200 counties and trains in seconds on OH/FL history.
     preprocess = ColumnTransformer([
-        ("categorical", OneHotEncoder(handle_unknown="ignore", sparse_output=False), categorical),
-        ("numeric", "passthrough", numeric),
+        ("categorical", OrdinalEncoder(handle_unknown="use_encoded_value", unknown_value=-1,
+                                       encoded_missing_value=-1), CATEGORICAL),
+        ("numeric", "passthrough", NUMERIC),
     ])
-    base = Pipeline([
+    return Pipeline([
         ("preprocess", preprocess),
-        ("classifier", GradientBoostingClassifier(random_state=42, **(params or DEFAULT_PARAMS))),
+        ("classifier", HistGradientBoostingClassifier(
+            categorical_features=list(range(len(CATEGORICAL))), random_state=42, **(params or DEFAULT_PARAMS))),
     ])
-    return base
 
 
 def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
@@ -241,6 +282,12 @@ def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
     # newest outcomes inform live scores; the metrics above describe the
     # evaluated model, which never saw the holdout.
     calibrated = _fit_time_calibrated(frame, feature_columns, params)
+    by_state = {}
+    for state, group in test_frame.assign(probability=probabilities).groupby("state"):
+        if len(group) >= 50 and group["label"].nunique() == 2:
+            by_state[state] = {"rows": int(len(group)), "roc_auc": round(float(roc_auc_score(group["label"], group["probability"])), 4),
+                               "positive_rate": round(float(group["label"].mean()), 4),
+                               "mean_prediction": round(float(group["probability"].mean()), 4)}
     metrics = {
         "model_version": MODEL_VERSION,
         "model_name": MODEL_NAME,
@@ -254,6 +301,7 @@ def train_model(rows: list[dict[str, Any]]) -> tuple[Any, dict[str, Any]]:
         "holdout_brier_score": round(float(brier_score_loss(test_frame["label"], probabilities)), 4),
         "holdout_mean_prediction": round(float(probabilities.mean()), 4),
         "holdout_positive_rate": round(float(test_frame["label"].mean()), 4),
+        "holdout_by_state": by_state,
         "calibration": "sigmoid, fit on the most recent 20% of events after fitting on the older 80%",
         "holdout_cutoff": cutoff.isoformat() if cutoff is not None else None,
         "feature_columns": feature_columns,
@@ -307,7 +355,9 @@ DRIVER_GROUPS: list[tuple[str, str, list[str]]] = [
     ("reschedules", "Times scheduled before", ["prior_scheduled_count", "prior_event_count", "distinct_status_count"]),
     ("days_in_process", "Time in the sale process", ["days_in_process"]),
     ("days_since_previous_event", "Days since the last status change", ["days_since_previous_event"]),
+    ("prior_results", "Earlier sale dates", ["cancelled_count", "unsold_count", "prior_sold_count"]),
     ("sale_month", "Sale month", ["sale_month"]),
+    ("sale_weekday", "Sale weekday", ["sale_weekday"]),
     ("minimum_bid", "Minimum bid", ["minimum_bid", "has_upset_price"]),
     ("county", "County", ["county"]),
 ]
@@ -325,6 +375,16 @@ def typical_values(frame: pd.DataFrame, feature_columns: list[str]) -> dict[str,
     return typical
 
 
+def typical_by_state(frame: pd.DataFrame, feature_columns: list[str]) -> dict[str, dict[str, Any]]:
+    """Typical sale per state, so a sale is explained against its own state
+    (most common county and medians taken together); "ALL" covers the rest."""
+    typical = {"ALL": typical_values(frame, feature_columns)}
+    for state, group in frame.groupby("state"):
+        if len(group) >= 50:
+            typical[str(state)] = typical_values(group, feature_columns)
+    return typical
+
+
 def _describe(group: str, values: dict[str, Any]) -> str:
     def n(key: str) -> str:
         value = values.get(key)
@@ -339,6 +399,13 @@ def _describe(group: str, values: dict[str, Any]) -> str:
         return "Not published" if not values.get("minimum_bid") else f"${float(values['minimum_bid']):,.0f}"
     if group in {"days_in_process", "days_since_previous_event"}:
         return f"{n(group)} days"
+    if group == "prior_results":
+        parts = [f"{n(key)} {word}" for key, word in (("cancelled_count", "cancelled"), ("unsold_count", "with no bids"),
+                                                       ("prior_sold_count", "sold")) if values.get(key)]
+        return ", ".join(parts) if parts else "None"
+    if group == "sale_weekday":
+        day = values.get("sale_weekday")
+        return datetime(2024, 1, 1 + int(day)).strftime("%A") if day is not None else "—"
     if group == "sale_month":
         month = values.get("sale_month")
         return datetime(2000, int(month), 1).strftime("%B") if month else "—"
@@ -384,6 +451,22 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _without_state_history(model: Any, frame: pd.DataFrame, feature_columns: list[str],
+                           by_state: dict[str, dict[str, Any]]) -> np.ndarray:
+    """Estimate for sales in a state the model has no results from: the average
+    of its estimates as if the sale were in each known state's typical county,
+    rather than whatever the trees do with an unseen state."""
+    estimates = []
+    for state, values in by_state.items():
+        if state == "ALL":
+            continue
+        moved = frame[feature_columns].copy()
+        moved["state"] = state
+        moved["county"] = values["county"]
+        estimates.append(model.predict_proba(moved)[:, 1])
+    return np.mean(estimates, axis=0)
+
+
 def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, list[dict[str, Any]]],
                   feature_columns: list[str], typical: dict[str, Any] | None = None,
                   metrics: dict[str, Any] | None = None) -> int:
@@ -402,23 +485,39 @@ def score_current(model: Any, sales: list[dict[str, Any]], histories: dict[str, 
         return 0
     frame = pd.DataFrame([row for _, row in rows])[feature_columns].fillna(0)
     probabilities = model.predict_proba(frame)[:, 1]
-    drivers = explain_drivers(model, frame, feature_columns, typical) if typical else [[] for _ in rows]
+    drivers: list[list[dict[str, Any]]] = [[] for _ in rows]
+    # Older artifacts hold one typical sale; newer ones hold one per state with enough history.
+    by_state = (typical if "ALL" in typical else {"ALL": typical}) if typical else {}
+    trained_states = {state for state in by_state if state != "ALL"}
+    untrained = frame["state"].map(lambda state: bool(trained_states) and state not in trained_states).to_numpy()
+    if untrained.any():
+        probabilities[untrained] = _without_state_history(model, frame[untrained], feature_columns, by_state)
+    if typical:
+        for state, group in frame[~untrained].groupby("state"):
+            state_typical = by_state.get(str(state), by_state["ALL"])
+            for position, row_drivers in zip(group.index, explain_drivers(
+                    model, group.reset_index(drop=True), feature_columns, state_typical)):
+                drivers[position] = row_drivers
     now_dt = datetime.now(timezone.utc)
     with engine.begin() as connection:
         for (sale, feature_row), probability, row_drivers in zip(rows, probabilities, drivers):
             features = {key: _json_safe(value) for key, value in feature_row.items()}
+            no_history = feature_row["state"] not in trained_states and bool(trained_states)
             explanations = {
                 "methodology": (
-                    "Calibrated gradient boosting trained on past NJ scheduled sale dates that have already "
-                    "passed, using only the status history known before each date."
+                    "Calibrated gradient boosting trained on past sale dates in NJ, OH and FL that have already "
+                    "passed, including published auction results, using only the history known before each date."
                 ),
                 "target": "Next scheduled event reaches a sold/purchased terminal outcome",
                 "model_version": MODEL_VERSION,
                 "drivers": row_drivers,
-                "drivers_method": "Points this input moves the estimate compared with a typical NJ sale.",
+                # No past results from this state yet: the estimate averages the states the model knows.
+                "state_without_history": no_history,
+                "trained_states": sorted(trained_states),
+                "drivers_method": "Points this input moves the estimate compared with a typical sale in its state.",
                 "model_quality": {key: (metrics or {}).get(key) for key in (
                     "holdout_rows", "holdout_roc_auc", "holdout_brier_score",
-                    "holdout_mean_prediction", "holdout_positive_rate", "holdout_cutoff")},
+                    "holdout_mean_prediction", "holdout_positive_rate", "holdout_cutoff", "holdout_by_state")},
             }
             connection.execute(text("""
                 INSERT INTO sale_predictions(
@@ -457,7 +556,7 @@ def main() -> None:
     rows = build_training_rows(sales, histories, as_of=datetime.now(timezone.utc).date())
     model, metrics = train_model(rows)
     feature_columns = metrics["feature_columns"]
-    typical = typical_values(pd.DataFrame(rows)[feature_columns].fillna(0), feature_columns)
+    typical = typical_by_state(pd.DataFrame(rows)[feature_columns].fillna(0), feature_columns)
     metrics["typical_sale"] = typical
     joblib.dump({"model": model, "feature_columns": feature_columns, "metrics": metrics, "typical": typical}, ARTIFACT_PATH)
     METRICS_PATH.write_text(json.dumps(metrics, indent=2, default=str) + "\n")

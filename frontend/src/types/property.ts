@@ -105,6 +105,9 @@ export interface Property {
     model_version?: string;
     drivers?: Array<{ key: string; label: string; value: string; typical: string; impact: number }>;
     drivers_method?: string;
+    /** No past results from this state; the estimate averages the trained states. */
+    state_without_history?: boolean;
+    trained_states?: string[];
     model_quality?: {
       holdout_rows?: number;
       holdout_roc_auc?: number;

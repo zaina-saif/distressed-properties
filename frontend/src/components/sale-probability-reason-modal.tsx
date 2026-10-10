@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, X } from "lucide-react";
+import { STATES } from "@/lib/states";
 import type { Property } from "@/types/property";
 
 type Driver = NonNullable<NonNullable<Property["sale_probability_explanations"]>["drivers"]>[number];
@@ -16,10 +17,16 @@ function times(count: number): string {
 
 function verdict(probability: number | null | undefined): string {
   if (probability == null) return "No estimate is available for this sale.";
-  if (probability < 0.15) return "Unlikely to be sold on the next sale date. It will most likely be postponed or cancelled again.";
-  if (probability < 0.35) return "Possible, but it is more likely to be postponed or cancelled than sold on the next date.";
-  if (probability < 0.6) return "A real chance it is sold on the next sale date.";
-  return "Likely to be sold on the next sale date.";
+  if (probability < 0.15) return "Unlikely to go to auction on the next sale date. It will most likely be postponed or cancelled again.";
+  if (probability < 0.35) return "Possible, but it is more likely to be postponed or cancelled than auctioned on the next date.";
+  if (probability < 0.6) return "A real chance it goes to auction on the next sale date.";
+  return "Likely to go to auction on the next sale date.";
+}
+
+const STATE_NAMES: Record<string, string> = Object.fromEntries(STATES.map((item) => [item.code, item.name]));
+
+function list(items: string[]): string {
+  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
 function strength(impact: number): string {
@@ -30,14 +37,14 @@ function strength(impact: number): string {
 }
 
 /** One plain-language sentence explaining a reason, in the direction it pushes. */
-function explain(driver: Driver, features: Features, county: string): string {
+function explain(driver: Driver, features: Features, county: string, state: string): string {
   const up = driver.impact > 0;
   const more = up ? "more" : "less";
   switch (driver.key) {
     case "county":
       return up
-        ? `Sheriff sales in ${county} County go ahead more often than in most NJ counties.`
-        : `Sheriff sales in ${county} County are postponed or cancelled more often than in most NJ counties.`;
+        ? `Sales in ${county} County go ahead more often than in most ${state} counties.`
+        : `Sales in ${county} County are postponed or cancelled more often than in most ${state} counties.`;
     case "bankruptcy": {
       const count = features.bankruptcy_count ?? 0;
       return count > 0
@@ -76,6 +83,12 @@ function explain(driver: Driver, features: Features, county: string): string {
       return `It has been in the sheriff-sale process for ${driver.value}. Cases at this stage go ahead ${more} often than usual.`;
     case "days_since_previous_event":
       return `Its status last changed ${driver.value} ago. Sales at this point go ahead ${more} often than usual.`;
+    case "prior_results":
+      return driver.value === "None"
+        ? `No earlier sale date has a recorded result. Sales like this go ahead ${more} often than usual.`
+        : `Earlier sale dates: ${driver.value}. Properties with that history go ahead ${more} often than usual.`;
+    case "sale_weekday":
+      return `It is scheduled for a ${driver.value}. Sales on that day go ahead ${more} often than usual in ${state}.`;
     case "sale_month":
       return `It is scheduled for ${driver.value}. Sales in that month go ahead ${more} often than usual.`;
     case "minimum_bid":
@@ -92,6 +105,9 @@ export function SaleProbabilityReasonModal({ property, onClose }: { property: Pr
   const features = property.sale_probability_features ?? {};
   const drivers = explanation.drivers ?? [];
   const quality = explanation.model_quality;
+  const stateName = STATE_NAMES[property.state] ?? property.state;
+  const noHistory = explanation.state_without_history === true;
+  const trainedStates = (explanation.trained_states ?? ["NJ"]).map((code) => STATE_NAMES[code] ?? code);
 
   return (
     <div className="fixed inset-0 z-[2100] flex items-center justify-center bg-slate-950/55 p-4" onMouseDown={onClose}>
@@ -105,15 +121,17 @@ export function SaleProbabilityReasonModal({ property, onClose }: { property: Pr
         </header>
         <div className="min-h-0 space-y-5 overflow-y-auto p-5">
           <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Chance it is sold at the next sale date</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Chance it goes to auction at the next sale date</p>
             <p className="mt-1 text-3xl font-bold text-slate-950">{percent(property.sale_probability)}</p>
             <p className="mt-2 text-sm font-medium leading-5 text-slate-800">{verdict(property.sale_probability)}</p>
           </div>
 
           <section>
             <h3 className="font-semibold text-slate-900">What pushed the number up or down</h3>
-            <p className="mb-3 mt-1 text-xs text-slate-500">Compared with an ordinary NJ sheriff sale, these facts about this case matter most.</p>
-            {drivers.length ? (
+            {noHistory ? (
+              <p className="mt-1 text-sm text-slate-600">We do not have past sale results from {stateName} yet, so this is the average of what the model expects for a sale like this in {list(trainedStates)}. Treat it as a rough guide until {stateName} results come in.</p>
+            ) : <p className="mb-3 mt-1 text-xs text-slate-500">Compared with an ordinary sale in {stateName}, these facts about this case matter most.</p>}
+            {noHistory ? null : drivers.length ? (
               <ul className="space-y-2.5">
                 {drivers.map((driver) => {
                   const up = driver.impact > 0;
@@ -124,26 +142,26 @@ export function SaleProbabilityReasonModal({ property, onClose }: { property: Pr
                       </span>
                       <div className="text-sm leading-5">
                         <p className={`font-semibold ${up ? "text-teal-800" : "text-red-800"}`}>{up ? "Raises" : "Lowers"} the chance {strength(driver.impact)}</p>
-                        <p className="text-slate-700">{explain(driver, features, property.county)}</p>
+                        <p className="text-slate-700">{explain(driver, features, property.county, stateName)}</p>
                       </div>
                     </li>
                   );
                 })}
               </ul>
             ) : (
-              <p className="text-sm text-slate-600">Nothing about this case stands out; it looks like an ordinary NJ sheriff sale.</p>
+              <p className="text-sm text-slate-600">Nothing about this case stands out; it looks like an ordinary sale in {stateName}.</p>
             )}
           </section>
 
           <section className="rounded-xl border border-slate-200 p-4 text-sm leading-6 text-slate-700">
             <h3 className="mb-1 font-semibold text-slate-900">How we get this number</h3>
-            <p>We looked at thousands of past New Jersey sheriff sales and whether each one was actually sold or was postponed, cancelled or stopped. A computer model learned which patterns usually end in a sale: the county, how often the sale was postponed and by whom, bankruptcy filings, how long the case has been going, the month, and the minimum bid. It then checks this case against those patterns.</p>
+            <p>We looked at tens of thousands of past sale dates in {list(trainedStates)}, including published auction results, and whether each one went to auction or was postponed, cancelled or stopped. A computer model learned which patterns usually end in an auction: the state and county, how often the sale was postponed and by whom, bankruptcy filings, earlier cancellations or auctions with no bids, how long the case has been going, the month and weekday, and the minimum bid. It then checks this case against those patterns.</p>
             {quality?.holdout_roc_auc != null && (
               <>
                 <h3 className="mb-1 mt-3 font-semibold text-slate-900">How reliable is it?</h3>
                 <p>
                   We tested it on {quality.holdout_rows?.toLocaleString()} recent sales it had never seen. When comparing a sale that went ahead with one that did not, it picked the right one about {Math.round(quality.holdout_roc_auc * 10)} times out of 10.
-                  Its numbers also run a little high, so use them to compare properties rather than as an exact promise.
+                  Use the numbers to compare properties rather than as an exact promise.
                 </p>
               </>
             )}
