@@ -53,6 +53,9 @@ python -m pipeline.send_opportunity_alerts --frequency daily --dry-run
 # One source at a time: scrape, then load (the SOURCES list in multistate_refresh.py has every pair)
 python -m pipeline.scrape_realauction --state OH --all && python -m pipeline.load_realauction_sales --state OH --all
 
+# RealAuction past results (OH/FL sold, amount, buyer) into history/; --history loads them without retiring open sales
+python -m pipeline.scrape_realauction --state OH --all --history-from 2025-10-01 && python -m pipeline.load_realauction_sales --state OH --all --history
+
 # Create or reset a developer login (needs SUPABASE_SERVICE_ROLE_KEY; trusted machine only)
 python -m app.create_developer --email you@example.com
 ```

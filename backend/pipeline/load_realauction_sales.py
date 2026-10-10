@@ -1,6 +1,7 @@
 """Load RealAuction snapshots (see scrape_realauction) into the operational DB.
 
     python -m pipeline.load_realauction_sales --state OH --all
+    python -m pipeline.load_realauction_sales --state FL --all --history   # past results (scrape --history-from)
 """
 import argparse
 import json
@@ -26,11 +27,44 @@ def address(fields, state):
     return street, city or None, match.group(2) if match else None
 
 
+def result_status(result):
+    """Our status for a closed auction's published result, or None when it has none."""
+    if not result or not result.get("status"):
+        return None
+    text = result["status"].lower()
+    if text == "auction sold":
+        # Ohio shows "Auction Sold" with "Unsold" when nobody bid the opening price.
+        return "sold" if result.get("sold_to") else "unsold"
+    if "bankrupt" in text:
+        return "bankruptcy"
+    if "redeem" in text:
+        return "redeemed"
+    if "postpone" in text or "reset" in text or "continued" in text:
+        return "adjourned"
+    if re.search(r"cancel|withdrawn|vacated|dismissed|stayed", text):
+        return "cancelled"
+    return None
+
+
+def result_text(item):
+    """Status history text: the published result, with the amount and buyer for a sale
+    ("Auction Sold to 3rd Party Bidder for $69,000.00"), which pipeline.sale_results reads."""
+    result = item.get("result") or {}
+    if result.get("status") == "Auction Sold":
+        if result.get("sold_to"):
+            return f"Auction Sold to {result['sold_to']} for {result.get('amount') or 'an unpublished amount'}"
+        return f"Auction closed unsold at {result.get('amount') or 'the opening bid'}"
+    return result.get("status")
+
+
 def status(item, today):
     if item["area"] == "W":
         return "scheduled"
+    published = result_status(item.get("result"))
+    if published:
+        return published
     # "Closed or canceled" before the sale day can only be a cancellation; on or
-    # after it the site does not say whether the property sold.
+    # after it, without a published result, we cannot tell whether it sold.
     return "cancelled" if date.fromisoformat(item["sale_date"]) > today else "sold_or_cancelled_unverified"
 
 
@@ -58,10 +92,25 @@ def current_items(items, today):
     return best
 
 
-def load(state, county):
-    snapshot = json.loads(snapshot_path(state, county).read_text())
+def history_items(items):
+    """Every past auction in date order, so each case's status history is complete and
+    its latest result is written last."""
+    keyed = []
+    for item in items:
+        case, _ = case_number(item["fields"])
+        if not case:
+            continue
+        if item["fields"].get("Account Number"):
+            case = f"{case}:{item['fields']['Account Number'].strip()}"
+        keyed.append((case, item))
+    return sorted(keyed, key=lambda pair: (pair[1]["sale_date"], pair[1]["area"] == "W"))
+
+
+def load(state, county, history=False):
+    snapshot = json.loads(snapshot_path(state, county, history=history).read_text())
     sales = []
-    for case, item in current_items(snapshot["items"], date.today()).items():
+    entries = history_items(snapshot["items"]) if history else current_items(snapshot["items"], date.today()).items()
+    for case, item in entries:
         fields = item["fields"]
         street, city, zip_code = address(fields, state)
         raw = {**item, "source_url": snapshot["source_url"], "parser_version": snapshot["parser_version"]}
@@ -78,7 +127,7 @@ def load(state, county):
             case=case, street=street, city=city, zip_code=zip_code,
             sale_date=date.fromisoformat(item["sale_date"]), status=status(item, date.today()),
             raw=raw,
-            raw_status=f"{area} (auction {item['auction_id']})",
+            raw_status=f"{result_text(item) or area} (auction {item['auction_id']})",
             parcel=(fields.get("Parcel ID") or fields.get("Account Number") or "").strip() or None,
             # Ohio's opening bid is the minimum bid (two-thirds of the appraisal);
             # Florida lists the final judgment and no opening bid.
@@ -91,7 +140,8 @@ def load(state, county):
             judgment=None if state == "CO" else money(fields.get("Final Judgment Amount")),
             result=fields.get("Case Status") or fields.get("Auction Type"), property_number=sheriff_number))
     return load_sales(state, county, SOURCE_SYSTEM[state], snapshot["source_url"], sales,
-                      job=f"{state.lower()}_realauction_{county.lower()}")
+                      job=f"{state.lower()}_realauction_{county.lower()}{'_history' if history else ''}",
+                      complete=not history)
 
 
 def main():
@@ -99,13 +149,15 @@ def main():
     parser.add_argument("--state", required=True, choices=sorted(SOURCES))
     parser.add_argument("--counties", nargs="+")
     parser.add_argument("--all", action="store_true")
+    parser.add_argument("--history", action="store_true",
+                        help="Load the history/ snapshots of past results; current listings are left as they are")
     args = parser.parse_args()
     counties = sorted(SOURCES[args.state]) if args.all else args.counties or []
     for county in counties:
-        if not snapshot_path(args.state, county).exists():
+        if not snapshot_path(args.state, county, history=args.history).exists():
             print(f"{args.state} {county}: no snapshot, skipped")
             continue
-        print(f"{args.state} {county}: {load(args.state, county)}", flush=True)
+        print(f"{args.state} {county}: {load(args.state, county, history=args.history)}", flush=True)
 
 
 if __name__ == "__main__":

@@ -4,14 +4,15 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 
 import { getSaleAnalytics, type PricedSale, type SaleAnalytics, type SaleOutcome } from "@/services/analytics";
 
-// Categorical slots 1-3 (validated together); cancelled sales are the muted context, not a series hue.
+// Categorical slots 1-4 (validated together); cancelled sales are the muted context, not a series hue.
 const OUTCOME_STYLE: Record<SaleOutcome, { label: string; color: string }> = {
   third_party: { label: "Sold to a third-party bidder", color: "#2a78d6" },
   plaintiff: { label: "Bought back by the lender", color: "#eb6834" },
   sold_other: { label: "Sold, buyer not published", color: "#1baf7a" },
+  unsold: { label: "No bids", color: "#eda100" },
   cancelled: { label: "Cancelled", color: "#c9c8c1" },
 };
-const OUTCOME_ORDER: SaleOutcome[] = ["third_party", "plaintiff", "sold_other", "cancelled"];
+const OUTCOME_ORDER: SaleOutcome[] = ["third_party", "plaintiff", "sold_other", "unsold", "cancelled"];
 const SERIES = "#2a78d6";
 const INK = { primary: "#0f172a", secondary: "#475569", muted: "#94a3b8", grid: "#e7e6e0", axis: "#c3c2b7" };
 const PERIODS = [{ label: "6 months", months: 6 }, { label: "12 months", months: 12 }, { label: "24 months", months: 24 }, { label: "All time", months: undefined }];
@@ -172,7 +173,7 @@ function AskVsBid({ points: all }: { points: PricedSale[] }) {
       <line x1={x(lo)} y1={y(lo)} x2={x(hi)} y2={y(hi)} stroke={INK.secondary} strokeWidth={1} />
       <text x={x(labelAt) + 4} y={y(labelAt) + 16} textAnchor="start" fontSize={11} fill={INK.secondary} transform={`rotate(${-Math.atan2(plotH, plotW) * 180 / Math.PI} ${x(labelAt) + 4} ${y(labelAt) + 16})`}>bid = ask</text>
       {points.map((p, i) => <circle key={p.sale_id} cx={x(p.ask)} cy={y(p.winning_bid)} r={i === active ? 6 : 4} fill={SERIES} fillOpacity={0.85} stroke="#fff" strokeWidth={2} />)}
-      <text x={left + plotW / 2} y={height - 4} textAnchor="middle" fontSize={11} fill={INK.secondary}>Ask (upset price or judgment)</text>
+      <text x={left + plotW / 2} y={height - 4} textAnchor="middle" fontSize={11} fill={INK.secondary}>Ask (minimum bid)</text>
       <text transform={`translate(12 ${top + plotH / 2}) rotate(-90)`} textAnchor="middle" fontSize={11} fill={INK.secondary}>Winning bid</text>
     </svg>}
     <Tooltip tip={tip} />
@@ -256,14 +257,14 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
 
       {error && <p className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {!data && loading && <p className="p-8 text-center text-sm text-slate-500">Loading sale analytics…</p>}
-      {data && s && s.completed === 0 && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600"><p className="font-semibold text-slate-900">No completed sales with published results for {place} yet.</p><p className="mt-1">Sale results are published for New Jersey counties and some Ohio counties so far. As other sheriffs publish outcomes, they will appear here.</p></div>}
+      {data && s && s.completed === 0 && <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600"><p className="font-semibold text-slate-900">No completed sales with published results for {place} yet.</p><p className="mt-1">Sale results are published for New Jersey, Ohio and Florida so far. As other states publish outcomes, they will appear here.</p></div>}
 
       {data && s && s.completed > 0 && <div className={`space-y-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile hero label="Third-party win rate" value={pct(s.third_party_rate)} detail={`${s.third_party.toLocaleString("en-US")} of ${knownBuyer.toLocaleString("en-US")} sales with a published buyer went to an outside bidder`} />
           <StatTile label="Median winning bid vs. ask" value={premium(s.median_bid_to_ask)} detail={`Third-party sales with both figures (${s.priced_with_ask.toLocaleString("en-US")})`} />
           <StatTile label="Median winning bid vs. value" value={pct(s.median_bid_to_value)} detail={`Of today's Zestimate, ${s.valued_sales.toLocaleString("en-US")} third-party sales · median bid ${s.median_winning_bid == null ? "—" : compact(s.median_winning_bid)}`} />
-          <StatTile label="Completed sales" value={s.completed.toLocaleString("en-US")} detail={`${s.sold.toLocaleString("en-US")} sold · ${s.cancelled.toLocaleString("en-US")} cancelled (${pct(s.completed ? s.cancelled / s.completed : null)})`} />
+          <StatTile label="Completed sales" value={s.completed.toLocaleString("en-US")} detail={`${s.sold.toLocaleString("en-US")} sold${s.unsold ? ` · ${s.unsold.toLocaleString("en-US")} no bids` : ""} · ${s.cancelled.toLocaleString("en-US")} cancelled (${pct(s.completed ? s.cancelled / s.completed : null)})`} />
         </div>
 
         <Card title="Sale outcomes by month" subtitle="What happened on each sale date. Most scheduled sales are cancelled; of those that sell, the split between outside bidders and lender buy-backs shows how competitive the auctions are. Earlier months have published results for fewer counties.">
@@ -296,7 +297,7 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
           <RecentSales points={data.points} />
         </Card>
 
-        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the sheriff&apos;s own sale pages (the CivilView status history in New Jersey) and exclude interest and sheriff fees. The ask is the published upset price, or the judgment where no upset price is listed. Estimated value is the Zillow Zestimate looked up after the sale. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
+        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the official sale sites: the sheriff&apos;s CivilView status history in New Jersey and the county RealAuction sites in Ohio and Florida. The ask is the minimum bid: in New Jersey the published upset price, or the judgment where none is listed; in Ohio the opening bid (two-thirds of the appraisal); in Florida the final judgment. &ldquo;No bids&rdquo; means the property was offered and nobody bid the opening price. Estimated value is the Zillow Zestimate looked up after the sale. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
       </div>}
     </div>
   </div>;

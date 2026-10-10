@@ -52,8 +52,11 @@ def usable_address(sale):
     return bool(sale.city and re.match(r"\d", sale.street or "") and not re.search(r",\s*\d{5}", sale.street))
 
 
-def load_sales(state, county, source, source_url, sales, job):
-    """Upsert one county's complete snapshot of sales from `source`."""
+def load_sales(state, county, source, source_url, sales, job, complete=True):
+    """Upsert one county's complete snapshot of sales from `source`.
+
+    complete=False loads a partial set, such as past results: nothing is retired, and
+    a sale already on a later date keeps it (its status history still gains the row)."""
     now = datetime.now(timezone.utc)
     run = str(uuid.uuid4())
     created = updated = skipped = 0
@@ -68,13 +71,15 @@ def load_sales(state, county, source, source_url, sales, job):
                 if not usable_address(sale):
                     skipped += 1
                     continue
-                created_one = _upsert(connection, state, county, source, source_url, sale, run, now)
+                created_one = _upsert(connection, state, county, source, source_url, sale, run, now,
+                                      keep_later=not complete)
                 created += created_one
                 updated += not created_one
+    dropped = []
     with engine.begin() as connection:
         # The snapshot lists every upcoming sale, so an open sale that is missing
         # has been sold, cancelled or pulled; the source does not say which.
-        dropped = connection.execute(text("""UPDATE sheriff_sales SET current_status='sold_or_cancelled_unverified',
+        dropped = [] if not complete else connection.execute(text("""UPDATE sheriff_sales SET current_status='sold_or_cancelled_unverified',
             updated_at=NOW() WHERE state=:state AND county=:county AND source_system=:source
             AND current_status IN ('scheduled','adjourned') AND sheriff_number <> ALL(:numbers) RETURNING id"""),
             {"state": state, "county": county, "source": source, "numbers": [sale.case for sale in sales]}).scalars().all()
@@ -88,7 +93,7 @@ def load_sales(state, county, source, source_url, sales, job):
     return {"created": created, "updated": updated, "skipped": skipped, "no_longer_listed": len(dropped)}
 
 
-def _upsert(connection, state, county, source, source_url, sale, run, now):
+def _upsert(connection, state, county, source, source_url, sale, run, now, keep_later=False):
     normalized = (f"{sale.street}, {sale.city}, {state} {sale.zip_code}" if sale.zip_code
                   else f"{sale.street}, {sale.city}, {state}")
     address_hash = hashlib.sha256(f"{state}|{county}|{normalized.upper()}".encode()).hexdigest()
@@ -113,10 +118,15 @@ def _upsert(connection, state, county, source, source_url, sale, run, now):
         "upset": sale.upset, "judgment": sale.judgment, "plaintiff": sale.plaintiff, "defendant": sale.defendant,
         "attorney": sale.attorney, "result": sale.result,
     }
-    existing = connection.execute(text("""SELECT id FROM sheriff_sales WHERE state=:state AND county=:county
-        AND source_system=:source AND sheriff_number=:number"""), params).scalar()
+    found = connection.execute(text("""SELECT id, current_sale_date FROM sheriff_sales WHERE state=:state
+        AND county=:county AND source_system=:source AND sheriff_number=:number"""), params).first()
+    existing = found[0] if found else None
     params["id"] = existing or str(uuid.uuid4())
-    if existing:
+    later = (keep_later and found is not None and found[1] is not None and sale.sale_date is not None
+             and found[1].date() > sale.sale_date)
+    if later:
+        pass  # A later sale date is already recorded; only the status history below is added.
+    elif existing:
         connection.execute(text("""UPDATE sheriff_sales SET property_id=:property_id,court_case_number=:case,
             current_sale_date=:sale_date,current_status=:status,upset_price=COALESCE(:upset,upset_price),
             judgment_amount=COALESCE(:judgment,judgment_amount),plaintiff=COALESCE(:plaintiff,plaintiff),

@@ -22,7 +22,8 @@ from app.rate_limit import per_user
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
-OUTCOMES = ("third_party", "plaintiff", "sold_other", "cancelled")
+OUTCOMES = ("third_party", "plaintiff", "sold_other", "unsold", "cancelled")
+SOLD = ("third_party", "plaintiff", "sold_other")
 POSTPONEMENT_BUCKETS = ("0", "1", "2", "3", "4", "5+")
 
 
@@ -68,6 +69,8 @@ def sale_analytics(
                 SELECT ss.id, ss.state, ss.county, p.street_address, p.city,
                        CASE
                            WHEN ss.current_status ILIKE 'cancel%' THEN 'cancelled'
+                           -- Auctioned with no bid at the opening price (Ohio).
+                           WHEN ss.current_status = 'unsold' THEN 'unsold'
                            WHEN ss.sold_buyer IN ('third_party', 'plaintiff') THEN ss.sold_buyer
                            ELSE 'sold_other'
                        END AS outcome,
@@ -83,7 +86,7 @@ def sale_analytics(
                 FROM sheriff_sales ss
                 LEFT JOIN properties p ON p.id = ss.property_id
                 WHERE ss.current_status NOT ILIKE '%unverified%'
-                  AND (ss.sold_buyer IS NOT NULL OR ss.current_status ILIKE 'cancel%'
+                  AND (ss.sold_buyer IS NOT NULL OR ss.current_status ILIKE 'cancel%' OR ss.current_status = 'unsold'
                        OR ss.current_status ILIKE 'sold%' OR ss.current_status ILIKE 'purchased%')
             )
             SELECT * FROM completed
@@ -104,7 +107,7 @@ def sale_analytics(
         place = by_county.setdefault((row["state"], row["county"]), {
             "state": row["state"], "county": row["county"], **{name: 0 for name in OUTCOMES}, "ratios": []})
         place[outcome] += 1
-        if outcome != "cancelled":
+        if outcome in SOLD:
             count = int(row["postponements"] or 0)
             postponements[str(count) if count < 5 else "5+"] += 1
         if outcome == "third_party" and row["sold_amount"]:

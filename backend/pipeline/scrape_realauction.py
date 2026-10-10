@@ -9,10 +9,16 @@ and *.texas.realforeclose.com.
     python -m pipeline.scrape_realauction --state OH --all
     python -m pipeline.scrape_realauction --state FL --counties "Miami-Dade" Broward
     python -m pipeline.scrape_realauction --state TX --all --from-date 2026-10-06   # include a sale just held
+    python -m pipeline.scrape_realauction --state OH --all --lookback-days 14       # and last two weeks' results
+    python -m pipeline.scrape_realauction --state FL --all --history-from 2025-10-01  # past results only
+
+Closed auctions include their result (sold, amount and buyer, or cancelled). A
+--history-from run covers past sale days only and writes to history/, which
+load_realauction_sales --history loads without retiring current listings.
 """
 import argparse
 import json
-from datetime import date
+from datetime import date, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
@@ -71,16 +77,33 @@ SOURCES = {
 }
 
 
-def snapshot_path(state, county):
-    return OUTPUT / f"{state.lower()}_{county.lower().replace(' ', '_').replace('.', '')}.json"
+def snapshot_path(state, county, history=False):
+    name = f"{state.lower()}_{county.lower().replace(' ', '_').replace('.', '')}.json"
+    return OUTPUT / "history" / name if history else OUTPUT / name
 
 
-def scrape(state, county, months, from_date=None):
+def months_between(start, end):
+    """Calendar months from start's month through end's month, inclusive."""
+    return (end.year - start.year) * 12 + end.month - start.month + 1
+
+
+def scrape(state, county, months, from_date=None, history_from=None):
     url = SOURCES[state][county]
-    items = RealAuctionAdapter(url, months=months, tax_sales=state == "TX").fetch(today=from_date)
+    adapter = RealAuctionAdapter(url, months=months, tax_sales=state == "TX")
+    if history_from:
+        # Past sale days only; today onward belongs to the regular snapshot.
+        adapter.months = months_between(history_from, date.today())
+        items = adapter.fetch(today=history_from, before=date.today())
+    else:
+        if from_date:
+            # Keep the same reach ahead of today when starting earlier.
+            adapter.months = months + months_between(from_date, date.today()) - 1
+        items = adapter.fetch(today=from_date)
     snapshot = {"state": state, "county": county, "source_url": url, "parser_version": PARSER_VERSION,
-                "scraped_at": datetime.now(timezone.utc).isoformat(), "months": months, "items": items}
-    path = snapshot_path(state, county)
+                "scraped_at": datetime.now(timezone.utc).isoformat(), "months": adapter.months,
+                "history_from": history_from.isoformat() if history_from else None, "items": items}
+    path = snapshot_path(state, county, history=bool(history_from))
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(snapshot, indent=1) + "\n")
     return len(items)
 
@@ -94,7 +117,13 @@ def main():
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--from-date", type=date.fromisoformat,
                         help="Include sale days from this date (YYYY-MM-DD) instead of today, to backfill a recent sale")
+    parser.add_argument("--lookback-days", type=int, default=0,
+                        help="Also include sale days in the last N days, so their results are loaded")
+    parser.add_argument("--history-from", type=date.fromisoformat,
+                        help="Past sale days from this date to yesterday, written to history/ (results only)")
     args = parser.parse_args()
+    if args.lookback_days and not args.from_date:
+        args.from_date = date.today() - timedelta(days=args.lookback_days)
     counties = sorted(SOURCES[args.state]) if args.all else args.counties or []
     unknown = [county for county in counties if county not in SOURCES[args.state]]
     if unknown:
@@ -102,7 +131,7 @@ def main():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     failed = []
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = {pool.submit(scrape, args.state, county, args.months, args.from_date): county for county in counties}
+        futures = {pool.submit(scrape, args.state, county, args.months, args.from_date, args.history_from): county for county in counties}
         for future in as_completed(futures):
             county = futures[future]
             try:

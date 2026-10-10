@@ -39,9 +39,10 @@ STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
 SOURCES = [
-    ("Ohio RealAuction", ["pipeline.scrape_realauction", "--state", "OH", "--all"],
+    # Ohio and Florida look back two weeks so results of sales held since the last run are loaded.
+    ("Ohio RealAuction", ["pipeline.scrape_realauction", "--state", "OH", "--all", "--lookback-days", "14"],
      ["pipeline.load_realauction_sales", "--state", "OH", "--all"]),
-    ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--all"],
+    ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--all", "--lookback-days", "14"],
      ["pipeline.load_realauction_sales", "--state", "FL", "--all"]),
     ("Colorado RealAuction", ["pipeline.scrape_realauction", "--state", "CO", "--all"],
      ["pipeline.load_realauction_sales", "--state", "CO", "--all"]),

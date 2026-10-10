@@ -4,7 +4,11 @@ and Texas sheriff/constable tax foreclosure sales (*.texas.sheriffsaleauctions.c
 
 Public pages only: the calendar lists sale days, and each day's auctions load
 ten at a time from the site's own AJAX endpoint. Tax-deed days are skipped, and tax
-sale days are taken only when asked for (Texas)."""
+sale days are taken only when asked for (Texas).
+
+Closed auctions carry their result, which the page fills in from a second AJAX call
+(FNC=UPDATE): "Auction Sold", the amount and who it was sold to ("3rd Party Bidder",
+"Plaintiff"), or a status such as "Canceled per County" or "POSTPONED BY ATTORNEY"."""
 import json
 import re
 import time
@@ -59,31 +63,62 @@ def parse_items(html):
     return items
 
 
+def parse_result(item):
+    """A closed auction's result panel. "Auction Sold" carries an amount and a buyer
+    ("Sold To" / "3rd Party Bidder"); otherwise the status is in the second line
+    ("Canceled per County"). The first line can be a template code ("B")."""
+    headline = (item.get("A") or "").strip()
+    detail = (item.get("B") or "").strip()
+    if headline == "Auction Sold":
+        return {"status": "Auction Sold", "time": detail, "amount": (item.get("D") or "").strip() or None,
+                "sold_to_label": (item.get("SL") or "").strip(), "sold_to": (item.get("ST") or "").strip() or None}
+    return {"status": detail or headline}
+
+
 class RealAuctionAdapter:
     def __init__(self, base_url, months=3, timeout=30, tax_sales=False):
         self.base_url = base_url.rstrip("/") + "/index.cfm"
         self.months, self.timeout, self.tax_sales = months, timeout, tax_sales
 
+    def _load(self, client, area, page):
+        response = client.get(self.base_url, headers={"X-Requested-With": "XMLHttpRequest"}, params={
+            "zaction": "AUCTION", "Zmethod": "UPDATE", "FNC": "LOAD", "AREA": area,
+            "PageDir": "0" if page == 0 else "1", "doR": "1",
+            "tx": str(int(time.time() * 1000)), "bypassPage": "0"})
+        response.raise_for_status()
+        body = response.text
+        return json.loads(body[body.index("{"):]) if "{" in body else {}
+
+    def _results(self, client, auction_ids):
+        """Result panels for auctions already loaded in this session, keyed by auction id."""
+        response = client.get(self.base_url, headers={"X-Requested-With": "XMLHttpRequest"}, params={
+            "zaction": "AUCTION", "ZMETHOD": "UPDATE", "FNC": "UPDATE", "ref": ",".join(auction_ids),
+            "tx": str(int(time.time() * 1000))})
+        response.raise_for_status()
+        body = response.text
+        payload = json.loads(body[body.index("{"):]) if "{" in body else {}
+        return {str(item.get("AID")): parse_result(item) for item in (payload.get("ADATA") or {}).get("AITEM", [])}
+
     def _items(self, client, sale_day, area):
         """All auctions in one area of a sale day ("W" upcoming, "C" closed or cancelled)."""
         found, seen = [], set()
         for page in range(100):
-            response = client.get(self.base_url, headers={"X-Requested-With": "XMLHttpRequest"}, params={
-                "zaction": "AUCTION", "Zmethod": "UPDATE", "FNC": "LOAD", "AREA": area,
-                "PageDir": "0" if page == 0 else "1", "doR": "1",
-                "tx": str(int(time.time() * 1000)), "bypassPage": "0"})
-            response.raise_for_status()
-            body = response.text
-            payload = json.loads(body[body.index("{"):]) if "{" in body else {}
+            payload = self._load(client, area, page)
             batch = [item for item in parse_items(payload.get("retHTML", "")) if item["auction_id"] not in seen]
             if not batch:
                 break
+            if area == "C":
+                results = self._results(client, [item["auction_id"] for item in batch])
+                for item in batch:
+                    if item["auction_id"] in results:
+                        item["result"] = results[item["auction_id"]]
             seen.update(item["auction_id"] for item in batch)
             found.extend(batch)
         return found
 
-    def fetch(self, today=None):
-        """Every foreclosure auction on a sale day from today through the next few months."""
+    def fetch(self, today=None, before=None):
+        """Every foreclosure auction on a sale day from `today` through the next few months
+        (or up to, not including, `before`)."""
         today = today or date.today()
         records = []
         with httpx.Client(headers=HEADERS, timeout=self.timeout, follow_redirects=True) as client:
@@ -100,12 +135,14 @@ class RealAuctionAdapter:
                     # Most sites label sale days "Foreclosure"; some (Mesa, CO) use "FC".
                     # Texas sheriff and constable sites only hold property-tax
                     # foreclosure sales, labelled "Tax Sale".
-                    if day >= today and count and (self.tax_sales and "tax" in kind.lower()
+                    if day >= today and (before is None or day < before) and count and (self.tax_sales and "tax" in kind.lower()
                                                    or "foreclos" in kind.lower() or kind.strip().upper() == "FC"):
                         days[day] = kind
             for day in sorted(days):
                 client.get(self.base_url, params={"zaction": "AUCTION", "Zmethod": "PREVIEW",
                                                   "AUCTIONDATE": day.strftime("%m/%d/%Y")}).raise_for_status()
+                # The page loads its running area first; results are only served after it.
+                self._load(client, "R", 0)
                 for area in ("W", "C"):
                     for item in self._items(client, day, area):
                         records.append({**item, "sale_date": day.isoformat(), "area": area, "auction_kind": days[day]})

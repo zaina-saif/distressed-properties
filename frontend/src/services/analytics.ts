@@ -1,6 +1,6 @@
 import { API_URL, authFetch } from "@/lib/api";
 
-export type SaleOutcome = "third_party" | "plaintiff" | "sold_other" | "cancelled";
+export type SaleOutcome = "third_party" | "plaintiff" | "sold_other" | "unsold" | "cancelled";
 
 export interface PricedSale {
   sale_id: string;
