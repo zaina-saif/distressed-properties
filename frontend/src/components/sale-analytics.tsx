@@ -15,6 +15,11 @@ const OUTCOME_ORDER: SaleOutcome[] = ["third_party", "plaintiff", "sold_other", 
 const SERIES = "#2a78d6";
 const INK = { primary: "#0f172a", secondary: "#475569", muted: "#94a3b8", grid: "#e7e6e0", axis: "#c3c2b7" };
 const PERIODS = [{ label: "6 months", months: 6 }, { label: "12 months", months: 12 }, { label: "24 months", months: 24 }, { label: "All time", months: undefined }];
+const VALUE_BINS = [
+  { label: "Under 50%", short: "<50%", max: 0.5 }, { label: "50–60%", short: "50–60", max: 0.6 }, { label: "60–70%", short: "60–70", max: 0.7 },
+  { label: "70–80%", short: "70–80", max: 0.8 }, { label: "80–90%", short: "80–90", max: 0.9 }, { label: "90–100%", short: "90–100", max: 1 },
+  { label: "100%+", short: "100%+", max: Infinity },
+];
 const RATIO_BINS = [
   { label: "Under 80%", short: "<80%", max: 0.8 }, { label: "80–100%", short: "80–100", max: 1 }, { label: "100–110%", short: "100–110", max: 1.1 },
   { label: "110–125%", short: "110–125", max: 1.25 }, { label: "125–150%", short: "125–150", max: 1.5 }, { label: "150–200%", short: "150–200", max: 2 },
@@ -130,7 +135,8 @@ function CountyWinRates({ counties, showState }: { counties: SaleAnalytics["coun
   })}</ul>;
 }
 
-function AskVsBid({ points }: { points: PricedSale[] }) {
+function AskVsBid({ points: all }: { points: PricedSale[] }) {
+  const points = useMemo(() => all.filter((p): p is PricedSale & { ask: number; bid_to_ask: number } => p.ask != null && p.ask > 0 && p.bid_to_ask != null), [all]);
   const [ref, width] = useWidth<HTMLDivElement>();
   const [tip, setTip] = useState<Tip>(null);
   const [active, setActive] = useState<number | null>(null);
@@ -202,10 +208,19 @@ function Columns({ data, label }: { data: Array<{ label: string; short?: string;
 function RecentSales({ points }: { points: PricedSale[] }) {
   const [all, setAll] = useState(false);
   const rows = all ? points : points.slice(0, 15);
-  return <div className="overflow-x-auto"><table className="w-full min-w-[640px] text-left text-xs" style={{ fontVariantNumeric: "tabular-nums" }}>
-    <thead><tr className="border-b border-slate-200 text-slate-500"><th className="py-2 pr-3 font-medium">Sold</th><th className="py-2 pr-3 font-medium">Property</th><th className="py-2 pr-3 font-medium">County</th><th className="py-2 pr-3 text-right font-medium">Ask</th><th className="py-2 pr-3 text-right font-medium">Winning bid</th><th className="py-2 text-right font-medium">vs. ask</th></tr></thead>
-    <tbody>{rows.map((p) => <tr key={p.sale_id} className="border-b border-slate-100 text-slate-700"><td className="py-2 pr-3 whitespace-nowrap">{formatDate(p.sold_on)}</td><td className="py-2 pr-3">{p.address ?? "—"}{p.city ? `, ${p.city}` : ""}</td><td className="py-2 pr-3">{p.county}</td><td className="py-2 pr-3 text-right">{money(p.ask)}</td><td className="py-2 pr-3 text-right font-semibold text-slate-900">{money(p.winning_bid)}</td><td className="py-2 text-right">{premium(p.bid_to_ask)}</td></tr>)}</tbody>
+  return <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-left text-xs" style={{ fontVariantNumeric: "tabular-nums" }}>
+    <thead><tr className="border-b border-slate-200 text-slate-500"><th className="py-2 pr-3 font-medium">Sold</th><th className="py-2 pr-3 font-medium">Property</th><th className="py-2 pr-3 font-medium">County</th><th className="py-2 pr-3 text-right font-medium">Ask</th><th className="py-2 pr-3 text-right font-medium">Winning bid</th><th className="py-2 pr-3 text-right font-medium">vs. ask</th><th className="py-2 pr-3 text-right font-medium">Est. value</th><th className="py-2 text-right font-medium">% of value</th></tr></thead>
+    <tbody>{rows.map((p) => <tr key={p.sale_id} className="border-b border-slate-100 text-slate-700"><td className="py-2 pr-3 whitespace-nowrap">{formatDate(p.sold_on)}</td><td className="py-2 pr-3">{p.address ?? "—"}{p.city ? `, ${p.city}` : ""}</td><td className="py-2 pr-3">{p.county}</td><td className="py-2 pr-3 text-right">{p.ask == null ? "—" : money(p.ask)}</td><td className="py-2 pr-3 text-right font-semibold text-slate-900">{money(p.winning_bid)}</td><td className="py-2 pr-3 text-right">{premium(p.bid_to_ask)}</td><td className="py-2 pr-3 text-right">{p.estimated_value == null ? "—" : money(p.estimated_value)}</td><td className="py-2 text-right">{pct(p.bid_to_value)}</td></tr>)}</tbody>
   </table>{points.length > 15 && <button type="button" onClick={() => setAll(!all)} className="mt-3 text-xs font-semibold text-teal-700 hover:underline">{all ? "Show fewer" : `Show all ${points.length.toLocaleString("en-US")} sales`}</button>}</div>;
+}
+
+function binned(points: PricedSale[], ratio: (p: PricedSale) => number | null, bins: typeof RATIO_BINS) {
+  const counts = bins.map((bin) => ({ label: bin.label, short: bin.short, value: 0 }));
+  for (const p of points) {
+    const r = ratio(p);
+    if (r != null) counts[bins.findIndex((bin) => r < bin.max)].value += 1;
+  }
+  return counts;
 }
 
 /** The dashboard's Analytics tab: past sale outcomes and winning bids for the selected state and county. */
@@ -226,11 +241,8 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
     return () => { active = false; };
   }, [state, county, months, requestKey]);
 
-  const ratioBins = useMemo(() => {
-    const counts = RATIO_BINS.map((bin) => ({ label: bin.label, short: bin.short, value: 0 }));
-    for (const p of data?.points ?? []) counts[RATIO_BINS.findIndex((bin) => p.bid_to_ask < bin.max)].value += 1;
-    return counts;
-  }, [data]);
+  const ratioBins = useMemo(() => binned(data?.points ?? [], (p) => p.bid_to_ask, RATIO_BINS), [data]);
+  const valueBins = useMemo(() => binned(data?.points ?? [], (p) => p.bid_to_value, VALUE_BINS), [data]);
   const place = county ? `${county} County, ${stateName}` : stateName;
   const s = data?.summary;
   const knownBuyer = s ? s.third_party + s.plaintiff : 0;
@@ -249,8 +261,8 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
       {data && s && s.completed > 0 && <div className={`space-y-4 transition-opacity ${loading ? "opacity-60" : ""}`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatTile hero label="Third-party win rate" value={pct(s.third_party_rate)} detail={`${s.third_party.toLocaleString("en-US")} of ${knownBuyer.toLocaleString("en-US")} sales with a published buyer went to an outside bidder`} />
-          <StatTile label="Median winning bid vs. ask" value={premium(s.median_bid_to_ask)} detail={`Third-party sales with both figures (${s.priced_sales.toLocaleString("en-US")})`} />
-          <StatTile label="Median winning bid" value={s.median_winning_bid == null ? "—" : compact(s.median_winning_bid)} detail={`${compact(s.third_party_volume)} won by outside bidders in total`} />
+          <StatTile label="Median winning bid vs. ask" value={premium(s.median_bid_to_ask)} detail={`Third-party sales with both figures (${s.priced_with_ask.toLocaleString("en-US")})`} />
+          <StatTile label="Median winning bid vs. value" value={pct(s.median_bid_to_value)} detail={`Of today's Zestimate, ${s.valued_sales.toLocaleString("en-US")} third-party sales · median bid ${s.median_winning_bid == null ? "—" : compact(s.median_winning_bid)}`} />
           <StatTile label="Completed sales" value={s.completed.toLocaleString("en-US")} detail={`${s.sold.toLocaleString("en-US")} sold · ${s.cancelled.toLocaleString("en-US")} cancelled (${pct(s.completed ? s.cancelled / s.completed : null)})`} />
         </div>
 
@@ -267,6 +279,10 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
           </Card>
         </div>
 
+        <Card title="Winning bid as a % of estimated value" subtitle={`How much of a property's value outside bidders paid: third-party sales by winning bid as a share of today's Zillow Zestimate (${s.valued_sales.toLocaleString("en-US")} sales with a value). The Zestimate was looked up after the sale, so it reflects today's market, not the day of the auction.`}>
+          {s.valued_sales ? <Columns data={valueBins} label="Third-party sales by winning bid as a percent of estimated value" /> : <p className="text-sm text-slate-500">No estimated values for these sales yet.</p>}
+        </Card>
+
         <div className="grid gap-4 lg:grid-cols-2">
           <Card title="Third-party win rate by county" subtitle="Share of sales with a published buyer that an outside bidder won, and how many. Counties with at least 5 such sales.">
             <CountyWinRates counties={data.counties} showState={new Set(data.counties.map((c) => c.state)).size > 1} />
@@ -276,11 +292,11 @@ export function SaleAnalyticsView({ state, county, stateName }: { state: string;
           </Card>
         </div>
 
-        <Card title="Recent third-party sales" subtitle="Sales won by outside bidders with both an ask and a winning bid, newest first.">
+        <Card title="Recent third-party sales" subtitle="Sales won by outside bidders with a published winning bid, newest first. Estimated value is today's Zestimate.">
           <RecentSales points={data.points} />
         </Card>
 
-        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the sheriff&apos;s own sale pages (the CivilView status history in New Jersey) and exclude interest and sheriff fees. The ask is the published upset price, or the judgment where no upset price is listed. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
+        <p className="text-xs leading-5 text-slate-500">Winning bids and buyers come from the sheriff&apos;s own sale pages (the CivilView status history in New Jersey) and exclude interest and sheriff fees. The ask is the published upset price, or the judgment where no upset price is listed. Estimated value is the Zillow Zestimate looked up after the sale. Lenders usually buy back with a nominal bid, so bid comparisons use third-party sales only. A cancelled sale is counted on its last scheduled date. Data as of {formatDate(data.as_of)}.</p>
       </div>}
     </div>
   </div>;

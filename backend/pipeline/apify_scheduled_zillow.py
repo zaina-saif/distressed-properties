@@ -72,7 +72,7 @@ def search_address(row):
     return f"{clean_street(row['street_address'])}, {place}"
 
 
-def prepare(only_missing=False, retry_unmatched=False):
+def prepare(only_missing=False, retry_unmatched=False, sold_results=False):
     if (OUTPUT / "submission.json").exists():
         raise RuntimeError("A submission already exists. Resume it; do not replace its manifest.")
     with engine.connect() as connection:
@@ -82,12 +82,12 @@ def prepare(only_missing=False, retry_unmatched=False):
                    ss.current_status, ss.current_sale_date
             FROM sheriff_sales ss JOIN properties p ON p.id=ss.property_id
             WHERE (:state IS NULL OR p.state=:state)
-              AND strpos(LOWER(CASE
+              AND (CASE WHEN :sold_results THEN ss.sold_buyer IS NOT NULL ELSE strpos(LOWER(CASE
                 WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index',
                     'fl_hillsborough_published_foreclosure_notice')
                     AND ss.current_sale_date<CURRENT_DATE
                     AND ss.current_status='scheduled_unverified'
-                THEN 'date_passed_unverified' ELSE ss.current_status END), :status) > 0
+                THEN 'date_passed_unverified' ELSE ss.current_status END), :status) > 0 END)
               AND (NOT :only_missing OR NOT EXISTS (
                 SELECT 1 FROM apify_zillow_results z
                 WHERE z.property_id=p.id AND z.is_current
@@ -98,7 +98,7 @@ def prepare(only_missing=False, retry_unmatched=False):
                   AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'))
             ORDER BY p.normalized_address, ss.id
         """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
-                "retry_unmatched": retry_unmatched}).mappings().all()
+                "retry_unmatched": retry_unmatched, "sold_results": sold_results}).mappings().all()
     manifest = [dict(row) for row in rows]
     for row in manifest:
         if retry_unmatched:
@@ -199,8 +199,10 @@ if __name__ == "__main__":
     parser.add_argument("--retry-unmatched", action="store_true",
                         help="prepare: only properties Zillow had no data for or matched to the wrong "
                              "house, searched again by cleaned street and ZIP")
+    parser.add_argument("--sold-results", action="store_true",
+                        help="prepare: sold sales with a parsed result (pipeline.sale_results) instead of a status")
     args = parser.parse_args()
     if args.action == "prepare":
-        prepare(args.only_missing, args.retry_unmatched)
+        prepare(args.only_missing, args.retry_unmatched, args.sold_results)
     else:
         {"submit": submit, "watch": watch}[args.action]()

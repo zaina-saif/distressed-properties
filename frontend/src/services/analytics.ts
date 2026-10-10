@@ -9,9 +9,12 @@ export interface PricedSale {
   state: string;
   county: string;
   sold_on: string;
-  ask: number;
+  ask: number | null;
   winning_bid: number;
-  bid_to_ask: number;
+  bid_to_ask: number | null;
+  /** Today's Zestimate, looked up after the sale. */
+  estimated_value: number | null;
+  bid_to_value: number | null;
 }
 
 export interface CountyResults extends Record<SaleOutcome, number> {
@@ -29,6 +32,9 @@ export interface SaleAnalytics {
     sold: number;
     third_party_rate: number | null;
     median_bid_to_ask: number | null;
+    priced_with_ask: number;
+    median_bid_to_value: number | null;
+    valued_sales: number;
     median_winning_bid: number | null;
     third_party_volume: number;
     priced_sales: number;

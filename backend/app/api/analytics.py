@@ -1,5 +1,6 @@
-"""Past-sale analytics: outcomes, winning bids against the asking price, and
-how often third-party bidders win, for the sales in the user's coverage.
+"""Past-sale analytics: outcomes, winning bids against the asking price and
+today's estimated value, and how often third-party bidders win, for the sales
+in the user's coverage.
 
 Winning bids and buyers come from pipeline/sale_results.py. A lender (the
 plaintiff) usually takes a property back with a nominal bid such as $100, so
@@ -73,6 +74,10 @@ def sale_analytics(
                        COALESCE(ss.sold_on, ss.current_sale_date::date) AS outcome_date,
                        ss.sold_amount,
                        {MINIMUM_BID_SQL} AS ask,
+                       (SELECT z.zestimate FROM apify_zillow_results z
+                        WHERE z.property_id = ss.property_id AND z.is_current AND z.match_status = 'matched'
+                          AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'
+                        ORDER BY z.retrieved_at DESC, z.id DESC LIMIT 1) AS estimated_value,
                        (SELECT COUNT(*) FROM sheriff_sale_status_history h
                         WHERE h.sheriff_sale_id = ss.id AND h.status IN ('adjourned', 'postponed')) AS postponements
                 FROM sheriff_sales ss
@@ -91,6 +96,7 @@ def sale_analytics(
     postponements = {bucket: 0 for bucket in POSTPONEMENT_BUCKETS}
     points: list[dict[str, Any]] = []
     bid_to_ask: list[float] = []
+    bid_to_value: list[float] = []
     for row in rows:
         outcome = row["outcome"]
         month = by_month.setdefault(row["outcome_date"].strftime("%Y-%m"), {name: 0 for name in OUTCOMES})
@@ -101,14 +107,21 @@ def sale_analytics(
         if outcome != "cancelled":
             count = int(row["postponements"] or 0)
             postponements[str(count) if count < 5 else "5+"] += 1
-        ratio = _ratio(row["sold_amount"], row["ask"])
-        if outcome == "third_party" and ratio is not None:
-            bid_to_ask.append(ratio)
-            place["ratios"].append(ratio)
+        if outcome == "third_party" and row["sold_amount"]:
+            ratio = _ratio(row["sold_amount"], row["ask"])
+            value_ratio = _ratio(row["sold_amount"], row["estimated_value"])
+            if ratio is not None:
+                bid_to_ask.append(ratio)
+                place["ratios"].append(ratio)
+            if value_ratio is not None:
+                bid_to_value.append(value_ratio)
             points.append({
                 "sale_id": str(row["id"]), "address": row["street_address"], "city": row["city"],
                 "state": row["state"], "county": row["county"], "sold_on": row["outcome_date"].isoformat(),
-                "ask": float(row["ask"]), "winning_bid": float(row["sold_amount"]), "bid_to_ask": ratio,
+                "ask": float(row["ask"]) if row["ask"] is not None else None, "winning_bid": float(row["sold_amount"]),
+                "bid_to_ask": ratio,
+                "estimated_value": float(row["estimated_value"]) if row["estimated_value"] is not None else None,
+                "bid_to_value": value_ratio,
             })
 
     def sold(item: dict[str, Any]) -> int:
@@ -134,6 +147,10 @@ def sale_analytics(
             # Share of sales with a known buyer that a third-party bidder won.
             "third_party_rate": totals["third_party"] / known_buyer if known_buyer else None,
             "median_bid_to_ask": _median(bid_to_ask),
+            "priced_with_ask": len(bid_to_ask),
+            # Today's Zestimate, looked up after the sale; see the frontend note.
+            "median_bid_to_value": _median(bid_to_value),
+            "valued_sales": len(bid_to_value),
             "median_winning_bid": _median([point["winning_bid"] for point in points]),
             "third_party_volume": sum(point["winning_bid"] for point in points),
             "priced_sales": len(points),
