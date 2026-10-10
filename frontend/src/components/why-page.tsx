@@ -10,7 +10,7 @@ import styles from "./marketing-home.module.css";
 const ADVANTAGES = [
   {
     icon: Globe,
-    title: "The best deals, not just the nearest ones.",
+    title: "Selected investor opportunities at your fingertips.",
     text: `Sheriff and foreclosure sale listings from ${STATES.length} states, consolidated in one place. Compare opportunities across counties and states, and invest where the numbers are best, not only where you happen to live.`,
     tags: [`${STATES.length} states`, "One portal"],
   },
