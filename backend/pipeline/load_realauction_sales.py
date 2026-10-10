@@ -6,7 +6,10 @@
 import argparse
 import json
 import re
+import time
 from datetime import date
+
+from sqlalchemy.exc import OperationalError
 
 from pipeline import colorado_addresses
 from pipeline.sale_listing_loader import Sale, load_sales, money
@@ -153,11 +156,24 @@ def main():
                         help="Load the history/ snapshots of past results; current listings are left as they are")
     args = parser.parse_args()
     counties = sorted(SOURCES[args.state]) if args.all else args.counties or []
+    failed = []
     for county in counties:
         if not snapshot_path(args.state, county, history=args.history).exists():
             print(f"{args.state} {county}: no snapshot, skipped")
             continue
-        print(f"{args.state} {county}: {load(args.state, county, history=args.history)}", flush=True)
+        # Loading is safe to repeat, so a dropped database connection is retried.
+        for attempt in range(3):
+            try:
+                print(f"{args.state} {county}: {load(args.state, county, history=args.history)}", flush=True)
+                break
+            except OperationalError as exc:
+                print(f"{args.state} {county}: connection lost (attempt {attempt + 1}): {str(exc).splitlines()[0]}",
+                      flush=True)
+                time.sleep(10)
+        else:
+            failed.append(county)
+    if failed:
+        raise SystemExit(f"Failed counties: {', '.join(failed)}")
 
 
 if __name__ == "__main__":

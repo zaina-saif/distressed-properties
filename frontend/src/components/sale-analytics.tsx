@@ -288,7 +288,7 @@ export function SaleAnalyticsView({ state, county, stateName }: { state?: string
           <Card title="Third-party win rate by county" subtitle="Share of sales with a published buyer that an outside bidder won, and how many. Counties with at least 5 such sales.">
             <CountyWinRates counties={data.counties} showState={new Set(data.counties.map((c) => c.state)).size > 1} />
           </Card>
-          <Card title="Postponements before the sale" subtitle="How many times sold properties were postponed before they finally sold.">
+          <Card title="Postponements before the sale" subtitle="How many times sold properties were postponed before they finally sold. Postponement history is fullest for New Jersey; the Ohio and Florida sale sites rarely list postponements (Florida usually cancels and re-lists).">
             <Columns data={data.postponements.map((p) => ({ label: p.postponements, value: p.sales }))} label="Sold properties by number of postponements" />
           </Card>
         </div>

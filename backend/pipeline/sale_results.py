@@ -93,7 +93,7 @@ def backfill(dry_run: bool = False) -> dict[str, int]:
 
     from app.database.session import engine
 
-    with engine.begin() as connection:
+    with engine.connect() as connection:
         sales = connection.execute(text("""
             SELECT ss.id, ss.description_text, ss.current_sale_date,
                    COALESCE(ARRAY_AGG(h.raw_status ORDER BY h.sale_date NULLS FIRST, h.observed_at, h.id)
@@ -104,22 +104,27 @@ def backfill(dry_run: bool = False) -> dict[str, int]:
               AND ss.current_status NOT ILIKE '%unverified%'
             GROUP BY ss.id
         """)).mappings().all()
-        counts = {"sold_sales": len(sales), "with_result": 0, "with_amount": 0}
-        for sale in sales:
-            sale_date = sale["current_sale_date"].date() if sale["current_sale_date"] else None
-            result = parse_sale_result(sale["description_text"], sale["raw_statuses"], sale_date)
-            if result is None:
-                continue
-            counts["with_result"] += 1
-            counts["with_amount"] += result.amount is not None
-            if dry_run:
-                continue
+    counts = {"sold_sales": len(sales), "with_result": 0, "with_amount": 0}
+    updates = []
+    for sale in sales:
+        sale_date = sale["current_sale_date"].date() if sale["current_sale_date"] else None
+        result = parse_sale_result(sale["description_text"], sale["raw_statuses"], sale_date)
+        if result is None:
+            continue
+        counts["with_result"] += 1
+        counts["with_amount"] += result.amount is not None
+        updates.append({"id": sale["id"], "amount": result.amount, "buyer": result.buyer,
+                        "sold_on": result.sold_on, "raw_status": result.raw_status})
+    if dry_run:
+        return counts
+    # Short transactions: one long one can outlive the Supabase pooler connection.
+    for start in range(0, len(updates), 500):
+        with engine.begin() as connection:
             connection.execute(text("""
                 UPDATE sheriff_sales
                 SET sold_amount = :amount, sold_buyer = :buyer, sold_on = :sold_on, sold_raw_status = :raw_status
                 WHERE id = :id
-            """), {"id": sale["id"], "amount": result.amount, "buyer": result.buyer,
-                   "sold_on": result.sold_on, "raw_status": result.raw_status})
+            """), updates[start:start + 500])
     return counts
 
 
