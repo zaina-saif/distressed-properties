@@ -44,6 +44,9 @@ python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow
 # Stages: scrape load zillow score report. Default run dir: .local/multistate-refresh/
 python -m pipeline.multistate_refresh --run-dir /tmp/ms-refresh --max-zillow-addresses 600
 
+# Winning bids and buyers for sold sales (sold_amount / sold_buyer / sold_on; both refreshes run it after loading)
+python -m pipeline.sale_results --dry-run
+
 # Opportunity alert emails (needs RESEND_API_KEY, ALERTS_SIGNING_SECRET, ALERTS_POSTAL_ADDRESS)
 python -m pipeline.send_opportunity_alerts --frequency daily --dry-run
 

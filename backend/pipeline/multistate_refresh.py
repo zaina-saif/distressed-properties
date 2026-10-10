@@ -103,6 +103,8 @@ class Refresh:
 
     def load(self) -> None:
         self.report["stages"]["load"] = {name: self._run("load", name, args) for name, _, args in SOURCES}
+        # Winning bids and buyers for sales the loaders just marked sold (e.g. Ohio).
+        self.report["stages"]["sale_results"] = {"ok": self._run("load", "sale results", ["pipeline.sale_results"])}
 
     def zillow(self) -> None:
         import pipeline.apify_scheduled_zillow as apify

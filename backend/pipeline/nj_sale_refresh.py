@@ -146,6 +146,11 @@ class Refresh:
                 self._fail("load", path.name, exc)
         self.report["stages"]["load"] = {"files_loaded": loaded}
         print(f"  loaded {loaded} snapshot files", flush=True)
+        try:
+            from pipeline.sale_results import backfill
+            self.report["stages"]["sale_results"] = backfill()
+        except Exception as exc:  # noqa: BLE001
+            self._fail("load", "sale_results", exc)
 
     def link(self) -> None:
         from pipeline.create_properties import create_properties

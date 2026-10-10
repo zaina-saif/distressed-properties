@@ -2,6 +2,7 @@
 
 import {
   CalendarDays,
+  ChartColumn,
   ChevronLeft,
   ChevronRight,
   Info,
@@ -31,6 +32,7 @@ import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason
 import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
+import { SaleAnalyticsView } from "@/components/sale-analytics";
 import { getProfile } from "@/lib/profile";
 import { formatSaleDate, STATES } from "@/lib/states";
 import { downloadPropertiesXlsx, getProperties, getPropertyCoverage } from "@/services/properties";
@@ -125,7 +127,7 @@ export default function PropertyDashboard({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileView, setMobileView] = useState<"map" | "list">("list");
-  const [desktopView, setDesktopView] = useState<"dashboard" | "list">("dashboard");
+  const [desktopView, setDesktopView] = useState<"dashboard" | "list" | "analytics">("dashboard");
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -318,6 +320,14 @@ export default function PropertyDashboard({
             >
               <ListFilter className="h-4 w-4" /><span className="hidden sm:inline">List View</span><span className="sm:hidden">Data</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setDesktopView("analytics")}
+              className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold sm:px-3 ${desktopView === "analytics" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+              aria-current={desktopView === "analytics" ? "page" : undefined}
+            >
+              <ChartColumn className="h-4 w-4" /><span className="hidden sm:inline">Analytics</span><span className="sm:hidden">Stats</span>
+            </button>
             <button type="button" onClick={() => setRefreshKey((key) => key + 1)} className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-50" aria-label="Refresh properties"><RefreshCw className="h-4 w-4" /></button>
           </nav>
           <div className="flex w-full flex-wrap items-center justify-end gap-1.5 sm:w-auto">
@@ -407,6 +417,7 @@ export default function PropertyDashboard({
         )}
       </section>
 
+      {desktopView === "analytics" ? <SaleAnalyticsView state={selectedState} county={selectedCounty} stateName={stateInfo.name} /> : <>
       <div className={`sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
         <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
           <button onClick={() => setMobileView("map")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "map" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><MapIcon className="h-4 w-4" />Map</button>
@@ -473,6 +484,7 @@ export default function PropertyDashboard({
           </footer>
         </section>
       </div>
+      </>}
 
       {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} onSalePageClick={setSalePageProperty} />}
       {salePageProperty && <SheriffSalePageModal key={salePageProperty.sheriff_sale_id} property={salePageProperty} onClose={() => setSalePageProperty(null)} />}
