@@ -32,6 +32,32 @@ def validate(records: list[dict], today: date | None = None) -> None:
             raise ValueError(f"Past auction date in current snapshot: {bbl}")
 
 
+def merge_court_duplicates(connection) -> int:
+    """A tax-lien foreclosure can also appear as a court Notice of Sale (same BBL and date).
+    The court listing has the index number and judgment, so the NYCTL row is hidden as a
+    duplicate, and its coordinates and building class are copied to the court listing's property."""
+    rows = connection.execute(text("""SELECT t.id, t.property_id AS t_property, c.property_id AS c_property,
+            c.court_case_number FROM sheriff_sales t JOIN sheriff_sales c
+            ON c.source_system='ny_court_foreclosure_auction' AND c.state='NY'
+           AND c.property_number=t.property_number
+           AND c.current_sale_date::date=t.current_sale_date::date
+           AND c.current_status IN ('scheduled','scheduled_unverified')
+        WHERE t.source_system=:source AND t.state='NY' AND t.current_status='scheduled'"""),
+        {"source": SOURCE_SYSTEM}).mappings().all()
+    for row in rows:
+        connection.execute(text("""UPDATE properties c SET latitude=COALESCE(c.latitude,t.latitude),
+            longitude=COALESCE(c.longitude,t.longitude),property_type=COALESCE(c.property_type,t.property_type),
+            updated_at=NOW() FROM properties t WHERE c.id=:c_property AND t.id=:t_property"""), dict(row))
+        connection.execute(text("""UPDATE sheriff_sales SET current_status='duplicate_listing',is_active=FALSE,
+            updated_at=NOW() WHERE id=:id"""), {"id": row["id"]})
+        connection.execute(text("""INSERT INTO sheriff_sale_status_history(id,sheriff_sale_id,status,observed_at,raw_status)
+            SELECT :hid,:id,'duplicate_listing',NOW(),:note WHERE NOT EXISTS (
+              SELECT 1 FROM sheriff_sale_status_history WHERE sheriff_sale_id=:id AND status='duplicate_listing')"""),
+            {"hid": str(uuid.uuid4()), "id": row["id"],
+             "note": f"Same auction as the court listing for Index No. {row['court_case_number']}"})
+    return len(rows)
+
+
 def load(path: Path = DEFAULT_OUTPUT) -> dict[str, int]:
     records = json.loads(path.read_text())
     validate(records)
@@ -104,10 +130,11 @@ def load(path: Path = DEFAULT_OUTPUT) -> dict[str, int]:
             WHERE state='NY' AND source_system=:source
               AND current_status='scheduled' AND current_sale_date<CURRENT_DATE"""),
             {"source": SOURCE_SYSTEM})
+        merged = merge_court_duplicates(connection)
         connection.execute(text("""UPDATE scrape_runs SET completed_at=NOW(),status='completed',
             records_created=:created,records_updated=:updated WHERE id=:id"""),
             {"created": created, "updated": updated, "id": run_id})
-    return {"created": created, "updated": updated, "total": len(records)}
+    return {"created": created, "updated": updated, "merged_with_court_listings": merged, "total": len(records)}
 
 
 def main() -> None:

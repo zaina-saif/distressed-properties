@@ -30,6 +30,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 from pipeline.collect_nyc_kings_foreclosure_pdfs import macos_ocr
+from pipeline.load_nyc_referee_sales import merge_court_duplicates
 from pipeline.parse_ny_court_pdfs import (
     kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale,
 )
@@ -248,6 +249,8 @@ def main() -> None:
         print(f"NY {county}: {result}", flush=True)
     apply_details(records)
     print(f"Older Kings index rows marked adjourned: {supersede_old_kings_index(records)}")
+    with engine.begin() as connection:
+        print(f"NYCTL tax-lien listings merged into court listings: {merge_court_duplicates(connection)}")
     print(f"Loaded at {now.isoformat()}")
 
 
