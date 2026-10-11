@@ -1,7 +1,7 @@
 from datetime import date
 
 from pipeline.load_ny_court_pdfs import bbl, county_of, details, parse_documents, to_sales
-from pipeline.parse_ny_court_pdfs import kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale
+from pipeline.parse_ny_court_pdfs import kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale, split_address
 
 # Text as OCR returns it from saved court PDFs (party names shortened).
 MYRTLE = """FILED: KINGS COUNTY CLERK 08/31/2026 10:58 AM
@@ -159,6 +159,9 @@ def test_past_auction_dates_are_not_shown_as_scheduled():
 
 def test_helpers():
     assert county_of(MYRTLE) == "Kings" and county_of(BRONX) == "Bronx" and county_of(MANHATTAN) == "New York"
+    assert split_address("2065 Tumbul Avenue, Bronx, N. . 10473", "Bronx") == ("2065 Tumbul Avenue", "Bronx", "10473")
+    assert split_address("1328 Chisholm Street, Bronx, New York 10459", "Bronx") == ("1328 Chisholm Street", "Bronx", "10459")
+    assert split_address("69 Conklin Avenue, Brooklyn, NY", "Brooklyn") == ("69 Conklin Avenue", "Brooklyn", None)
     assert bbl("Kings", "3255", "19") == "3-03255-0019" and bbl("Kings", None, "19") is None
     text = details({"sale_date": "2026-10-15", "sale_time": "2:30 p.m.", "index_number": "522549/2023",
                     "judgment": 1002448.69, "referee": "Jeffrey H. Schwartz"})

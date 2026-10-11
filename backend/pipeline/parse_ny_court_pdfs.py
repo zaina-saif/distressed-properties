@@ -72,9 +72,9 @@ def kind(text: str) -> str:
 
 
 def split_address(raw: str, default_city: str | None) -> tuple[str | None, str | None, str | None]:
-    """'1312 Myrtle Avenue, Brooklyn, NY 11221' -> street, city, ZIP."""
+    """'1312 Myrtle Avenue, Brooklyn, NY 11221' -> street, city, ZIP (OCR may garble "NY" to "N. .")."""
     value = flat(raw).strip(" ,.;")
-    match = re.match(rf"(.+?),\s*({CITY_NAMES}),?\s*(?:N\.?\s*Y\.?|New York)\.?,?\s*(\d{{5}})?", value, re.I)
+    match = re.match(rf"(.+?),\s*({CITY_NAMES})\b,?\s*(?:New York|N[\s.]*Y?\.?)\.?,?\s*(\d{{5}})?", value, re.I)
     if match:
         street, city, zip_code = match.group(1), match.group(2).title(), match.group(3)
         if street.isupper():
