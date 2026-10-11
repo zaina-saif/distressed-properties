@@ -59,7 +59,7 @@ SOURCES = [
      ["pipeline.load_sc_master_in_equity", "--all"]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
     ("Connecticut court sales", ["pipeline.scrape_ct_foreclosure_sales"], ["pipeline.load_ct_foreclosure_sales"]),
-    ("County sale lists (KY Jefferson, OK Oklahoma, WI Dane)", ["pipeline.scrape_county_sale_lists", "--all"],
+    ("County sale lists (KY Jefferson, OK Oklahoma/Tulsa, WI Dane/Milwaukee)", ["pipeline.scrape_county_sale_lists", "--all"],
      ["pipeline.load_county_sale_lists", "--all"]),
 ]
 BACKEND = Path(__file__).resolve().parents[1]

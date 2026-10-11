@@ -9,8 +9,6 @@ from datetime import date
 from pipeline.sale_listing_loader import Sale, load_sales, money
 from pipeline.scrape_county_sale_lists import COUNTIES, snapshot_path
 
-SOURCE_SYSTEMS = {"KY": "ky_master_commissioner_sale", "OK": "ok_bid4assets_sheriff_sale",
-                  "WI": "wi_county_sheriff_sale"}
 
 
 def date_status(sale_date, today):
@@ -26,7 +24,7 @@ def ky_sale(record, today):
                 plaintiff=record["plaintiff"], defendant=record["defendant"], attorney=record["attorney"])
 
 
-def ok_sale(record, today):
+def bid4assets_sale(record, today):
     sale_date = date.fromisoformat(record["sale_date"])
     label = (record["auction_status"] or "").lower()
     if record["stayed"] or "stay" in label or "cancel" in label or "withdraw" in label:
@@ -37,8 +35,27 @@ def ok_sale(record, today):
         status = date_status(sale_date, today)
     return Sale(case=record["case"], street=record["street"], city=record["city"], zip_code=record["zip_code"],
                 sale_date=sale_date, status=status, raw=record, raw_status=record["auction_status"],
-                upset=record["minimum_bid"], plaintiff=record["plaintiff"], defendant=record["defendant"],
-                attorney=record["attorney"])
+                upset=record["minimum_bid"], parcel=record.get("parcel"), plaintiff=record["plaintiff"],
+                defendant=record["defendant"], attorney=record["attorney"])
+
+
+def tulsa_sale(record, today):
+    sale_date = date.fromisoformat(record["sale_date"])
+    price = money(str(record["sale_price"])) if record["sale_price"] not in (None, "") else None
+    result = None
+    if record["recalled"]:
+        status = "cancelled"
+    elif sale_date >= today:
+        status = "scheduled"
+    elif price:
+        status, result = "sold", f"Sold for ${price:,.2f}"
+    else:
+        status = "sold_or_cancelled_unverified"
+        result = "No bid" if record["no_bid"] else "No sale" if record["no_sale"] else None
+    raw_status = "recalled" if record["recalled"] else "no sale" if record["no_sale"] else "no bid" if record["no_bid"] else None
+    return Sale(case=record["case"], street=record["street"], city=record["city"], zip_code=record["zip_code"],
+                sale_date=sale_date, status=status, raw=record, raw_status=raw_status, plaintiff=record["plaintiff"],
+                defendant=record["defendant"], attorney=record["attorney"], result=result)
 
 
 def wi_sale(record, today):
@@ -59,7 +76,12 @@ def wi_sale(record, today):
                 property_number=record.get("sale_number"))
 
 
-TO_SALE = {"KY": ky_sale, "OK": ok_sale, "WI": wi_sale}
+# (source_system, record -> Sale) per county; a county keeps its source_system so reloads update its rows.
+SOURCES = {("KY", "Jefferson"): ("ky_master_commissioner_sale", ky_sale),
+           ("OK", "Oklahoma"): ("ok_bid4assets_sheriff_sale", bid4assets_sale),
+           ("OK", "Tulsa"): ("ok_tulsa_sheriff_sale", tulsa_sale),
+           ("WI", "Dane"): ("wi_county_sheriff_sale", wi_sale),
+           ("WI", "Milwaukee"): ("wi_bid4assets_sheriff_sale", bid4assets_sale)}
 
 
 def load(state, county):
@@ -70,8 +92,9 @@ def load(state, county):
     for record in snapshot["records"]:
         if record["case"] not in latest or record["sale_date"] >= latest[record["case"]]["sale_date"]:
             latest[record["case"]] = record
-    sales = [TO_SALE[state](record, today) for record in latest.values()]
-    return load_sales(state, county, SOURCE_SYSTEMS[state], snapshot["source_url"], sales,
+    source, to_sale = SOURCES[(state, county)]
+    sales = [to_sale(record, today) for record in latest.values()]
+    return load_sales(state, county, source, snapshot["source_url"], sales,
                       job=f"{state.lower()}_{county.lower()}_sale_list")
 
 

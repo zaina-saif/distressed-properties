@@ -2,7 +2,9 @@
 
 Kentucky, Jefferson County (Louisville): the Jefferson Circuit Court Commissioner's
   upcoming-sales table, served as a CSV (master commissioner judicial sales).
-Oklahoma, Oklahoma County: the Sheriff's sales on Bid4Assets (one grid per sale date).
+Oklahoma, Oklahoma County and Wisconsin, Milwaukee County: the Sheriffs' sales on
+  Bid4Assets (one grid per sale date, plus each auction's page for the full address).
+Oklahoma, Tulsa County: the Sheriff's public Auction Listings Report on Tinstar.
 Wisconsin, Dane County: the Sheriff's foreclosure sale list and each sale's detail page.
 
 Each list holds every upcoming sale for its county, so loading retires sales that drop off.
@@ -28,7 +30,15 @@ PARSER_VERSION = "county_sale_lists_v1"
 HEADERS = MonroeBid4AssetsAdapter.HEADERS
 KY_JEFFERSON_PAGE = "https://www.jeffcomm.org/upcoming-sales.php"
 KY_JEFFERSON_CSV = "https://www.jeffcomm.org/docs/webPush.csv"
-OK_OKLAHOMA_URL = "https://www.bid4assets.com/OKCSheriff"
+BID4ASSETS = {("OK", "Oklahoma"): "https://www.bid4assets.com/OKCSheriff",
+              ("WI", "Milwaukee"): "https://www.bid4assets.com/milwaukeesheriffsales"}
+OK_TULSA_PAGE = "https://tcso.org/resources/property-auctions/"
+OK_TULSA_API = "https://www.tinstar.io/api/cases"
+# The endpoint returns every case with internal fields, including buyers' contact
+# details; only what the public report shows is kept, and nothing else is saved.
+TULSA_FIELDS = ("caseNumber", "variantTag", "saleDate", "plaintiff", "defendant", "address", "city", "zipCode",
+                "attorney", "appraisedValue", "salePrice", "recalled", "noSale", "noBid")
+TULSA_LOOKBACK_DAYS = 21
 WI_DANE_URL = "https://danesheriff.com/Sales"
 CITY_LINE = re.compile(r"^(?:CITY OF |VILLAGE OF |TOWN OF )?(.+?),?\s+WI\s+(\d{5})", re.I)
 
@@ -65,33 +75,92 @@ def scrape_ky_jefferson(client):
     return parse_ky_jefferson(response.content.decode("utf-8-sig", "replace")), KY_JEFFERSON_PAGE
 
 
-def parse_bid4assets_rows(rows):
+def split_detail_address(street, full):
+    """City and ZIP from an auction page's full address, given the grid's street:
+    ('4129 N Sherman Blvd', '4129 N Sherman Blvd Milwaukee, WI 53216') -> ('Milwaukee', '53216')."""
+    full = " ".join((full or "").split())
+    rest = full[len(street):] if street and full.upper().startswith(street.upper()) else ""
+    match = re.match(r"\s*,?\s*([A-Za-z .'-]+?),\s*[A-Z]{2}\s+(\d{5})", rest)
+    return (match.group(1).strip().title(), match.group(2)) if match else (None, None)
+
+
+def parse_bid4assets_rows(rows, details=None):
+    """details maps AuctionID to the address on its auction page, when fetched."""
     records = []
     for row in rows:
         address = " ".join(str(row.get("Address") or "").split())
         street, _, city = address.partition(",")
+        street = street.strip()
+        detail_city, zip_code = split_detail_address(street, (details or {}).get(row["AuctionID"]))
+        # Without an attorney-set minimum the grid shows a $1 placeholder.
+        minimum = row.get("MinimumBid") if row.get("AttorneyHasSetMinBid") and (row.get("MinimumBid") or 0) > 1 else None
         records.append({
             "case": str(row.get("CourtCase") or row.get("SheriffNumber") or row["AuctionID"]).strip(),
             "auction_id": row["AuctionID"], "sale_date": row["SaleDate"][:10],
-            "street": street.strip(), "city": city.strip().title() or None, "zip_code": None,
-            "minimum_bid": row.get("MinimumBid"), "plaintiff": row.get("Plaintiff"),
+            "street": street, "city": city.strip().title() or detail_city, "zip_code": zip_code,
+            "parcel": row.get("Apn") or None, "minimum_bid": minimum, "plaintiff": row.get("Plaintiff"),
             "defendant": row.get("Defendant"), "attorney": row.get("Attorney"),
             "auction_status": row.get("AuctionStatusString"), "stayed": bool(row.get("IsStayed")),
             "postponed": bool(row.get("IsPostponed")), "raw": row})
     return records
 
 
-def scrape_ok_oklahoma(client):
-    first = client.get(OK_OKLAHOMA_URL)
-    first.raise_for_status()
-    rows = {}
-    for sale_date in MonroeBid4AssetsAdapter._sale_dates(first.text):
-        response = client.get(OK_OKLAHOMA_URL, params={"salesdate": sale_date})
-        response.raise_for_status()
-        for row in MonroeBid4AssetsAdapter._grid_rows(response.text):
-            rows[row["AuctionID"]] = row
-        time.sleep(1)
-    return parse_bid4assets_rows(rows.values()), OK_OKLAHOMA_URL
+def bid4assets_scraper(state, county):
+    url = BID4ASSETS[(state, county)]
+
+    def scrape(client):
+        first = client.get(url)
+        first.raise_for_status()
+        rows = {}
+        for sale_date in MonroeBid4AssetsAdapter._sale_dates(first.text):
+            response = client.get(url, params={"salesdate": sale_date})
+            response.raise_for_status()
+            for row in MonroeBid4AssetsAdapter._grid_rows(response.text):
+                rows[row["AuctionID"]] = row
+            time.sleep(1)
+        details = {}
+        # Only Milwaukee's grid leaves out the city; Oklahoma County's pages add no ZIP.
+        for auction_id in [key for key, row in rows.items() if "," not in str(row.get("Address") or "")]:
+            response = client.get(f"https://www.bid4assets.com/auction/index/{auction_id}")
+            if response.is_success:
+                details[auction_id] = MonroeBid4AssetsAdapter._detail_address(response.text)
+            time.sleep(1)
+        return parse_bid4assets_rows(rows.values(), details), url
+    return scrape
+
+
+def parse_tulsa_cases(cases, today):
+    """Cases the public report would list: not hidden, with a sale date from
+    TULSA_LOOKBACK_DAYS ago onward (recent results included)."""
+    records = []
+    for case in cases:
+        sale_date = case.get("saleDate") or ""
+        if case.get("status") != "complete" or case.get("hideFromReports") or not re.match(r"\d{4}-\d{2}-\d{2}$", sale_date):
+            continue
+        if (today - date.fromisoformat(sale_date)).days > TULSA_LOOKBACK_DAYS:
+            continue
+        kept = {field: case.get(field) for field in TULSA_FIELDS}
+        variant = (kept["variantTag"] or "").strip()
+        # Staff sometimes prefix the address with a note ("recalled!! 8516 E. 23RD PL").
+        address = " ".join((kept["address"] or "").split())
+        note = re.match(r"^\W*(recalled|cancel+ed|withdrawn)\W*\s*", address, re.I)
+        if note:
+            address = address[note.end():]
+        records.append({
+            "case": kept["caseNumber"].strip().upper() + (f"-{variant}" if variant else ""),
+            "sale_date": sale_date, "street": address,
+            "city": (kept["city"] or "").strip().title() or None, "zip_code": (kept["zipCode"] or "").strip()[:5] or None,
+            "plaintiff": kept["plaintiff"], "defendant": kept["defendant"], "attorney": kept["attorney"],
+            "appraised_value": kept["appraisedValue"], "sale_price": kept["salePrice"],
+            "recalled": bool(kept["recalled"] or note), "no_sale": bool(kept["noSale"]), "no_bid": bool(kept["noBid"]),
+            "raw": kept})
+    return records
+
+
+def scrape_ok_tulsa(client):
+    response = client.get(OK_TULSA_API, headers={"Referer": "https://www.tinstar.io/reports"})
+    response.raise_for_status()
+    return parse_tulsa_cases(response.json(), date.today()), OK_TULSA_PAGE
 
 
 def parse_dane_list(html):
@@ -142,8 +211,9 @@ def scrape_wi_dane(client):
     return records, WI_DANE_URL
 
 
-COUNTIES = {("KY", "Jefferson"): scrape_ky_jefferson, ("OK", "Oklahoma"): scrape_ok_oklahoma,
-            ("WI", "Dane"): scrape_wi_dane}
+COUNTIES = {("KY", "Jefferson"): scrape_ky_jefferson, ("OK", "Oklahoma"): bid4assets_scraper("OK", "Oklahoma"),
+            ("OK", "Tulsa"): scrape_ok_tulsa, ("WI", "Dane"): scrape_wi_dane,
+            ("WI", "Milwaukee"): bid4assets_scraper("WI", "Milwaukee")}
 
 
 def snapshot_path(state, county):
