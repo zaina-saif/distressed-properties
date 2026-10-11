@@ -5,6 +5,7 @@ Kentucky, Jefferson County (Louisville): the Jefferson Circuit Court Commissione
 Oklahoma, Oklahoma County and Wisconsin, Milwaukee County: the Sheriffs' sales on
   Bid4Assets (one grid per sale date, plus each auction's page for the full address).
 Oklahoma, Tulsa County: the Sheriff's public Auction Listings Report on Tinstar.
+South Dakota, Minnehaha County: the Sheriff's upcoming mortgage foreclosure list (text).
 Wisconsin, Dane County: the Sheriff's foreclosure sale list and each sale's detail page.
 
 Each list holds every upcoming sale for its county, so loading retires sales that drop off.
@@ -40,6 +41,16 @@ TULSA_FIELDS = ("caseNumber", "variantTag", "saleDate", "plaintiff", "defendant"
                 "attorney", "appraisedValue", "salePrice", "recalled", "noSale", "noBid")
 TULSA_LOOKBACK_DAYS = 21
 WI_DANE_URL = "https://danesheriff.com/Sales"
+SD_MINNEHAHA_URL = "https://www.minnehahacounty.gov/dept/so/mortgageForeclosures/mortgageForeclosures.php"
+# The county's server refuses requests that do not accept HTML.
+HTML_ACCEPT = {"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"}
+MINNEHAHA_CITIES = ("Sioux Falls", "Brandon", "Hartford", "Dell Rapids", "Baltic", "Colton", "Crooks", "Garretson",
+                    "Humboldt", "Renner", "Valley Springs", "Sherman", "Corson", "Lyons", "Rowena", "Ellis", "Harrisburg")
+MINNEHAHA_DATE = re.compile(r"^[A-Z][a-z]+day,\s+([A-Z][a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?,\s+(\d{4})$")
+MINNEHAHA_SALE = re.compile(
+    r"^(49CIV\S*)\s+(.+?)\s+VS\.?\s+(.+?)\s*\(([^)]*)\)\.?\s+(\d.+?)\s+"
+    r"(SFSD|(" + "|".join(city.upper() for city in MINNEHAHA_CITIES) + r"),?\s*SD)\s+(\d{5})\.?\s+"
+    r"JUDGMENT\s+AMT\s+(\$[\d,]+(?:\.\d+)?)", re.I)
 CITY_LINE = re.compile(r"^(?:CITY OF |VILLAGE OF |TOWN OF )?(.+?),?\s+WI\s+(\d{5})", re.I)
 
 
@@ -163,6 +174,46 @@ def scrape_ok_tulsa(client):
     return parse_tulsa_cases(response.json(), date.today()), OK_TULSA_PAGE
 
 
+def parse_minnehaha(html):
+    """Sales under 'Upcoming Scheduled Mortgage Foreclosures', grouped by a date heading;
+    returns (records, lines that look like sales but did not parse)."""
+    text = BeautifulSoup(html, "html.parser").get_text("\n")
+    lines = [" ".join(line.split()) for line in text.splitlines()]
+    start = next((i for i, line in enumerate(lines) if line.startswith("Upcoming Scheduled Mortgage Foreclosures")), None)
+    records, unparsed, sale_date = [], [], None
+    for line in lines[start:] if start is not None else []:
+        if line.startswith("Minnehaha County Sheriff") and "Procedure" in line:
+            break
+        heading = MINNEHAHA_DATE.match(line)
+        if heading:
+            sale_date = datetime.strptime(" ".join(heading.groups()), "%B %d %Y").date().isoformat()
+            continue
+        if not line.upper().startswith("49CIV") or not sale_date:
+            continue
+        match = MINNEHAHA_SALE.match(line)
+        if not match:
+            unparsed.append(line)
+            continue
+        case, plaintiff, defendant, attorney, street, place, city, zip_code, judgment = match.groups()
+        street = street.rstrip(" .,")
+        # One listing omits its case number ("49CIV FREEDOM ..."); key it by address.
+        key = case.upper() if re.search(r"\d", case[5:]) else f"49CIV-{street.upper()}"
+        records.append({"case": key, "court_case": case.upper() if key == case.upper() else None,
+                        "sale_date": sale_date, "street": street, "city": city.title() if city else "Sioux Falls",
+                        "zip_code": zip_code, "plaintiff": plaintiff.strip(), "defendant": defendant.strip(),
+                        "attorney": attorney.strip() or None, "judgment": judgment, "raw": line})
+    return records, unparsed
+
+
+def scrape_sd_minnehaha(client):
+    response = client.get(SD_MINNEHAHA_URL, headers=HTML_ACCEPT)
+    response.raise_for_status()
+    records, unparsed = parse_minnehaha(response.text)
+    for line in unparsed:
+        print(f"SD Minnehaha: could not parse: {line[:60]}...")
+    return records, SD_MINNEHAHA_URL
+
+
 def parse_dane_list(html):
     """(detail URL, sale date, case, street, city, ZIP, status) for each listed sale."""
     rows = []
@@ -212,7 +263,7 @@ def scrape_wi_dane(client):
 
 
 COUNTIES = {("KY", "Jefferson"): scrape_ky_jefferson, ("OK", "Oklahoma"): bid4assets_scraper("OK", "Oklahoma"),
-            ("OK", "Tulsa"): scrape_ok_tulsa, ("WI", "Dane"): scrape_wi_dane,
+            ("OK", "Tulsa"): scrape_ok_tulsa, ("SD", "Minnehaha"): scrape_sd_minnehaha, ("WI", "Dane"): scrape_wi_dane,
             ("WI", "Milwaukee"): bid4assets_scraper("WI", "Milwaukee")}
 
 

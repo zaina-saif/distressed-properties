@@ -22,6 +22,7 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "KY", name: "Kentucky", view: [38.2, -85.7, 10] },
   { code: "OK", name: "Oklahoma", view: [35.5, -97.5, 10] },
   { code: "WI", name: "Wisconsin", view: [43.07, -89.4, 10] },
+  { code: "SD", name: "South Dakota", view: [43.55, -96.73, 11] },
 ];
 
 /** "Tue, Oct 13, 2026" for a YYYY-MM-DD sale date (dates are calendar days, not times). */

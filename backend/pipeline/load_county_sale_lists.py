@@ -58,6 +58,14 @@ def tulsa_sale(record, today):
                 defendant=record["defendant"], attorney=record["attorney"], result=result)
 
 
+def sd_sale(record, today):
+    sale_date = date.fromisoformat(record["sale_date"])
+    return Sale(case=record["case"], street=record["street"], city=record["city"], zip_code=record["zip_code"],
+                sale_date=sale_date, status=date_status(sale_date, today), raw=record,
+                judgment=money(record["judgment"]), plaintiff=record["plaintiff"], defendant=record["defendant"],
+                attorney=record["attorney"])
+
+
 def wi_sale(record, today):
     sale_date = date.fromisoformat(record["sale_date"])
     label = (record.get("raw", {}).get("Status") or record["list_status"] or "").lower()
@@ -80,6 +88,7 @@ def wi_sale(record, today):
 SOURCES = {("KY", "Jefferson"): ("ky_master_commissioner_sale", ky_sale),
            ("OK", "Oklahoma"): ("ok_bid4assets_sheriff_sale", bid4assets_sale),
            ("OK", "Tulsa"): ("ok_tulsa_sheriff_sale", tulsa_sale),
+           ("SD", "Minnehaha"): ("sd_county_sheriff_sale", sd_sale),
            ("WI", "Dane"): ("wi_county_sheriff_sale", wi_sale),
            ("WI", "Milwaukee"): ("wi_bid4assets_sheriff_sale", bid4assets_sale)}
 

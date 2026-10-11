@@ -1,9 +1,9 @@
 import json
 from datetime import date
 
-from pipeline.load_county_sale_lists import bid4assets_sale, ky_sale, tulsa_sale, wi_sale
+from pipeline.load_county_sale_lists import bid4assets_sale, ky_sale, sd_sale, tulsa_sale, wi_sale
 from pipeline.scrape_county_sale_lists import (
-    parse_bid4assets_rows, parse_dane_detail, parse_dane_list, parse_ky_jefferson, parse_tulsa_cases,
+    parse_bid4assets_rows, parse_dane_detail, parse_dane_list, parse_ky_jefferson, parse_minnehaha, parse_tulsa_cases,
     split_detail_address, split_style,
 )
 
@@ -105,3 +105,26 @@ def test_tulsa_keeps_only_public_report_fields():
     assert tulsa_sale(upcoming, TODAY).status == "scheduled" and upcoming["case"] == "CJ-2025-1"
     sale = tulsa_sale(sold, TODAY)
     assert sale.status == "sold" and sale.result == "Sold for $85,000.00"
+
+
+MINNEHAHA = """<h2>Upcoming Scheduled Mortgage Foreclosures</h2><p>Current listings are as follows:</p>
+<p><strong>Wednesday, October 21st, 2026</strong></p>
+<p>49CIV25-001781 LAKEVIEW LOAN SERVICING LLC VS JENNIFER AND  MATTHEW DOE (HALLIDAY). 5732 W BREAM DR SFSD 57107. JUDGMENT AMT $327,062.62</p>
+<p>Wednesday, December 2nd, 2026</p>
+<p>49CIV FREEDOM MORTGAGE CORPORATION VS BRENDA DOE  (HALLIDAY). 300 FAIRWAY CIR BRANDON, SD 57005. JUDGMENT AMT $1,156,946.55</p>
+<p>49CIV26-001908 IDAHO HOUSING VS  THERESA DOE (HALLIDAY) 1011 W 12TH ST SFSD 57104. JUDGMENT AMT  $212,407.55</p>
+<p>49CIV26-009999 SOMETHING WITHOUT AN ADDRESS</p>
+<h3>Minnehaha County Sheriff's Procedure for Mortgage Foreclosure Sales</h3>
+<p>49CIV99-000001 NOT A LISTING VS X (Y). 1 MAIN ST SFSD 57104. JUDGMENT AMT $1</p>"""
+
+
+def test_minnehaha_text_list():
+    records, unparsed = parse_minnehaha(MINNEHAHA)
+
+    assert [r["case"] for r in records] == ["49CIV25-001781", "49CIV-300 FAIRWAY CIR", "49CIV26-001908"]
+    first = sd_sale(records[0], TODAY)
+    assert (first.street, first.city, first.zip_code) == ("5732 W BREAM DR", "Sioux Falls", "57107")
+    assert first.sale_date == date(2026, 10, 21) and first.judgment == 327062.62 and first.attorney == "HALLIDAY"
+    assert first.plaintiff == "LAKEVIEW LOAN SERVICING LLC" and first.status == "scheduled"
+    assert records[1]["city"] == "Brandon" and records[1]["court_case"] is None
+    assert unparsed == ["49CIV26-009999 SOMETHING WITHOUT AN ADDRESS"]

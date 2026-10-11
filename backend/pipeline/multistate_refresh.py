@@ -34,7 +34,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI")
+STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD")
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -59,7 +59,7 @@ SOURCES = [
      ["pipeline.load_sc_master_in_equity", "--all"]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
     ("Connecticut court sales", ["pipeline.scrape_ct_foreclosure_sales"], ["pipeline.load_ct_foreclosure_sales"]),
-    ("County sale lists (KY Jefferson, OK Oklahoma/Tulsa, WI Dane/Milwaukee)", ["pipeline.scrape_county_sale_lists", "--all"],
+    ("County sale lists (KY Jefferson, OK Oklahoma/Tulsa, SD Minnehaha, WI Dane/Milwaukee)", ["pipeline.scrape_county_sale_lists", "--all"],
      ["pipeline.load_county_sale_lists", "--all"]),
 ]
 BACKEND = Path(__file__).resolve().parents[1]
