@@ -95,6 +95,12 @@ def extract_pdf_text(data: bytes, path: Path, *, ocr: bool = True) -> tuple[str,
         return text, "embedded_text"
     if not ocr:
         return text, "no_extractable_text"
+    text = macos_ocr(path)
+    return text, "macos_vision_ocr" if text else "no_extractable_text"
+
+
+def macos_ocr(path: Path, timeout: int = 180) -> str:
+    """Every page's text from macOS Vision OCR (builds the helper next to the PDF)."""
     script = Path(__file__).with_name("ocr_pdf_macos.swift")
     module_cache = path.parent / "swift-module-cache"
     module_cache.mkdir(parents=True, exist_ok=True)
@@ -107,9 +113,8 @@ def extract_pdf_text(data: bytes, path: Path, *, ocr: bool = True) -> tuple[str,
                        capture_output=True, text=True, timeout=180,
                        check=True, env=environment)
     result = subprocess.run([str(executable), str(path)], capture_output=True,
-                            text=True, timeout=180, check=True, env=environment)
-    text = result.stdout.strip()
-    return text, "macos_vision_ocr" if text else "no_extractable_text"
+                            text=True, timeout=timeout, check=True, env=environment)
+    return result.stdout.strip()
 
 
 def parse_notice(text: str) -> dict:

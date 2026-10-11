@@ -147,7 +147,7 @@ MINIMUM_BID_BASIS_SQL = (
 )
 
 # Sale status as shown: unverified secondary-source listings whose date has passed read as date_passed_unverified.
-EFFECTIVE_STATUS_SQL = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
+EFFECTIVE_STATUS_SQL = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice') AND ss.current_sale_date<CURRENT_DATE AND ss.current_status='scheduled_unverified' THEN 'date_passed_unverified' ELSE ss.current_status END)"
 
 # Investor Spotlight: the SPOTLIGHT_SIZE properties with the highest gross equity
 # (Zestimate minus the minimum bid) among those in the upper half of their state's
@@ -310,7 +310,7 @@ def list_properties(
         "lakefront": "CASE WHEN p.normalized_address ~* '\\m(LAKEFRONT|LAKE[[:space:]]+FRONT|LAKESHORE|LAKE[[:space:]]+SHORE|LAKESIDE)\\M' THEN 1 ELSE 0 END",
         "court-case": "court_case_number", "status": "ss.current_status",
         "bbl": "ss.property_number",
-        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system='nyc_kings_court_foreclosure_index' THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' ELSE 'Sheriff sale' END",
+        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction') THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' ELSE 'Sheriff sale' END",
         "sale-date": "ss.current_sale_date", "plaintiff": "ss.plaintiff", "defendant": "ss.defendant",
         "estimated-market-value": "market_value", "value-range-low": "market_value_low",
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
@@ -391,7 +391,7 @@ def list_properties(
             ss.property_number AS bbl,
             CASE WHEN ss.source_system='nyc_nyctl_referee_sales'
                 THEN 'Referee tax-lien auction'
-                WHEN ss.source_system='nyc_kings_court_foreclosure_index'
+                WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction')
                 THEN 'Court foreclosure auction'
                 WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice'
                 THEN 'Foreclosure auction (published notice)'
@@ -424,10 +424,10 @@ def list_properties(
                 AS court_case_number,
             ss.plaintiff,
             ss.defendant,
-            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property')
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property')
                 THEN ss.description_text ELSE NULL END AS notice_details,
             ss.source_url AS foreclosure_source_url,
-            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice')
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice')
                 AND ss.current_sale_date<CURRENT_DATE
                 AND ss.current_status='scheduled_unverified'
                 THEN 'date_passed_unverified'
@@ -1087,19 +1087,19 @@ def nyc_auction_coverage():
     with engine.connect() as connection:
         rows = connection.execute(text("""SELECT county,COUNT(*) AS count,MAX(last_scraped_at) AS checked_at
             FROM sheriff_sales WHERE state='NY'
-              AND source_system IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index')
+              AND source_system IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction')
               AND current_status IN ('scheduled','scheduled_unverified')
               AND current_sale_date>=CURRENT_DATE
             GROUP BY county""")).mappings().all()
         checked = connection.execute(text("""SELECT MAX(completed_at) FROM scrape_runs
-            WHERE job_name IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index')
+            WHERE job_name IN ('nyc_nyctl_referee_sales','nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction')
               AND status='completed'""")).scalar()
     counts = {row["county"]: int(row["count"]) for row in rows}
     return {"source_type": "Court foreclosure and referee tax-lien auctions (not sheriff sales)",
             "source_url": "https://www.nycourts.gov/courts/2nd-judicial-district/kings-county-supreme-court-civil-term/foreclosure-sales",
             "last_checked_at": checked.isoformat() if checked else None,
             "boroughs": [{"county": county, "upcoming": counts.get(county, 0)} for county in boroughs],
-            "coverage_note": "Includes address-indexed Kings court PDFs and NYCTL tax-lien referee listings, not a complete NYC foreclosure or Sheriff inventory. A calendar listing can be stayed or cancelled. Zero means no verified listing from these sources, not no auctions in the borough."}
+            "coverage_note": "Includes address-indexed Kings court PDFs, collected Queens NYSCEF notices, and NYCTL tax-lien referee listings, not a complete NYC foreclosure or Sheriff inventory. A calendar listing can be stayed or cancelled. Zero means no verified listing from these sources, not no auctions in the borough."}
 
 
 NJ_ORTHO_EXPORT = (
@@ -1200,7 +1200,7 @@ def get_property(property_id: str):
             p.*,
             ss.id AS sheriff_sale_id,
             ss.sheriff_number,
-            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','fl_hillsborough_published_foreclosure_notice')
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice')
                 AND ss.current_sale_date<CURRENT_DATE
                 AND ss.current_status='scheduled_unverified'
                 THEN 'date_passed_unverified'

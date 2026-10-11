@@ -76,6 +76,24 @@ The sale-probability model the `score` stage uses is `backend/models/<MODEL_VERS
 
 Their secrets are GitHub repository secrets: `DATABASE_URL`, `APIFY_API_TOKEN`, `RESEND_API_KEY`, `ALERTS_SIGNING_SECRET`, `ALERTS_POSTAL_ADDRESS`.
 
+### New York pipeline
+
+New York foreclosures are court-ordered **referee auctions**, not sheriff sales, and the courts publish them as PDFs on nycourts.gov. Those pages (and WebCivil/NYSCEF on iapps.courts.state.ny.us) answer scripts with a Cloudflare check, and NYSCEF guest search has a CAPTCHA, so nothing downloads them automatically. The operator opens the pages in a normal browser, saves the PDFs into one folder, and runs the loader on the operator's machine (OCR uses macOS Vision via `pipeline/ocr_pdf_macos.swift`):
+
+```bash
+python -m pipeline.load_ny_court_pdfs --folder ~/Documents/SheriffSaleProject/Files_For_NY --dry-run   # counts, samples, failures
+python -m pipeline.load_ny_court_pdfs --folder ~/Documents/SheriffSaleProject/Files_For_NY
+```
+
+| Borough | What to save | Parsed |
+|---|---|---|
+| Brooklyn (Kings) | Every Notice of Sale PDF linked from https://www.nycourts.gov/courts/2nd-judicial-district/kings-county-supreme-court-civil-term/foreclosure-sales (auctions Thursdays) | Index no., premises, date/time/place, block/lot, approximate judgment, referee, plaintiff, plaintiff's attorney, postponements |
+| Bronx | https://nycourts.gov/LegacyPDFS/courts/12jd/bronx/civil/pdfs/foreclosure-auctions.pdf (posted monthly; auctions Mondays) | Index no., premises, calendar date, block/lot, referee, plaintiff (no judgment) |
+| Manhattan | The 1st JD Foreclosure Auction Part list | Index no., parties, outcome only: no addresses, so reported in the run dir, not loaded |
+| Queens | Nothing: the Queens court publishes no auction list | |
+
+Listings use `source_system='ny_court_foreclosure_auction'`, keyed by index number (reruns update, never duplicate); the BBL goes in `property_number`, and the referee, auction details and judgment in `description_text` (shown as the notice details). The approximate judgment is the minimum-bid proxy: the plaintiff sets the real opening bid at the sale. Winning bidders pay a 10% deposit. Adjournments are frequent: a postponement notice records the earlier date as `adjourned`, and a past auction date with no published result becomes `sold_or_cancelled_unverified`. Records that fail validation go to `<run-dir>/ny_court_parse_failures.json` (default `.local/ny-court-pdfs/runs/`) and are never loaded; OCR text is cached by file hash in `.local/ny-court-pdfs/`.
+
 ## Environment and config locations
 
 Never commit secrets or print their values; the `.example` files list every setting with comments.
