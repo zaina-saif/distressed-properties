@@ -411,6 +411,8 @@ def list_properties(
                 THEN 'Clerk foreclosure auction'
                 WHEN ss.source_system='sc_master_in_equity_sale'
                 THEN 'Master-in-Equity foreclosure sale'
+                WHEN ss.source_system='ky_master_commissioner_sale'
+                THEN 'Master Commissioner judicial sale'
                 WHEN ss.source_system='co_realforeclose_public_trustee_sale'
                 THEN 'Public Trustee foreclosure sale'
                 WHEN ss.source_system='ct_court_foreclosure_sale'
