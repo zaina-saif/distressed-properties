@@ -166,3 +166,10 @@ def test_helpers():
     text = details({"sale_date": "2026-10-15", "sale_time": "2:30 p.m.", "index_number": "522549/2023",
                     "judgment": 1002448.69, "referee": "Jeffrey H. Schwartz"})
     assert "Referee: Jeffrey H. Schwartz." in text and "$1,002,448.69" in text and "522549/2023" in text
+
+
+def test_street_corrections_survive_reparsing():
+    text = BRONX.replace("Index #: 380926/2010E", "Index #: 804535/2024E")
+    records, _, _ = parse_documents([{"file": "b.pdf", "sha256": "b", "method": "test", "file_address": "b", "text": text}])
+
+    assert records[0]["street"] == "2065 Turnbull Avenue" and records[0]["address_source"] == "manual_correction"

@@ -44,6 +44,10 @@ SOURCE_URLS = {
     "Bronx": "https://nycourts.gov/LegacyPDFS/courts/12jd/bronx/civil/pdfs/foreclosure-auctions.pdf",
     "New York": "https://www.nycourts.gov/courts/1jd/supctmanh/foreclosures.shtml",
 }
+# Streets OCR misread, corrected by hand and keyed by index number so every rerun keeps them.
+STREET_CORRECTIONS = {
+    "804535/2024": "2065 Turnbull Avenue",  # OCR read "Tumbul Avenue" (Bronx calendar)
+}
 
 
 def pdf_text(path: Path) -> tuple[str, str]:
@@ -125,6 +129,8 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
             if problems or not record.get("index_number") or not record.get("sale_date"):
                 failures.append({**entry, "problems": problems or ["index_or_date_missing"]})
             else:
+                if entry["index_number"] in STREET_CORRECTIONS:
+                    entry.update(street=STREET_CORRECTIONS[entry["index_number"]], address_source="manual_correction")
                 records.append(entry)
     return records, failures, reported
 
