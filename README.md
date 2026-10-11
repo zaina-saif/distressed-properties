@@ -515,3 +515,11 @@ Import the official Madison County parcel base (PIN, situs address, and parcel a
 cd backend
 python -m pipeline.import_illinois_madison_parcels
 ```
+
+### Queens WebCivil / NYSCEF foreclosure notices
+
+`python -m pipeline.queens_foreclosure_refresh --dry-run` (from `backend/`)
+collects court 80 calendars and Notice of Sale PDFs when court access permits,
+with an operator-assisted mode for verification challenges. The local daily
+scheduler, PostgreSQL deduplication, review output and Firecrawl evaluation are
+documented in [the Queens pipeline guide](docs/queens-foreclosures.md).

@@ -1,0 +1,130 @@
+"""Queens calendar PDFs -> case indices -> NYSCEF sale notices -> PostgreSQL.
+
+Run on the operator machine. Unattended access challenges fail closed (exit 2).
+--assisted permits only the human to complete challenges in visible Chrome.
+"""
+from __future__ import annotations
+
+import argparse
+from datetime import date, datetime, timedelta, timezone
+import fcntl
+import json
+import logging
+from pathlib import Path
+import time
+import uuid
+
+from pipeline.queens.browser import AccessChallenge, CourtBrowser
+from pipeline.queens.parsing import digest, parse_notice
+
+LOG = logging.getLogger(__name__)
+
+
+def collect(browser, start, end, report):
+    cases, calendar_urls = browser.calendars(start, end)
+    report['cases'] = len(cases)
+    records, review = [], []
+    for case in cases:
+        candidates = []
+        for url in browser.notices(case):
+            body, content = browser.pdf(url)
+            row = parse_notice(content, case, url, digest(body))
+            row['calendar_urls'] = calendar_urls
+            candidates.append(row)
+            report['notices'] += 1
+        if not candidates:
+            report['without_notice'] += 1
+            continue
+        # Duplicate filings can contain the same notice. Conflicting notices need
+        # filing chronology/operator review; maximum date alone is not authority.
+        unique = {(r['street'], r['city'], r['sale_date'], r['judgment_amount']) for r in candidates}
+        if len(unique) > 1:
+            for row in candidates:
+                row['review_reasons'].append('multiple_conflicting_notices')
+        if any(r['review_reasons'] for r in candidates):
+            review.extend(candidates)
+        else:
+            records.append(candidates[0])
+        time.sleep(1)
+    report['review'] = len(review)
+    report['accepted'] = len(records)
+    return records, review
+
+
+def run(args, browser_factory=None, loader=None):
+    args.run_dir.mkdir(parents=True, exist_ok=True)
+    report = {'status': 'running', 'cases': 0, 'notices': 0, 'review': 0,
+              'accepted': 0, 'without_notice': 0, 'dry_run': args.dry_run,
+              'started_at': datetime.now(timezone.utc).isoformat()}
+    # Lock covers collection as well as loading; unique run folders prevent stale reuse.
+    with (args.run_dir / 'refresh.lock').open('w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            LOG.error('Another Queens refresh is active')
+            return 1
+        folder = args.run_dir / ('run-' + uuid.uuid4().hex)
+        folder.mkdir(mode=0o700)
+        handler = logging.FileHandler(folder / 'refresh.log')
+        logging.getLogger().addHandler(handler)
+        try:
+            if browser_factory:
+                records, review = collect(browser_factory(folder), args.start, args.end, report)
+            else:
+                from playwright.sync_api import sync_playwright
+                with sync_playwright() as playwright:
+                    context = playwright.chromium.launch_persistent_context(
+                        str(args.profile.resolve()), channel=args.channel, headless=not args.assisted,
+                        accept_downloads=True)
+                    try:
+                        browser = CourtBrowser(context, folder / 'pdfs', args.assisted, args.operator_timeout)
+                        records, review = collect(browser, args.start, args.end, report)
+                    finally:
+                        context.close()
+            (folder / 'snapshot.json').write_text(json.dumps(records, indent=2))
+            (folder / 'review.json').write_text(json.dumps(review, indent=2))
+            if not args.dry_run:
+                if loader is None:
+                    from pipeline.queens.loading import load_records
+                    loader = load_records
+                report.update(loader(records))
+            report['status'] = 'needs_review' if review else 'completed'
+            return 3 if review else 0
+        except AccessChallenge:
+            report['status'] = 'access_challenge'
+            LOG.exception('Court requires operator assistance; nothing imported')
+            return 2
+        except Exception as exc:
+            report['status'] = 'failed'
+            report['error_type'] = type(exc).__name__
+            LOG.exception('Queens refresh failed')
+            return 1
+        finally:
+            report['completed_at'] = datetime.now(timezone.utc).isoformat()
+            (folder / 'report.json').write_text(json.dumps(report, indent=2))
+            temp = args.run_dir / 'report.tmp'
+            temp.write_text(json.dumps(report, indent=2))
+            temp.replace(args.run_dir / 'report.json')
+            logging.getLogger().removeHandler(handler)
+            handler.close()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--start', type=date.fromisoformat, default=date.today())
+    parser.add_argument('--end', type=date.fromisoformat, default=date.today() + timedelta(days=30))
+    parser.add_argument('--run-dir', type=Path, default=Path('../.local/queens-refresh'))
+    parser.add_argument('--profile', type=Path, default=Path('../.local/queens-refresh-browser'))
+    parser.add_argument('--channel', default='chrome')
+    parser.add_argument('--assisted', action='store_true')
+    parser.add_argument('--operator-timeout', type=int, default=600)
+    parser.add_argument('--dry-run', action='store_true')
+    args = parser.parse_args()
+    if args.end < args.start or (args.end - args.start).days > 90:
+        parser.error('Calendar window must be between 0 and 90 days')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+    raise SystemExit(run(args))
+
+
+if __name__ == '__main__':
+    main()
