@@ -52,6 +52,25 @@ def _classify(record: Any) -> Any:
     return replace(record, status=status, raw_payload={**record.raw_payload, "historical_search_status": status})
 
 
+RETRIES = 3
+
+
+async def _request(client: httpx.AsyncClient, method: str, url: str, **kwargs: Any) -> httpx.Response:
+    """CivilView's search occasionally answers 500 or times out once and then works;
+    retry those with a short, growing pause before giving up."""
+    for attempt in range(1, RETRIES + 1):
+        try:
+            response = await client.request(method, url, **kwargs)
+            if response.status_code < 500 or attempt == RETRIES:
+                response.raise_for_status()
+                return response
+        except (httpx.TimeoutException, httpx.TransportError):
+            if attempt == RETRIES:
+                raise
+        await asyncio.sleep(2 ** attempt)
+    raise RuntimeError("unreachable")
+
+
 async def scrape(county: str, county_id: int, output: Path, all_history: bool = False) -> Path:
     search_url = f"https://salesweb.civilview.com/Sales/SalesSearch?countyId={county_id}"
     adapter = CountyCivilViewAdapter(county, county_id)
@@ -60,8 +79,7 @@ async def scrape(county: str, county_id: int, output: Path, all_history: bool = 
     start_date = end_date - timedelta(days=365)
     headers = adapter._browser_headers()
     async with httpx.AsyncClient(headers=headers, timeout=45, follow_redirects=True, cookies=adapter._cookies) as client:
-        initial = await client.get(search_url)
-        initial.raise_for_status()
+        initial = await _request(client, "GET", search_url)
         adapter._cookies.update(initial.cookies)
         initial_soup = BeautifulSoup(initial.text, "html.parser")
         # MonthNumber=0 is the portal's unfiltered Sold/Cancelled search. It
@@ -70,8 +88,8 @@ async def scrape(county: str, county_id: int, output: Path, all_history: bool = 
         months = ["0"]
 
         for month in months:
-            response = await client.post(search_url, data=_form_data(initial_soup, month), headers={"Referer": search_url})
-            response.raise_for_status()
+            response = await _request(client, "POST", search_url, data=_form_data(initial_soup, month),
+                                      headers={"Referer": search_url})
             soup = BeautifulSoup(response.text, "html.parser")
             table = adapter._find_sales_table(soup)
             if table is None:

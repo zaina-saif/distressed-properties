@@ -28,7 +28,9 @@ def _field(pattern: str, text: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
-def parse_pdf(pdf_content: bytes) -> list[dict]:
+def parse_pdf(pdf_content: bytes, failures: list[str] | None = None) -> list[dict]:
+    """Every record on the listing. A record that cannot be parsed is skipped and its
+    case number added to `failures`, so one odd entry does not discard the whole list."""
     reader = PdfReader(BytesIO(pdf_content))
     records: list[dict] = []
 
@@ -44,7 +46,9 @@ def parse_pdf(pdf_content: bytes) -> list[dict]:
             if not case_id:
                 continue
 
-            docket_match = re.search(r"^\s*(F[0-9-]+)\s+DEFENDANT\s+(.+?)\s*$", chunk, re.MULTILINE)
+            # Foreclosure dockets start with F ("F-01234-25"); docketed judgments sold by the
+            # sheriff (for example a condo association's lien) start with DJ ("DJ00099625").
+            docket_match = re.search(r"^\s*([A-Z]{1,3}[0-9][0-9-]*)\s+DEFENDANT\s+(.+?)\s*$", chunk, re.MULTILINE)
             plaintiff_match = re.search(
                 r"PLAINTIFF\s+(.+?)\s{2,}\$([\d,]+\.\d{2})", chunk, re.MULTILINE
             )
@@ -54,7 +58,10 @@ def parse_pdf(pdf_content: bytes) -> list[dict]:
                 re.MULTILINE,
             )
             if not docket_match or not plaintiff_match or not address_match:
-                raise ValueError(f"Unable to parse Ocean County record CH {case_id}")
+                if failures is None:
+                    raise ValueError(f"Unable to parse Ocean County record CH {case_id}")
+                failures.append(f"CH {case_id}")
+                continue
 
             street, municipality, zip_code = (value.strip() for value in address_match.groups())
             raw_status = "Scheduled"
@@ -122,9 +129,13 @@ def parse_pdf(pdf_content: bytes) -> list[dict]:
 def scrape(output: Path = DEFAULT_OUTPUT) -> Path:
     response = httpx.get(PDF_URL, follow_redirects=True, timeout=60)
     response.raise_for_status()
-    records = parse_pdf(response.content)
-    if not records:
-        raise RuntimeError("Ocean County PDF contained no parseable sheriff-sale records")
+    failures: list[str] = []
+    records = parse_pdf(response.content, failures)
+    if failures:
+        print(f"Ocean: could not parse {len(failures)} record(s), skipped: {', '.join(failures)}")
+    # Mostly unparseable means the PDF layout changed: keep the previous snapshot.
+    if not records or len(failures) > len(records):
+        raise RuntimeError(f"Ocean County PDF: {len(records)} records parsed, {len(failures)} failed; layout may have changed")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
     print(f"Ocean: {len(records)} records saved to {output}")
