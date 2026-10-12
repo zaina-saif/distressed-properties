@@ -222,3 +222,5 @@
 @media(max-width: 700px) { .root :global(.state-notes) { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; } .root :global(.state-note) { padding: 18px; } }
 /* Footer links wrap instead of widening the page on phones. */
 .root :global(.footer-top nav) { flex-wrap: wrap; row-gap: 12px; }
+.root :global(.state-note) { scroll-margin-top: 90px; }
+.root :global(.state-note:target) { border-color: var(--equity); box-shadow: 0 0 0 3px var(--soft-equity); }

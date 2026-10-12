@@ -34,6 +34,7 @@ import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { SaleAnalyticsView } from "@/components/sale-analytics";
 import { filterChips, SearchFiltersButton, withoutFilters } from "@/components/search-filters";
+import { StateGuidePanel } from "@/components/state-guide-panel";
 import { getProfile } from "@/lib/profile";
 import { formatSaleDate, STATES } from "@/lib/states";
 
@@ -450,6 +451,7 @@ export default function PropertyDashboard({
             </span>
           </div>
         )}
+        {!allStates && <StateGuidePanel state={selectedState} />}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
         {filterChips(desktopView === "analytics" ? withoutFilters(searchFilters, ["minEquity", "minProbability"]) : searchFilters).map((chip) => (
           <span key={chip.label} className="mr-1.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-teal-50 py-1 pl-3 pr-1 text-xs text-teal-800 ring-1 ring-teal-200">
