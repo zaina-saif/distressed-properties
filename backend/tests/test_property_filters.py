@@ -55,3 +55,11 @@ def test_property_filters_include_search_filters():
     access = Access(user_id="u", email="u@example.com", role="developer")
     conditions, parameters = _property_filters(access, state=[], county=[], filters=SearchFilters(min_sqft=1500))
     assert any(":filter_min_sqft" in condition for condition in conditions) and parameters["filter_min_sqft"] == 1500
+
+
+def test_scheduled_listings_only_include_upcoming_dates():
+    access = Access(user_id="u", email="u@example.com", role="developer")
+    conditions, _ = _property_filters(access, state=[], county=[], status_contains="scheduled")
+    assert "ss.current_sale_date >= CURRENT_DATE" in conditions
+    conditions, _ = _property_filters(access, state=[], county=[], status_contains="sold")
+    assert "ss.current_sale_date >= CURRENT_DATE" not in conditions

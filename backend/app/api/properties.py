@@ -332,6 +332,10 @@ def _property_filters(
     if status_contains and status_contains.strip():
         conditions.append(f"strpos({effective_status}, :status_contains) > 0")
         parameters["status_contains"] = status_contains.strip().lower()
+        if "scheduled" in parameters["status_contains"]:
+            # A sale still marked scheduled after its date is waiting for its source to be
+            # rechecked (it has usually sold or been postponed), so only upcoming dates count.
+            conditions.append("ss.current_sale_date >= CURRENT_DATE")
 
     if future_only:
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
@@ -1070,6 +1074,9 @@ def export_properties_xlsx(
 @router.get("/facets/coverage")
 def list_property_coverage(status_contains: Optional[str] = Query(default=None, max_length=100)):
     status_filter = f"AND strpos({EFFECTIVE_STATUS_SQL}, :status_contains) > 0" if status_contains and status_contains.strip() else ""
+    if "scheduled" in (status_contains or "").lower():
+        # Same rule as the list: a scheduled sale counts only while its date is ahead.
+        status_filter += " AND ss.current_sale_date >= CURRENT_DATE"
     query = text(
         f"""
         SELECT
