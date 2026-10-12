@@ -155,7 +155,16 @@ EFFECTIVE_STATUS_SQL = "LOWER(CASE WHEN ss.source_system IN ('nyc_kings_court_fo
 # (Zestimate minus the minimum bid) among those in the upper half of their state's
 # probability that the next sale date goes to auction.
 SPOTLIGHT_SIZE = 10
-SPOTLIGHT_GROSS_EQUITY = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+# New Jersey sheriff sales that enforce a money judgment rather than foreclose a mortgage:
+# Law Division ("L-002105-20", "ESX-L-003587-23"), Special Civil Part ("HUD-DC-012313-25")
+# and docketed-judgment ("DJ04885525") dockets. The buyer usually takes the property subject
+# to its mortgage and earlier liens, so the minimum bid (the judgment) is not comparable
+# with the property's value and no gross equity is shown for them.
+JUDGMENT_SALE_SQL = (
+    "(ss.state = 'NJ' AND COALESCE(ss.docket_number, ss.court_case_number, '') "
+    "~* '(DJ|(^|-)DC-?[0-9]|^([A-Z]{3}-)?L-?[0-9]|^L$)')"
+)
+SPOTLIGHT_GROSS_EQUITY = f"(CASE WHEN {JUDGMENT_SALE_SQL} THEN NULL ELSE azr.zestimate - {MINIMUM_BID_SQL} END)"
 SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
 # The joins the spotlight ranking needs; filters may also use ra (risk).
 SPOTLIGHT_JOINS = """
@@ -341,7 +350,7 @@ def _property_filters(
         conditions.append("ss.current_sale_date >= CURRENT_DATE")
 
     if min_equity is not None:
-        conditions.append(f"azr.zestimate - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE {MINIMUM_BID_SQL} END >= :min_equity")
+        conditions.append(f"NOT {JUDGMENT_SALE_SQL} AND azr.zestimate - CASE WHEN ss.state='IL' THEN ss.upset_price ELSE {MINIMUM_BID_SQL} END >= :min_equity")
         parameters["min_equity"] = min_equity
 
     if max_risk is not None:
@@ -413,7 +422,7 @@ def list_properties(
         "lakefront": "CASE WHEN p.normalized_address ~* '\\m(LAKEFRONT|LAKE[[:space:]]+FRONT|LAKESHORE|LAKE[[:space:]]+SHORE|LAKESIDE)\\M' THEN 1 ELSE 0 END",
         "court-case": "court_case_number", "status": "ss.current_status",
         "bbl": "ss.property_number",
-        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction') THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' ELSE 'Sheriff sale' END",
+        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_court_foreclosure_auction') THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' WHEN " + JUDGMENT_SALE_SQL + " THEN 'Judgment execution sale' ELSE 'Sheriff sale' END",
         "sale-date": "ss.current_sale_date", "plaintiff": "ss.plaintiff", "defendant": "ss.defendant",
         "estimated-market-value": "market_value", "value-range-low": "market_value_low",
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
@@ -524,6 +533,8 @@ def list_properties(
                 THEN 'Sheriff or constable sale'
                 WHEN ss.source_system='tx_realauction_tax_sale'
                 THEN 'Tax foreclosure sale (sheriff/constable)'
+                WHEN {JUDGMENT_SALE_SQL}
+                THEN 'Judgment execution sale'
                 ELSE 'Sheriff sale' END AS sale_type,
             COALESCE(ss.docket_number, ss.court_case_number)
                 AS court_case_number,
@@ -631,10 +642,10 @@ def list_properties(
                     THEN 'Ready for lower-confidence model scoring with imputed living area.'
                 ELSE 'Property is ready for local model scoring.'
             END AS valuation_pending_reason,
-            CASE WHEN pv.estimated_value IS NOT NULL AND {MINIMUM_BID_SQL} IS NOT NULL
+            CASE WHEN pv.estimated_value IS NOT NULL AND {MINIMUM_BID_SQL} IS NOT NULL AND NOT {JUDGMENT_SALE_SQL}
                 THEN pv.estimated_value - {MINIMUM_BID_SQL}
             END AS gross_equity,
-            CASE WHEN pv.estimated_value > 0 AND {MINIMUM_BID_SQL} IS NOT NULL
+            CASE WHEN pv.estimated_value > 0 AND {MINIMUM_BID_SQL} IS NOT NULL AND NOT {JUDGMENT_SALE_SQL}
                 THEN (pv.estimated_value - {MINIMUM_BID_SQL}) / pv.estimated_value
             END AS gross_equity_percent,
             sp.probability AS sale_probability,
@@ -893,6 +904,9 @@ def list_properties(
                 basis_value = float(item["minimum_asking_amount"])
         except (TypeError, ValueError):
             zestimate_value = basis_value = None
+        # A judgment execution sale's bid is not comparable with the value (see JUDGMENT_SALE_SQL).
+        if item.get("sale_type") == "Judgment execution sale":
+            zestimate_value = None
         if zestimate_value is not None and basis_value is not None and zestimate_value > 0:
             item["gross_equity"] = zestimate_value - basis_value
             item["gross_equity_percent"] = (zestimate_value - basis_value) / zestimate_value
@@ -1120,7 +1134,7 @@ def landing_summary(state: str = "NJ"):
             ORDER BY retrieved_at DESC, id DESC LIMIT 1
         ) AS azr ON TRUE
     """
-    equity = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+    equity = SPOTLIGHT_GROSS_EQUITY  # no equity for judgment execution sales
     with engine.connect() as connection:
         totals = connection.execute(text(f"""
             SELECT
@@ -1166,7 +1180,7 @@ def state_summary():
     """Scheduled sales and gross equity per state for the landing page. Uses the
     dashboard's own filter (status contains "scheduled") so a state's count
     matches what its dashboard shows."""
-    equity = f"(azr.zestimate - {MINIMUM_BID_SQL})"
+    equity = SPOTLIGHT_GROSS_EQUITY  # no equity for judgment execution sales
     with engine.connect() as connection:
         rows = connection.execute(text(f"""
             SELECT ss.state, COUNT(*) AS scheduled_sales, COUNT(DISTINCT ss.county) AS counties,

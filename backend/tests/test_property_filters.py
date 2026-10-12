@@ -63,3 +63,16 @@ def test_scheduled_listings_only_include_upcoming_dates():
     assert "ss.current_sale_date >= CURRENT_DATE" in conditions
     conditions, _ = _property_filters(access, state=[], county=[], status_contains="sold")
     assert "ss.current_sale_date >= CURRENT_DATE" not in conditions
+
+
+def test_judgment_execution_dockets():
+    import re
+
+    from app.api.properties import JUDGMENT_SALE_SQL
+
+    pattern = re.compile(re.search(r"~\* '(.+)'\)", JUDGMENT_SALE_SQL).group(1), re.I)
+    judgments = ["L-002105-20", "ESX-L-003587-23", "L301921", "L", "ATL-DC-005885-23", "HUD-DC-012313-25",
+                 "DJ04885525", "DJ00099625", "DC724725DJ04193726"]
+    foreclosures = ["F-012345-25", "F00331823", "SWC-F-000573-25", "SWCF01046725", "00063626", "SWC", "F"]
+    assert all(pattern.search(docket) for docket in judgments)
+    assert not any(pattern.search(docket) for docket in foreclosures)
