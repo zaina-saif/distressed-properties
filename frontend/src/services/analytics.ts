@@ -1,4 +1,5 @@
 import { API_URL, authFetch } from "@/lib/api";
+import { appendSearchFilters, type SearchFilterValues } from "@/services/properties";
 
 export type SaleOutcome = "third_party" | "plaintiff" | "sold_other" | "unsold" | "cancelled";
 
@@ -46,11 +47,13 @@ export interface SaleAnalytics {
 }
 
 /** Past-sale outcomes and winning bids for the user's coverage (the API applies the plan's limits). */
-export async function getSaleAnalytics(filters: { state?: string; county?: string; months?: number }): Promise<SaleAnalytics> {
+export async function getSaleAnalytics(filters: { state?: string; county?: string; months?: number; search?: SearchFilterValues }): Promise<SaleAnalytics> {
   const params = new URLSearchParams();
   if (filters.state) params.set("state", filters.state);
   if (filters.county) params.append("county", filters.county);
   if (filters.months) params.set("months", String(filters.months));
+  // Equity and probability to auction describe upcoming sales, not completed ones.
+  appendSearchFilters(params, filters.search, ["minEquity", "minProbability"]);
   const response = await authFetch(`${API_URL}/api/v1/analytics/sales?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load sale analytics: ${response.status}`);
   return (await response.json()) as SaleAnalytics;

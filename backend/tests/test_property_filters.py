@@ -29,3 +29,29 @@ def test_spotlight_is_the_top_ten_within_the_plan_scope():
     assert "probability_rank >= 0.5" in conditions[0]
     assert conditions[0].rstrip().endswith("LIMIT 10)")
     assert parameters["scope_state"] == "OH"
+
+
+def test_search_filters_build_range_and_property_conditions():
+    from datetime import date
+
+    from app.api.properties import SearchFilters
+
+    filters = SearchFilters(min_price=50000, max_price=150000, min_beds=3, home_type=["single_family", "castle"],
+                            sale_from=date(2026, 10, 15), min_probability=0.5)
+    conditions, parameters = filters.conditions()
+    joined = " AND ".join(conditions)
+    assert ":filter_min_price" in joined and ":filter_max_price" in joined
+    assert "azr.raw_payload->>'bedrooms'" in joined and parameters["filter_min_beds"] == 3
+    assert parameters["filter_home_types"] == ["SINGLE_FAMILY"]  # unknown types are ignored
+    assert parameters["filter_min_sale_date"] == date(2026, 10, 15)
+    assert "sp.probability >= :filter_min_probability" in joined
+    assert "sp.probability" not in " ".join(filters.conditions(include_probability=False)[0])
+    assert SearchFilters().conditions() == ([], {})
+
+
+def test_property_filters_include_search_filters():
+    from app.api.properties import SearchFilters
+
+    access = Access(user_id="u", email="u@example.com", role="developer")
+    conditions, parameters = _property_filters(access, state=[], county=[], filters=SearchFilters(min_sqft=1500))
+    assert any(":filter_min_sqft" in condition for condition in conditions) and parameters["filter_min_sqft"] == 1500

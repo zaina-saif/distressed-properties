@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { getSaleAnalytics, type PricedSale, type SaleAnalytics, type SaleOutcome } from "@/services/analytics";
+import type { SearchFilterValues } from "@/services/properties";
 
 // Categorical slots 1-4 (validated together); cancelled sales are the muted context, not a series hue.
 const OUTCOME_STYLE: Record<SaleOutcome, { label: string; color: string }> = {
@@ -225,22 +226,22 @@ function binned(points: PricedSale[], ratio: (p: PricedSale) => number | null, b
 }
 
 /** The dashboard's Analytics tab: past sale outcomes and winning bids for the selected state and county. */
-export function SaleAnalyticsView({ state, county, stateName }: { state?: string; county: string; stateName: string }) {
+export function SaleAnalyticsView({ state, county, stateName, filters }: { state?: string; county: string; stateName: string; filters?: SearchFilterValues }) {
   const [months, setMonths] = useState<number | undefined>(24);
   const [data, setData] = useState<SaleAnalytics | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Loading until the response for the current selection arrives; the previous render stays on screen.
-  const requestKey = `${state ?? "ALL"}|${county}|${months ?? "all"}`;
+  const requestKey = `${state ?? "ALL"}|${county}|${months ?? "all"}|${JSON.stringify(filters ?? {})}`;
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const loading = loadedKey !== requestKey;
   useEffect(() => {
     let active = true;
-    getSaleAnalytics({ state, county: county || undefined, months })
+    getSaleAnalytics({ state, county: county || undefined, months, search: filters })
       .then((result) => { if (active) { setData(result); setError(null); } })
       .catch(() => { if (active) setError("Sale analytics are unavailable right now."); })
       .finally(() => { if (active) setLoadedKey(requestKey); });
     return () => { active = false; };
-  }, [state, county, months, requestKey]);
+  }, [state, county, months, filters, requestKey]);
 
   const ratioBins = useMemo(() => binned(data?.points ?? [], (p) => p.bid_to_ask, RATIO_BINS), [data]);
   const valueBins = useMemo(() => binned(data?.points ?? [], (p) => p.bid_to_value, VALUE_BINS), [data]);

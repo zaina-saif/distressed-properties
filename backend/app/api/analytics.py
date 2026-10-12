@@ -15,7 +15,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import text
 
-from app.api.properties import MINIMUM_BID_SQL
+from app.api.properties import MINIMUM_BID_SQL, SearchFilters, search_filters
 from app.auth import Access, require_access
 from app.database.session import engine
 from app.rate_limit import per_user
@@ -42,6 +42,7 @@ def sale_analytics(
     state: list[str] = Query(default=[]),
     county: list[str] = Query(default=[]),
     months: Optional[int] = Query(default=None, ge=1, le=120, description="Only sales in the last N months"),
+    filters: SearchFilters = Depends(search_filters),
     access: Access = Depends(require_access),
 ):
     conditions = ["outcome_date <= CURRENT_DATE"]
@@ -63,6 +64,14 @@ def sale_analytics(
         conditions.append("outcome_date >= CURRENT_DATE - make_interval(months => :months)")
         parameters["months"] = months
 
+    # Property and price filters apply to each sale; probability to auction does not
+    # describe a completed sale, and dates mean the sale (or result) date.
+    property_conditions, property_parameters = filters.conditions(
+        sale_date_sql="COALESCE(ss.sold_on, ss.current_sale_date::date)", minimum_bid_sql=MINIMUM_BID_SQL,
+        include_probability=False)
+    parameters.update(property_parameters)
+    property_where = "".join(f" AND {condition}" for condition in property_conditions)
+
     with engine.connect() as connection:
         rows = connection.execute(text(f"""
             WITH completed AS (
@@ -77,17 +86,20 @@ def sale_analytics(
                        COALESCE(ss.sold_on, ss.current_sale_date::date) AS outcome_date,
                        ss.sold_amount,
                        {MINIMUM_BID_SQL} AS ask,
-                       (SELECT z.zestimate FROM apify_zillow_results z
-                        WHERE z.property_id = ss.property_id AND z.is_current AND z.match_status = 'matched'
-                          AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'
-                        ORDER BY z.retrieved_at DESC, z.id DESC LIMIT 1) AS estimated_value,
+                       azr.zestimate AS estimated_value,
                        (SELECT COUNT(*) FROM sheriff_sale_status_history h
                         WHERE h.sheriff_sale_id = ss.id AND h.status IN ('adjourned', 'postponed')) AS postponements
                 FROM sheriff_sales ss
                 LEFT JOIN properties p ON p.id = ss.property_id
+                LEFT JOIN LATERAL (
+                    SELECT z.zestimate, z.raw_payload FROM apify_zillow_results z
+                    WHERE z.property_id = ss.property_id AND z.is_current AND z.match_status = 'matched'
+                      AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'
+                    ORDER BY z.retrieved_at DESC, z.id DESC LIMIT 1
+                ) AS azr ON TRUE
                 WHERE ss.current_status NOT ILIKE '%unverified%'
                   AND (ss.sold_buyer IS NOT NULL OR ss.current_status ILIKE 'cancel%' OR ss.current_status = 'unsold'
-                       OR ss.current_status ILIKE 'sold%' OR ss.current_status ILIKE 'purchased%')
+                       OR ss.current_status ILIKE 'sold%' OR ss.current_status ILIKE 'purchased%'){property_where}
             )
             SELECT * FROM completed
             WHERE {' AND '.join(conditions)}

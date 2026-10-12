@@ -33,12 +33,13 @@ import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
 import { SaleAnalyticsView } from "@/components/sale-analytics";
+import { filterChips, SearchFiltersButton, withoutFilters } from "@/components/search-filters";
 import { getProfile } from "@/lib/profile";
 import { formatSaleDate, STATES } from "@/lib/states";
 
 const ALL_STATES = "ALL";
 const ALL_STATES_INFO = { code: ALL_STATES, name: "All states", view: [39.5, -96, 4] as [number, number, number] };
-import { downloadPropertiesXlsx, getMapPoints, getProperties, getPropertyCoverage, type MapPoint } from "@/services/properties";
+import { downloadPropertiesXlsx, getMapPoints, getProperties, getPropertyCoverage, type MapPoint, type SearchFilterValues } from "@/services/properties";
 import type { Property, PropertyCoverageItem, SpotlightSummary } from "@/types/property";
 
 const PAGE_SIZE = 24;
@@ -134,6 +135,8 @@ export default function PropertyDashboard({
   const [selectedCounty, setSelectedCounty] = useState(lockedCounty ?? initialCounty);
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
+  // The Filters panel: price, value, beds, baths, home type, size, year, sale dates, probability.
+  const [searchFilters, setSearchFilters] = useState<SearchFilterValues>({});
   const [sort, setSort] = useState("gross-equity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -158,6 +161,7 @@ export default function PropertyDashboard({
       states: stateFilter,
       counties: selectedCounty ? [selectedCounty] : undefined,
       investorSpotlight: true,
+      search: searchFilters,
       sort: "investor-spotlight",
       sortDirection: "desc",
       page: 1,
@@ -166,7 +170,7 @@ export default function PropertyDashboard({
       .then((response) => { if (active) setSpotlightSummary(response.spotlight_summary ?? null); })
       .catch(() => { if (active) setSpotlightSummary(null); });
     return () => { active = false; };
-  }, [refreshKey, selectedCounty, stateFilter]);
+  }, [refreshKey, searchFilters, selectedCounty, stateFilter]);
 
   useEffect(() => {
     // Wait for coverage so Texas does not flash "no properties" before its fallback.
@@ -178,6 +182,7 @@ export default function PropertyDashboard({
       query: searchQuery || undefined,
       statusContains: statusFilter,
       investorSpotlight: spotlight || undefined,
+      search: searchFilters,
       sort: spotlight ? "investor-spotlight" : sort,
       sortDirection: spotlight ? "desc" : sortDirection,
       page,
@@ -198,7 +203,7 @@ export default function PropertyDashboard({
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [coverageLoaded, desktopView, page, refreshKey, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
+  }, [coverageLoaded, desktopView, page, refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
 
   // Every matching property goes on the map, not just the list's current page.
   const [mapPoints, setMapPoints] = useState<{ total: number; points: MapPoint[] }>({ total: 0, points: [] });
@@ -211,11 +216,12 @@ export default function PropertyDashboard({
       query: searchQuery || undefined,
       statusContains: statusFilter,
       investorSpotlight: spotlight || undefined,
+      search: searchFilters,
     })
       .then((response) => { if (active) setMapPoints(response); })
       .catch(() => { if (active) setMapPoints({ total: 0, points: [] }); });
     return () => { active = false; };
-  }, [coverageLoaded, refreshKey, searchQuery, selectedCounty, selectedState, spotlight, stateFilter, statusFilter]);
+  }, [coverageLoaded, refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, spotlight, stateFilter, statusFilter]);
 
   const counties = useMemo(
     () => (showRecentSale ? recentCoverage : coverage)
@@ -285,6 +291,7 @@ export default function PropertyDashboard({
     setSelectedCounty(lockedCounty ?? "");
     setSearchInput("");
     setSearchQuery("");
+    setSearchFilters({});
     setSort("gross-equity");
     setSortDirection("desc");
     setPage(1);
@@ -299,6 +306,7 @@ export default function PropertyDashboard({
         query: searchQuery || undefined,
         statusContains: statusFilter,
         investorSpotlight: spotlight || undefined,
+        search: searchFilters,
         sort: spotlight ? "investor-spotlight" : sort,
         sortDirection: spotlight ? "desc" : sortDirection,
         page,
@@ -400,6 +408,7 @@ export default function PropertyDashboard({
               {!lockedCounty && <option value="">All counties</option>}
               {counties.map((item) => <option key={item.county} value={item.county}>{item.county} ({item.property_count})</option>)}
             </select>
+            <SearchFiltersButton value={searchFilters} analytics={desktopView === "analytics"} onApply={(next) => { setSearchFilters(next); setPage(1); }} />
             <button type="button" onClick={resetFilters} className="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><X className="h-3 w-3" />Clear</button>
             <Link href="/account" className="hidden items-center gap-1 rounded-md sm:flex px-1.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100" title={account?.email}><UserRound className="h-3.5 w-3.5" />{account?.is_developer ? "Developer" : "Account"}</Link>
             <button type="button" onClick={async () => { await signOut(); window.location.assign("/"); }} className="hidden items-center gap-1 rounded-md sm:flex px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100"><LogOut className="h-3.5 w-3.5" />Sign out</button>
@@ -442,6 +451,12 @@ export default function PropertyDashboard({
           </div>
         )}
         {searchQuery && <span className="inline-block whitespace-nowrap rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">Search: “{searchQuery}”</span>}
+        {filterChips(desktopView === "analytics" ? withoutFilters(searchFilters, ["minEquity", "minProbability"]) : searchFilters).map((chip) => (
+          <span key={chip.label} className="mr-1.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-teal-50 py-1 pl-3 pr-1 text-xs text-teal-800 ring-1 ring-teal-200">
+            {chip.label}
+            <button type="button" onClick={() => { setSearchFilters(withoutFilters(searchFilters, chip.keys)); setPage(1); }} className="rounded-full p-0.5 hover:bg-teal-100" aria-label={`Remove filter ${chip.label}`}><X className="h-3 w-3" /></button>
+          </span>
+        ))}
         {countyCounts.length > 0 && !allStates && (
           <section className="hidden w-full rounded-lg border border-teal-200 bg-teal-50/60 px-3 py-2 sm:block" aria-label={`${selectedState} county record counts`}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -463,7 +478,7 @@ export default function PropertyDashboard({
         )}
       </section>
 
-      {desktopView === "analytics" ? <SaleAnalyticsView state={allStates ? undefined : selectedState} county={selectedCounty} stateName={stateInfo.name} /> : <>
+      {desktopView === "analytics" ? <SaleAnalyticsView state={allStates ? undefined : selectedState} county={selectedCounty} stateName={stateInfo.name} filters={searchFilters} /> : <>
       <div className={`sticky top-0 z-30 shrink-0 border-b border-slate-200 bg-white px-4 py-2 ${desktopView === "list" ? "hidden" : "lg:hidden"}`}>
         <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
           <button onClick={() => setMobileView("map")} className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold ${mobileView === "map" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}><MapIcon className="h-4 w-4" />Map</button>

@@ -22,7 +22,46 @@ export function streetViewUrl(propertyId: string): string {
   return `${API_URL}/api/v1/properties/${encodeURIComponent(propertyId)}/street-view`;
 }
 
+/** Range and property filters from the dashboard's Filters panel (all optional). */
+export interface SearchFilterValues {
+  minPrice?: number;
+  maxPrice?: number;
+  minValue?: number;
+  maxValue?: number;
+  minEquity?: number;
+  minBeds?: number;
+  minBaths?: number;
+  homeTypes?: string[];
+  minSqft?: number;
+  maxSqft?: number;
+  minYear?: number;
+  maxYear?: number;
+  saleFrom?: string;
+  saleTo?: string;
+  /** 0 to 1 */
+  minProbability?: number;
+}
+
+const SEARCH_PARAMS: [keyof SearchFilterValues, string][] = [
+  ["minPrice", "min_price"], ["maxPrice", "max_price"], ["minValue", "min_value"], ["maxValue", "max_value"],
+  ["minEquity", "min_equity"], ["minBeds", "min_beds"], ["minBaths", "min_baths"], ["minSqft", "min_sqft"],
+  ["maxSqft", "max_sqft"], ["minYear", "min_year"], ["maxYear", "max_year"], ["saleFrom", "sale_from"],
+  ["saleTo", "sale_to"], ["minProbability", "min_probability"],
+];
+
+/** Add the Filters panel's values to a request's query string. */
+export function appendSearchFilters(params: URLSearchParams, filters?: SearchFilterValues, skip: (keyof SearchFilterValues)[] = []): void {
+  if (!filters) return;
+  for (const [key, name] of SEARCH_PARAMS) {
+    const value = filters[key];
+    if (value !== undefined && value !== "" && !skip.includes(key)) params.set(name, String(value));
+  }
+  if (!skip.includes("homeTypes")) filters.homeTypes?.forEach((type) => params.append("home_type", type));
+}
+
 export interface PropertyFilters {
+  /** The Filters panel's values. */
+  search?: SearchFilterValues;
   states?: string[];
   counties?: string[];
   zipCode?: string;
@@ -97,6 +136,7 @@ export async function getProperties(
   }
 
   filters.saleIds?.forEach((id) => params.append("sale_id", id));
+  appendSearchFilters(params, filters.search);
 
   params.set("page", String(filters.page ?? 1));
   params.set("page_size", String(filters.pageSize ?? 50));
@@ -119,7 +159,7 @@ export async function getProperties(
 
 /** Coordinates for every property matching the filters, for the map (the list is paged). */
 export async function getMapPoints(
-  filters: Pick<PropertyFilters, "states" | "counties" | "query" | "statusContains" | "investorSpotlight">,
+  filters: Pick<PropertyFilters, "states" | "counties" | "query" | "statusContains" | "investorSpotlight" | "search">,
 ): Promise<{ total: number; points: MapPoint[] }> {
   const params = new URLSearchParams();
   filters.states?.forEach((state) => params.append("state", state));
@@ -127,6 +167,7 @@ export async function getMapPoints(
   if (filters.query) params.set("q", filters.query);
   if (filters.statusContains) params.set("status_contains", filters.statusContains);
   if (filters.investorSpotlight) params.set("investor_spotlight", "true");
+  appendSearchFilters(params, filters.search);
   const response = await authFetch(`${API_URL}/api/v1/properties/map-points?${params.toString()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to load map points: ${response.status}`);
   return response.json();
@@ -147,6 +188,7 @@ export async function downloadPropertiesXlsx(
   if (filters.investorSpotlight) params.set("investor_spotlight", "true");
   if (filters.sort) params.set("sort", filters.sort);
   if (filters.sortDirection) params.set("sort_direction", filters.sortDirection);
+  appendSearchFilters(params, filters.search);
   params.set("page", String(filters.page ?? 1));
   params.set("page_size", String(filters.pageSize ?? 24));
 

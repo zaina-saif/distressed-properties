@@ -1,6 +1,8 @@
 import json
 import math
 import os
+from dataclasses import dataclass, field
+from datetime import date
 from io import BytesIO
 from typing import Literal, Optional
 
@@ -158,7 +160,7 @@ SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
 # The joins the spotlight ranking needs; filters may also use ra (risk).
 SPOTLIGHT_JOINS = """
     LEFT JOIN LATERAL (
-        SELECT zestimate FROM apify_zillow_results
+        SELECT zestimate, raw_payload FROM apify_zillow_results
         WHERE property_id = p.id AND is_current = TRUE AND match_status <> 'invalid'
         ORDER BY retrieved_at DESC, id DESC LIMIT 1
     ) AS azr ON TRUE
@@ -171,6 +173,96 @@ SPOTLIGHT_JOINS = """
         SELECT risk_score FROM risk_assessments
         WHERE sheriff_sale_id = ss.id ORDER BY calculated_at DESC LIMIT 1
     ) AS ra ON TRUE"""
+
+
+def _zillow_number(key: str) -> str:
+    """A numeric field from the property's Zillow record, or NULL when missing or not a number."""
+    return (f"(CASE WHEN azr.raw_payload->>'{key}' ~ '^[0-9]+(\\.[0-9]+)?$' "
+            f"THEN (azr.raw_payload->>'{key}')::NUMERIC END)")
+
+
+# Property facts for filtering: our own record first, then the Zillow match's.
+BEDROOMS_SQL = f"COALESCE(p.bedrooms, {_zillow_number('bedrooms')})"
+BATHROOMS_SQL = f"COALESCE(p.bathrooms, {_zillow_number('bathrooms')})"
+SQUARE_FEET_SQL = f"COALESCE(p.square_feet::NUMERIC, {_zillow_number('livingArea')})"
+YEAR_BUILT_SQL = f"COALESCE(p.year_built::NUMERIC, {_zillow_number('yearBuilt')})"
+HOME_TYPE_SQL = "azr.raw_payload->>'homeType'"
+HOME_TYPES = ("SINGLE_FAMILY", "CONDO", "TOWNHOUSE", "MULTI_FAMILY", "MANUFACTURED", "APARTMENT", "LOT")
+# The minimum bid the filters compare with (Illinois lists its opening bid as the upset price).
+FILTER_MINIMUM_BID_SQL = f"CASE WHEN ss.state='IL' THEN ss.upset_price ELSE {MINIMUM_BID_SQL} END"
+
+
+@dataclass
+class SearchFilters:
+    """Range and property filters shared by the list, map, export and analytics."""
+    min_price: Optional[float] = None
+    max_price: Optional[float] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    min_beds: Optional[float] = None
+    min_baths: Optional[float] = None
+    home_type: list[str] = field(default_factory=list)
+    min_sqft: Optional[float] = None
+    max_sqft: Optional[float] = None
+    min_year: Optional[int] = None
+    max_year: Optional[int] = None
+    sale_from: Optional[date] = None
+    sale_to: Optional[date] = None
+    min_probability: Optional[float] = None
+
+    def conditions(self, sale_date_sql: str = "ss.current_sale_date::date",
+                   minimum_bid_sql: str = FILTER_MINIMUM_BID_SQL, value_sql: str = "azr.zestimate",
+                   include_probability: bool = True) -> tuple[list[str], dict]:
+        """SQL conditions over the aliases p, ss, azr (Zillow, with raw_payload) and sp."""
+        conditions, parameters = [], {}
+        ranges = [
+            (minimum_bid_sql, self.min_price, self.max_price, "price"),
+            (value_sql, self.min_value, self.max_value, "value"),
+            (SQUARE_FEET_SQL, self.min_sqft, self.max_sqft, "sqft"),
+            (YEAR_BUILT_SQL, self.min_year, self.max_year, "year"),
+            (sale_date_sql, self.sale_from, self.sale_to, "sale_date"),
+        ]
+        for expression, low, high, name in ranges:
+            if low is not None:
+                conditions.append(f"{expression} >= :filter_min_{name}")
+                parameters[f"filter_min_{name}"] = low
+            if high is not None:
+                conditions.append(f"{expression} <= :filter_max_{name}")
+                parameters[f"filter_max_{name}"] = high
+        if self.min_beds is not None:
+            conditions.append(f"{BEDROOMS_SQL} >= :filter_min_beds")
+            parameters["filter_min_beds"] = self.min_beds
+        if self.min_baths is not None:
+            conditions.append(f"{BATHROOMS_SQL} >= :filter_min_baths")
+            parameters["filter_min_baths"] = self.min_baths
+        home_types = [value.upper() for value in self.home_type if value.upper() in HOME_TYPES]
+        if home_types:
+            conditions.append(f"{HOME_TYPE_SQL} = ANY(:filter_home_types)")
+            parameters["filter_home_types"] = home_types
+        if include_probability and self.min_probability is not None:
+            conditions.append("sp.probability >= :filter_min_probability")
+            parameters["filter_min_probability"] = self.min_probability
+        return conditions, parameters
+
+
+def search_filters(
+    min_price: Optional[float] = Query(default=None, ge=0, description="Minimum bid at least"),
+    max_price: Optional[float] = Query(default=None, ge=0, description="Minimum bid at most"),
+    min_value: Optional[float] = Query(default=None, ge=0, description="Estimated value at least"),
+    max_value: Optional[float] = Query(default=None, ge=0, description="Estimated value at most"),
+    min_beds: Optional[float] = Query(default=None, ge=0, le=20),
+    min_baths: Optional[float] = Query(default=None, ge=0, le=20),
+    home_type: list[str] = Query(default=[], max_length=len(HOME_TYPES)),
+    min_sqft: Optional[float] = Query(default=None, ge=0),
+    max_sqft: Optional[float] = Query(default=None, ge=0),
+    min_year: Optional[int] = Query(default=None, ge=1600, le=2100),
+    max_year: Optional[int] = Query(default=None, ge=1600, le=2100),
+    sale_from: Optional[date] = None,
+    sale_to: Optional[date] = None,
+    min_probability: Optional[float] = Query(default=None, ge=0, le=1),
+) -> SearchFilters:
+    return SearchFilters(min_price, max_price, min_value, max_value, min_beds, min_baths, home_type,
+                         min_sqft, max_sqft, min_year, max_year, sale_from, sale_to, min_probability)
 
 
 def _property_filters(
@@ -186,6 +278,7 @@ def _property_filters(
     max_risk: Optional[int] = None,
     investor_spotlight: bool = False,
     sale_id: list[str] = (),
+    filters: Optional[SearchFilters] = None,
 ) -> tuple[list[str], dict]:
     """WHERE conditions and parameters shared by the property list and its map points.
 
@@ -251,6 +344,11 @@ def _property_filters(
         conditions.append("ra.risk_score <= :max_risk")
         parameters["max_risk"] = max_risk
 
+    if filters is not None:
+        extra, extra_parameters = filters.conditions()
+        conditions += extra
+        parameters.update(extra_parameters)
+
     if investor_spotlight:
         # Upcoming scheduled sales with positive gross equity and a probability score.
         conditions.append(f"strpos({effective_status}, 'scheduled') > 0")
@@ -292,13 +390,14 @@ def list_properties(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
     sale_id: list[str] = Query(default=[]),
+    filters: SearchFilters = Depends(search_filters),
     access: Access = Depends(require_access),
 ):
     offset = (page - 1) * page_size
 
     conditions, parameters = _property_filters(
         access, state, county, q, zip_code, status, status_contains, future_only,
-        min_equity, max_risk, investor_spotlight, sale_id,
+        min_equity, max_risk, investor_spotlight, sale_id, filters,
     )
     parameters.update({"limit": page_size, "offset": offset})
 
@@ -733,7 +832,7 @@ def list_properties(
             LIMIT 1
         ) AS pv ON TRUE
         LEFT JOIN LATERAL (
-            SELECT zestimate
+            SELECT zestimate, raw_payload
             FROM apify_zillow_results
             WHERE property_id = p.id
               AND is_current = TRUE
@@ -847,12 +946,15 @@ def property_map_points(
     q: Optional[str] = Query(default=None, max_length=200),
     status_contains: Optional[str] = Query(default=None, max_length=100),
     investor_spotlight: bool = False,
+    min_equity: Optional[float] = None,
+    filters: SearchFilters = Depends(search_filters),
     access: Access = Depends(require_access),
 ):
     """Coordinates for every property matching the list filters, not just one page,
     so the map can mark them all. Coordinates are picked in the list's order."""
     conditions, parameters = _property_filters(
-        access, state, county, q, status_contains=status_contains, investor_spotlight=investor_spotlight)
+        access, state, county, q, status_contains=status_contains, min_equity=min_equity,
+        investor_spotlight=investor_spotlight, filters=filters)
     query = text(f"""
         SELECT ss.id::text AS sheriff_sale_id, p.id::text AS property_id, p.normalized_address,
                COALESCE(canonical_parcel.latitude, avm_subject.latitude, p.latitude,
@@ -907,13 +1009,14 @@ def export_properties_xlsx(
     sort_direction: Literal["asc", "desc"] = "asc",
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=24, ge=1, le=200),
+    filters: SearchFilters = Depends(search_filters),
     access: Access = Depends(require_access),
 ):
     result = list_properties(
         state=state, county=county, q=q, zip_code=zip_code, status=status,
         status_contains=status_contains, future_only=future_only,
-        min_equity=min_equity, sort=sort, sort_direction=sort_direction,
-        page=page, page_size=page_size, sale_id=[], access=access,
+        min_equity=min_equity, max_risk=None, investor_spotlight=False, sort=sort, sort_direction=sort_direction,
+        page=page, page_size=page_size, sale_id=[], filters=filters, access=access,
     )
     rows = list(result["items"])
 
