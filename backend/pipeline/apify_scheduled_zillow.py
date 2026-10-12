@@ -12,6 +12,7 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 
 from app.database.session import engine
+from pipeline.fill_missing_zips import search_city
 
 ROOT = Path(__file__).resolve().parents[2]
 OUTPUT = Path(os.environ.get("APIFY_OUTPUT_DIR", ROOT / ".local/apify-zillow-scheduled"))
@@ -67,9 +68,29 @@ def clean_street(street):
 
 
 def search_address(row):
-    """Street, state and ZIP: Zillow resolves these better than court town names."""
-    place = f"{row['state']} {row['zip_code']}" if row.get("zip_code") else f"{row['city']}, {row['state']}"
-    return f"{clean_street(row['street_address'])}, {place}"
+    """Street, state and ZIP (Zillow resolves these better than court town names such as
+    "Winslow Township"), or the city when there is no ZIP. Periods are dropped
+    ("3034 N. 56TH ST." -> "3034 N 56TH ST") and a placeholder city ("Unincorporated") is left out."""
+    street = re.sub(r"\s+", " ", clean_street(row["street_address"]).replace(".", " ")).strip()
+    if row.get("zip_code"):
+        return f"{street}, {row['state']} {row['zip_code']}"
+    return ", ".join(part for part in (street, search_city(row.get("city")), row["state"]) if part)
+
+
+def first_pass_address(row):
+    """The normalized address without commas, plus the ZIP when it lacks one (e.g. a ZIP
+    filled in later by fill_missing_zips)."""
+    address = re.sub(r"\s*,\s*", " ", row["normalized_address"]).strip()
+    if row.get("zip_code") and not re.search(r"\b\d{5}\b", address):
+        address = f"{address} {row['zip_code']}"
+    return address
+
+
+def searchable(row):
+    """False for rows Zillow cannot resolve to one house: a placeholder street number
+    ("0 UNKNOWN") or several addresses in one listing ("205 NW 89TH ST & 432 Larkspur Ln")."""
+    street = row.get("street_address") or ""
+    return bool(re.match(r"[1-9]", street)) and " & " not in f"{street} {row.get('normalized_address') or ''}"
 
 
 def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer=None):
@@ -100,14 +121,14 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
             ORDER BY p.normalized_address, ss.id
         """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
                 "retry_unmatched": retry_unmatched, "sold_results": sold_results, "buyer": buyer}).mappings().all()
-    manifest = [dict(row) for row in rows]
+    manifest = [dict(row) for row in rows if searchable(row)]
     for row in manifest:
         if retry_unmatched:
             row["input_address"] = search_address(row)
         else:
             # Normalized addresses sometimes split multi-word towns ("West New, York");
             # Zillow's free-text search matches better without the commas.
-            row["input_address"] = re.sub(r"\s*,\s*", " ", row["normalized_address"]).strip()
+            row["input_address"] = first_pass_address(row)
     if any(not row["input_address"] for row in manifest):
         raise RuntimeError("Blank input address; review manifest before submitting.")
     save("manifest.json", manifest)

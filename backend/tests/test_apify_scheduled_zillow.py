@@ -1,4 +1,4 @@
-from pipeline.apify_scheduled_zillow import clean_street, search_address
+from pipeline.apify_scheduled_zillow import clean_street, first_pass_address, search_address, searchable
 
 
 def test_alias_is_dropped():
@@ -37,3 +37,22 @@ def test_consecutive_suffix_words_stay_in_the_street_name():
 
 def test_mailing_address_label_is_dropped():
     assert clean_street("Mailing Address: 12 Denhard Court") == "12 Denhard Court"
+
+
+def test_search_address_drops_periods_and_placeholder_cities():
+    assert search_address({"street_address": "3034 N. 56TH ST.", "state": "OK", "zip_code": "74107",
+                           "city": "Tulsa"}) == "3034 N 56TH ST, OK 74107"
+    assert search_address({"street_address": "4015 S DOBBS RD", "state": "OK", "zip_code": None,
+                           "city": "Unincorporated"}) == "4015 S DOBBS RD, OK"
+    assert search_address({"street_address": "1717 GLADSTONE TER", "state": "OK", "zip_code": None,
+                           "city": "Village"}) == "1717 GLADSTONE TER, The Village, OK"
+
+
+def test_first_pass_adds_a_filled_in_zip_and_skips_unsearchable_rows():
+    row = {"normalized_address": "1319 LAUREL LN, Midwest City, OK", "zip_code": "73130", "street_address": "1319 LAUREL LN"}
+    assert first_pass_address(row) == "1319 LAUREL LN Midwest City OK 73130"
+    assert first_pass_address({**row, "normalized_address": "1 A St, Tulsa, OK 74103"}) == "1 A St Tulsa OK 74103"
+    assert searchable(row)
+    assert not searchable({"street_address": "0 UNKNOWN", "normalized_address": "0 UNKNOWN, Edmond, OK"})
+    assert not searchable({"street_address": "205 NW 89TH ST",
+                           "normalized_address": "205 NW 89TH ST, Oklahoma City & 432 Larkspur Ln, Edmond, OK"})

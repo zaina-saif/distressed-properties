@@ -170,6 +170,13 @@ class Refresh:
             return
         apify.OUTPUT = self.run_dir / "zillow"
         apify.TARGET_STATE = "NJ"
+        # Zillow rarely matches an address without a ZIP; fill missing ones first (free Census geocoder).
+        try:
+            from pipeline.fill_missing_zips import fill
+            zip_lookup = self._quiet(fill, ["NJ"])
+            print(f"  zip lookup: {zip_lookup}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - Zillow still runs without the ZIPs
+            self._fail("zillow", "zip_lookup", exc)
         try:
             self._quiet(apify.prepare, True)
             addresses = json.loads((apify.OUTPUT / "input.json").read_text())["addresses"]

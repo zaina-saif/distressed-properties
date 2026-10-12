@@ -121,6 +121,15 @@ class Refresh:
             return
         remaining = self.max_zillow_addresses
         stage: dict[str, Any] = {}
+        # Zillow rarely matches an address without a ZIP; fill missing ones first (free Census geocoder).
+        try:
+            from pipeline.fill_missing_zips import fill
+            with self.log_path.open("a", encoding="utf-8") as log:
+                with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+                    stage["zip_lookup"] = fill(list(STATES))
+            print(f"  zip lookup: {stage['zip_lookup']}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - Zillow still runs without the ZIPs
+            self.report["failures"].append({"stage": "zillow", "item": "zip_lookup", "error": f"{type(exc).__name__}: {exc}"})
         for state in STATES:
             apify.OUTPUT = self.run_dir / f"zillow-{state.lower()}"
             apify.TARGET_STATE = state
