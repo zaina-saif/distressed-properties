@@ -23,6 +23,10 @@ def address(fields, state):
     """Street, city and 5-digit ZIP from "Property Address" and its unlabelled second line
     ("CLEVELAND , 441050000" in Ohio, "HIALEAH, FL- 33015" in Florida)."""
     street = " ".join((fields.get("Property Address") or "").split())
+    if state == "TX":
+        # Some Texas sites drop the space after the house number ("7802CRAZY HORSE"); an
+        # ordinal ("123RD ST") or a unit letter ("12A MAIN") is left alone.
+        street = re.sub(r"^(\d+)(?!(?:ST|ND|RD|TH)\b)([A-Za-z]{3,})", r"\1 \2", street)
     # Texas adds ZIP+4 ("DALLAS, TX 75216-5234").
     second = re.sub(r"(\d{5})-\d{4}\s*$", r"\1", fields.get("Property Address 2") or "")
     match = re.match(rf"\s*(.*?)\s*,?\s*(?:{state}\b)?\s*[,-]?\s*(\d{{5}})?\d*\s*$", second, re.I)

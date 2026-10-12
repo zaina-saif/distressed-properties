@@ -94,3 +94,13 @@ def test_history_items_are_in_date_order():
     items = [{"sale_date": "2026-09-28", "area": "C", "fields": {"Case #": "CV1 (1)"}},
              {"sale_date": "2026-08-03", "area": "C", "fields": {"Case #": "CV1 (1)"}}]
     assert [item["sale_date"] for _, item in history_items(items)] == ["2026-08-03", "2026-09-28"]
+
+
+def test_texas_house_number_spacing():
+    from pipeline.load_realauction_sales import address
+
+    second = {"Property Address 2": "AUSTIN, TX 78737-1234"}
+    assert address({"Property Address": "7802CRAZY HORSE", **second}, "TX") == ("7802 CRAZY HORSE", "AUSTIN", "78737")
+    assert address({"Property Address": "123RD ST", **second}, "TX")[0] == "123RD ST"
+    assert address({"Property Address": "12A MAIN ST", **second}, "TX")[0] == "12A MAIN ST"
+    assert address({"Property Address": "7802CRAZY HORSE"}, "OH")[0] == "7802CRAZY HORSE"
