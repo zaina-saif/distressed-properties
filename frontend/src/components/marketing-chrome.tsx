@@ -20,12 +20,13 @@ const NAV = [
   { href: "/why", label: "Why us", page: "why" },
   { href: "/dashboard?view=analytics", label: "Analytics", page: "analytics" },
   { href: "/pricing", label: "Pricing", page: "pricing" },
+  { href: "/how-sheriff-sales-work", label: "How it works", page: "how" },
   { href: "/#news", label: "News", page: "news" },
   { href: "/contact", label: "Contact", page: "contact" },
 ];
 
 /** Header shared by the marketing pages; `active` marks the current page in the nav. */
-export function SiteHeader({ active }: { active: "home" | "why" | "pricing" | "contact" | "none" }) {
+export function SiteHeader({ active }: { active: "home" | "why" | "pricing" | "how" | "contact" | "none" }) {
   const [mobile, setMobile] = useState(false);
   const { session, account } = useAccount();
   const cta = !session ? { href: "/get-started", label: "Get Started" }
@@ -34,5 +35,5 @@ export function SiteHeader({ active }: { active: "home" | "why" | "pricing" | "c
 }
 
 export function SiteFooter() {
-  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#story">Our Story</Link><Link href="/why">Why us</Link><Link href="/dashboard?view=analytics">Analytics</Link><Link href="/pricing">Pricing</Link><Link href="/#news">News</Link><Link href="/contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved. <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
+  return <footer className="site-footer"><div className="footer-top"><Link href="/"><Brand/></Link><span>Your Sheriff Sale Expert.</span><nav aria-label="Footer navigation"><Link href="/#story">Our Story</Link><Link href="/why">Why us</Link><Link href="/dashboard?view=analytics">Analytics</Link><Link href="/pricing">Pricing</Link><Link href="/how-sheriff-sales-work">How it works</Link><Link href="/#news">News</Link><Link href="/contact">Contact</Link></nav></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Sheriff Sale Hunter. All rights reserved. <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></span><span>Intelligence for better-informed investments.<ArrowRight size={14}/></span></div></footer>;
 }
