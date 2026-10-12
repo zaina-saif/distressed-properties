@@ -71,16 +71,17 @@ def run(args, browser_factory=None, loader=None):
             if browser_factory:
                 records, review = collect(browser_factory(folder), args.start, args.end, report)
             else:
-                from playwright.sync_api import sync_playwright
-                with sync_playwright() as playwright:
-                    context = playwright.chromium.launch_persistent_context(
-                        str(args.profile.resolve()), channel=args.channel, headless=not args.assisted,
-                        accept_downloads=True)
-                    try:
-                        browser = CourtBrowser(context, folder / 'pdfs', args.assisted, args.operator_timeout)
-                        records, review = collect(browser, args.start, args.end, report)
-                    finally:
-                        context.close()
+                from pipeline.scraping.browser import BrowserManager
+                from pipeline.scraping.config import ScrapingSettings
+                from pipeline.scraping.monitoring import ScrapeMonitor
+                settings = ScrapingSettings.from_env()
+                settings.browser_channel, settings.operator_timeout = args.channel, args.operator_timeout
+                # Shared launcher: same persistent profile, visible only when assisted,
+                # screenshots/HTML of any challenge under the run folder.
+                with BrowserManager('ny-queens-court', settings, assisted=args.assisted, profile_dir=args.profile,
+                                    monitor=ScrapeMonitor(folder / 'artifacts')) as manager:
+                    browser = CourtBrowser(manager.context, folder / 'pdfs', args.assisted, args.operator_timeout)
+                    records, review = collect(browser, args.start, args.end, report)
             (folder / 'snapshot.json').write_text(json.dumps(records, indent=2))
             (folder / 'review.json').write_text(json.dumps(review, indent=2))
             if not args.dry_run:

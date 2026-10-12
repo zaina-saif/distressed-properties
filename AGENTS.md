@@ -76,6 +76,34 @@ The sale-probability model the `score` stage uses is `backend/models/<MODEL_VERS
 
 Their secrets are GitHub repository secrets: `DATABASE_URL`, `APIFY_API_TOKEN`, `RESEND_API_KEY`, `ALERTS_SIGNING_SECRET`, `ALERTS_POSTAL_ADDRESS`.
 
+### Scraping framework and CLI
+
+`backend/main.py` runs any registered scraper; `pipeline/scraping/` holds the shared pieces new collectors should use:
+
+```bash
+python main.py list                          # every registered scraper, by state
+python main.py scrape nj                     # all statewide scrapers for a state (scrape + load)
+python main.py scrape county "bergen"        # scrapers covering one county; add --state XX for "any county" sources (IN SRI)
+python main.py scrape county "queens" --assisted   # visible browser; the operator passes any check
+python main.py scrape ok --dry-run           # scrape and save snapshots only; load nothing
+```
+
+| Module | Role |
+|---|---|
+| `config.ScrapingSettings` | `SCRAPER_*` settings from `backend/.env` (see `.env.example`) |
+| `challenge.detect_challenge` | Recognises interstitial/block pages (Cloudflare, Akamai, CAPTCHA prompts); a page that only embeds a CAPTCHA widget or a vendor script is not one |
+| `rate_limit` | Per-host pacing (robots.txt `Crawl-delay` wins when larger), robots.txt per RFC 9309, exponential backoff |
+| `http.PoliteClient` | `httpx.Client` drop-in: pacing, robots, retries on 429/5xx/timeouts, `AccessChallenge` (never a retry) on a challenge |
+| `browser.BrowserManager` | Playwright Chromium; headless runs stop at a challenge, `--assisted` runs notify the operator, wait, then save the session |
+| `sessions.SessionManager` | Saved storage state per site in `.local/sessions/` (0600), reused until expired |
+| `monitoring.ScrapeMonitor` | `.local/scrape-artifacts/<run>/`: `responses.jsonl` (no cookies), HTML + screenshots of challenges/timeouts, `errors.jsonl`, `commands.log` |
+| `base` | `SaleRecord` (common record), `ScraperBase` (native scraper loaded via `load_sales`), `CommandScraper` (an existing scrape/load module pair), the registry, `DatabaseManager` (a `scrape_runs` row per CLI run, `job_name` `cli:<scraper>`) |
+| `plugins/{nj,ny,pa,other_states}.py` | Registrations; add a source by registering it here |
+
+There is deliberately no proxy rotation or per-site proxy pool, no stealth patching and no hiding of the automation flags: `SCRAPER_PROXY_URL` is one fixed egress proxy. A site that keeps challenging an automated browser after the operator passed is declining automation; use a manual export (like the NY court PDFs) instead.
+
+`docker compose up -d db api` starts a local Postgres with `docker/postgres-init` (Supabase stand-ins: `anon`/`authenticated` roles and an `auth.users` table, then every migration) and the API; `docker compose run --rm scraper scrape sc` runs the CLI against it. Migration `039_production_schema_catchup.sql` adds the tables and columns production had gained outside the migrations (a no-op there), so a fresh database matches it.
+
 ### New York pipeline
 
 New York foreclosures are court-ordered **referee auctions**, not sheriff sales, and the courts publish them as PDFs on nycourts.gov. Those pages (and WebCivil/NYSCEF on iapps.courts.state.ny.us) answer scripts with a Cloudflare check, and NYSCEF guest search has a CAPTCHA, so nothing downloads them automatically. The operator opens the pages in a normal browser, saves the PDFs into one folder, and runs the loader on the operator's machine (OCR uses macOS Vision via `pipeline/ocr_pdf_macos.swift`):

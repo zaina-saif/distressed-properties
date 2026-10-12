@@ -176,3 +176,11 @@ def test_hidden_court_captcha_widget_is_not_an_active_challenge():
     from pipeline.queens.browser import challenged
     assert not challenged('''<html><body><form><div class="h-captcha" style="display: none"><iframe title="captcha" style="display: none"></iframe></div><input type="submit" value="Find Calendar"></form></body></html>''')
     assert challenged('<html><body><iframe title="hCaptcha security challenge" src="https://captcha.test"></iframe></body></html>')
+
+
+def test_invisible_hcaptcha_on_a_results_page_is_not_a_challenge():
+    from pipeline.queens.browser import challenged
+    page = '''<html><body><table><tr><td>Calendar for Queens</td></tr></table>
+    <div class="h-captcha" data-sitekey="x" data-size="invisible"></div>
+    <a href="/webcivil/calendar.pdf">Calendar PDF</a></body></html>'''
+    assert not challenged(page)

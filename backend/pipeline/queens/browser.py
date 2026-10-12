@@ -50,7 +50,10 @@ def challenged(html: str) -> bool:
         style = (node.get('style') or '').replace(' ', '').lower()
         classes = node.get('class') or []
         if ('display:none' in style or 'visibility:hidden' in style
-                or node.get('aria-hidden') == 'true' or 'hidden' in classes):
+                or node.get('aria-hidden') == 'true' or 'hidden' in classes
+                # An invisible hCaptcha/reCAPTCHA attached to a form button stays on
+                # the results page as a visible div; it is not an active challenge.
+                or node.get('data-size') == 'invisible'):
             node.decompose()
     visible_text = soup.get_text(' ', strip=True)
     visible_markup = ' '.join(' '.join(node.get('class') or []) for node in soup.find_all(True) if node.attrs)
@@ -80,6 +83,8 @@ class CourtBrowser:
         if not self.assisted:
             raise AccessChallenge("Court access challenge: rerun with --assisted on the operator machine")
         LOG.warning("Complete the court challenge and submit the search in the visible browser; waiting up to %s seconds", self.operator_timeout)
+        from pipeline.scraping.browser import notify_operator
+        notify_operator("Queens court check: complete it and submit the search in the browser window.")
         end = time.monotonic() + self.operator_timeout
         while time.monotonic() < end:
             self.page.wait_for_timeout(1000)

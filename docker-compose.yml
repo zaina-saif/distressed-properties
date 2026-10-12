@@ -1,0 +1,61 @@
+# Local development stack (production runs on Railway + Supabase; see DEPLOYMENT.md).
+#
+#   docker compose up -d db api                 # Postgres with every migration applied, API on :8000
+#   docker compose run --rm scraper scrape sc   # any `python main.py ...` command against the local db
+#   docker compose down -v                      # stop and delete the local database
+#
+# The db applies docker/postgres-init (Supabase stand-ins, then backend/migrations in
+# order) only on first start; `down -v` and `up` again to rebuild it after new migrations.
+# Browser collectors that need an operator (--assisted) run on the host, not here.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sheriff_sales
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+      - ./backend/migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sheriff_sales"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sheriff_sales
+      ENABLE_WAREHOUSE_API: "0"
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scraper:
+    build: ./backend
+    profiles: ["scrape"]
+    working_dir: /app
+    entrypoint: ["python", "main.py"]
+    command: ["list"]
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sheriff_sales
+      SCRAPER_ARTIFACT_DIR: /app/artifacts
+      SCRAPER_SESSION_DIR: /app/sessions
+    volumes:
+      # The image holds app/, pipeline/ and models/; mount the rest of backend/ so
+      # main.py runs and snapshots land in backend/data/ on the host.
+      - ./backend:/app
+      - ./.local/scrape-artifacts:/app/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:

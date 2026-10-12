@@ -25,6 +25,9 @@ import httpx
 from bs4 import BeautifulSoup
 
 from pipeline.adapters.pa_monroe_bid4assets import MonroeBid4AssetsAdapter
+from pipeline.scraping.config import ScrapingSettings
+from pipeline.scraping.http import PoliteClient
+from pipeline.scraping.monitoring import ScrapeMonitor
 
 OUTPUT = Path("data/sheriff_sales/county_sale_lists")
 PARSER_VERSION = "county_sale_lists_v1"
@@ -279,7 +282,11 @@ def main():
     keys = sorted(COUNTIES) if args.all else [tuple(value.split(":", 1)) for value in args.counties or []]
     OUTPUT.mkdir(parents=True, exist_ok=True)
     failed = []
-    with httpx.Client(headers=HEADERS, timeout=60, follow_redirects=True) as client:
+    # PoliteClient: per-host pacing, robots.txt, retries with backoff, and a stop (not a
+    # retry) on any verification challenge; artifacts go to .local/scrape-artifacts/.
+    settings = ScrapingSettings.from_env()
+    monitor = ScrapeMonitor.for_run(settings.artifact_dir, "county-sale-lists")
+    with PoliteClient(settings, monitor) as client:
         for state, county in keys:
             try:
                 records, url = COUNTIES[(state, county)](client)

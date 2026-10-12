@@ -13,7 +13,11 @@ from dataclasses import asdict, dataclass
 from datetime import date
 from pathlib import Path
 
-from playwright.sync_api import Page, TimeoutError as PlaywrightTimeout, sync_playwright
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeout
+
+from pipeline.scraping.browser import BrowserManager, notify_operator
+from pipeline.scraping.config import ScrapingSettings
+from pipeline.scraping.monitoring import ScrapeMonitor
 
 
 PORTAL_URL = "https://pad.tax.ny.gov/index"
@@ -124,13 +128,16 @@ def main() -> None:
     completed = load_checkpoint(args.checkpoint)
     args.profile_dir.mkdir(parents=True, exist_ok=True)
 
-    with sync_playwright() as playwright:
-        context = playwright.chromium.launch_persistent_context(
-            str(args.profile_dir.resolve()), channel=args.browser_channel, headless=False,
-            accept_downloads=True, viewport={"width": 1500, "height": 1000},
-        )
-        page = context.pages[0] if context.pages else context.new_page()
+    settings = ScrapingSettings.from_env()
+    settings.browser_channel = args.browser_channel
+    monitor = ScrapeMonitor.for_run(settings.artifact_dir, "ny-salesweb")
+    with BrowserManager("ny-salesweb", settings, assisted=True, profile_dir=args.profile_dir,
+                        monitor=monitor) as manager:
+        page = manager.page
+        page.set_viewport_size({"width": 1500, "height": 1000})
         page.goto(PORTAL_URL, wait_until="domcontentloaded", timeout=120_000)
+        # The portal's CAPTCHA sits inside its own page, so the operator says when it is done.
+        notify_operator("NY SalesWeb: complete the CAPTCHA and open Real Property Sales Search.")
         input("Complete the CAPTCHA and open Real Property Sales Search. Press Enter here when ready: ")
 
         for index, job in enumerate(planned, 1):
@@ -154,6 +161,8 @@ def main() -> None:
                     input("Refine the visible search and run it. Press Enter when Download Search Results appears: ")
                 saved = download_results(page, job, args.output_dir)
             except PlaywrightTimeout:
+                manager.snapshot(f"timeout-{job.key}")
+                notify_operator(f"NY SalesWeb stopped at {job.county} {job.year}; complete any CAPTCHA or the search.")
                 print("Portal did not reach the expected state. Complete any CAPTCHA or the search manually.", flush=True)
                 input(f"Set {job.county}, {job.start_date}–{job.end_date}, run Search, then press Enter: ")
                 saved = download_results(page, job, args.output_dir)
@@ -161,7 +170,6 @@ def main() -> None:
             save_checkpoint(args.checkpoint, completed)
             print(f"saved {saved}", flush=True)
             time.sleep(max(args.delay, 0))
-        context.close()
 
 
 if __name__ == "__main__":
