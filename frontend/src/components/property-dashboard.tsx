@@ -67,11 +67,9 @@ export default function PropertyDashboard({
 }) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
-  const [coverageLoaded, setCoverageLoaded] = useState(false);
   const [total, setTotal] = useState(0);
   const [nextSaleDate, setNextSaleDate] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   // Picked on the map; shown in the right panel instead of the list.
@@ -129,7 +127,7 @@ export default function PropertyDashboard({
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
-    getPropertyCoverage(SCHEDULED).then(setCoverage).catch(() => setCoverage([])).finally(() => setCoverageLoaded(true));
+    getPropertyCoverage(SCHEDULED).then(setCoverage).catch(() => setCoverage([]));
   }, [refreshKey]);
   // Only scheduled sales whose date is still ahead are shown (the API applies the date rule).
   const statusFilter = SCHEDULED;
@@ -152,6 +150,11 @@ export default function PropertyDashboard({
     return () => { active = false; };
   }, [refreshKey, searchFilters, selectedCounty, stateFilter]);
 
+  // The list counts as loading until the response for the current filters arrives, so a
+  // new state or county shows the loading state at once instead of the old listings.
+  const requestKey = JSON.stringify([desktopView, page, refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight]);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const loading = loadedKey !== requestKey;
   useEffect(() => {
     let active = true;
     getProperties({
@@ -168,6 +171,7 @@ export default function PropertyDashboard({
     })
       .then((response) => {
         if (!active) return;
+        setError(null);
         setProperties(response.items);
         setTotal(response.total);
         setNextSaleDate(response.next_sale_date ?? null);
@@ -179,9 +183,9 @@ export default function PropertyDashboard({
         setNextSaleDate(null);
         setError("Unable to load sheriff-sale properties. Make sure the FastAPI backend and database are available.");
       })
-      .finally(() => { if (active) setLoading(false); });
+      .finally(() => { if (active) setLoadedKey(requestKey); });
     return () => { active = false; };
-  }, [coverageLoaded, desktopView, page, refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
+  }, [desktopView, page, refreshKey, requestKey, searchFilters, searchQuery, selectedCounty, selectedState, sort, sortDirection, spotlight, stateFilter, statusFilter]);
 
   // Every matching property goes on the map, not just the list's current page.
   const [mapPoints, setMapPoints] = useState<{ total: number; points: MapPoint[] }>({ total: 0, points: [] });
@@ -198,7 +202,7 @@ export default function PropertyDashboard({
       .then((response) => { if (active) setMapPoints(response); })
       .catch(() => { if (active) setMapPoints({ total: 0, points: [] }); });
     return () => { active = false; };
-  }, [coverageLoaded, refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, spotlight, stateFilter, statusFilter]);
+  }, [refreshKey, searchFilters, searchQuery, selectedCounty, selectedState, spotlight, stateFilter, statusFilter]);
 
   const counties = useMemo(
     () => coverage
@@ -330,7 +334,7 @@ export default function PropertyDashboard({
           <nav className="max-sm:ml-auto flex items-center gap-1 rounded-xl bg-slate-100 p-1" aria-label="Property views">
             <button
               type="button"
-              onClick={() => { setLoading(true); setError(null); setDesktopView("dashboard"); }}
+              onClick={() => { setError(null); setDesktopView("dashboard"); }}
               className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold sm:px-3 ${desktopView === "dashboard" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
               aria-current={desktopView === "dashboard" ? "page" : undefined}
             >
@@ -338,7 +342,7 @@ export default function PropertyDashboard({
             </button>
             <button
               type="button"
-              onClick={() => { setLoading(true); setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
+              onClick={() => { setError(null); setDesktopView("list"); setMobileView("list"); setSort("gross-equity"); setSortDirection("desc"); setPage(1); }}
               className={`flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold sm:px-3 ${desktopView === "list" ? "bg-white text-teal-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
               aria-current={desktopView === "list" ? "page" : undefined}
             >
@@ -485,12 +489,12 @@ export default function PropertyDashboard({
 
           {focusedProperty && desktopView === "dashboard" ? (
             <PropertyFocusPanel property={focusedProperty} onBack={() => setFocusedProperty(null)} onOpenDetails={() => setSelectedProperty(focusedProperty)} onSalePageClick={() => setSalePageProperty(focusedProperty)} onProbabilityReasonClick={() => setSelectedProbabilityReasonProperty(focusedProperty)} />
-          ) : error ? (
-            <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</div>
           ) : loading ? (
             <div className="grid gap-4 overflow-hidden p-4">
               {[1, 2, 3].map((item) => <div key={item} className="h-48 animate-pulse rounded-xl bg-slate-200" />)}
             </div>
+          ) : error ? (
+            <div className="m-4 rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</div>
           ) : sortedProperties.length === 0 ? (
             <div className="flex flex-1 items-center justify-center p-8 text-center">
               <div><ListFilter className="mx-auto h-10 w-10 text-slate-300" /><h3 className="mt-3 font-semibold text-slate-900">No matching properties</h3><p className="mt-1 text-sm text-slate-500">Try clearing a filter or searching a broader location.</p></div>

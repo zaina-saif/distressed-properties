@@ -44,6 +44,9 @@ export function PropertyMap({
   // Read at click time, so a new handler (the list's page changed) does not redraw every marker.
   const clickRef = useRef(onPropertyClick);
   useEffect(() => { clickRef.current = onPropertyClick; }, [onPropertyClick]);
+  // Likewise, a new county handler (the state changed) must not rebuild the whole map.
+  const countySelectRef = useRef(onCountySelect);
+  useEffect(() => { countySelectRef.current = onCountySelect; }, [onCountySelect]);
   const fitRef = useRef<(() => void) | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -112,7 +115,7 @@ export function PropertyMap({
                 .setContent(content)
                 .openOn(map);
             action.addEventListener("click", () => {
-              onCountySelect(state, county);
+              countySelectRef.current(state, county);
                 popup.close();
             });
           } catch {
@@ -136,7 +139,7 @@ export function PropertyMap({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [onCountySelect]);
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current) return;
