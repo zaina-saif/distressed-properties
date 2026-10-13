@@ -184,3 +184,38 @@ def test_invisible_hcaptcha_on_a_results_page_is_not_a_challenge():
     <div class="h-captcha" data-sitekey="x" data-size="invisible"></div>
     <a href="/webcivil/calendar.pdf">Calendar PDF</a></body></html>'''
     assert not challenged(page)
+
+
+NASSAU = NOTICE.replace('COUNTY OF QUEENS', 'COUNTY OF NASSAU').replace(
+    'Queens Supreme Court, 88-11 Sutphin Blvd,\nJamaica, NY', 'Nassau Supreme Court, 100 Supreme Court Drive,\nMineola, NY').replace(
+    '123-45 Main Street, Flushing, NY 11354', '12 Elm Street, Hempstead, NY 11550')
+
+
+def test_other_counties_use_their_own_court_and_name():
+    from pipeline.queens.counties import COUNTIES, county
+    assert len(COUNTIES) == 11
+    assert county('nassau').webcivil == '58' and county('New York').source == 'ny_nyscef_foreclosure'
+    assert county('Queens').source == 'nyc_queens_nyscef_foreclosure' and county('Kings').number_prefix == 'KINGS-NYSCEF-'
+    with pytest.raises(ValueError):
+        county('Albany')
+    r = parse_notice(NASSAU, '712345/2024', URL, 'abc', county('Nassau'))
+    assert r['review_reasons'] == [] and r['county'] == 'Nassau' and r['city'] == 'Hempstead'
+    assert 'county_not_confirmed' in parse_notice(NASSAU, '712345/2024', URL, 'abc', county('Suffolk'))['review_reasons']
+    assert calendar_cases('Staten Island 712345/2024', county('Richmond')) == ['712345/2024']
+    with pytest.raises(ValueError):
+        calendar_cases('Queens 712345/2024', county('Erie'))
+
+
+def test_counties_are_collected_and_loaded_one_after_another(tmp_path, monkeypatch):
+    from pipeline.queens.counties import county
+    monkeypatch.setattr('pipeline.queens_foreclosure_refresh.time.sleep', lambda _: None)
+    b = browser()
+    b.pdf.side_effect = lambda url: (b'n', NASSAU) if b.notices.call_args.args[1].name == 'Nassau' else (b'q', NOTICE)
+    loader = Mock(side_effect=lambda records, county: {'created': len(records)})
+    args = options(tmp_path)
+    args.counties = [county('Queens'), county('Nassau')]
+    assert run(args, lambda _: b, loader) == 0
+    assert [c.kwargs['county'] for c in loader.call_args_list] == ['Queens', 'Nassau']
+    assert [c.args[2].name for c in b.calendars.call_args_list] == ['Queens', 'Nassau']
+    report = json.loads((tmp_path / 'report.json').read_text())
+    assert report['created'] == 2 and report['counties']['Nassau']['accepted'] == 1

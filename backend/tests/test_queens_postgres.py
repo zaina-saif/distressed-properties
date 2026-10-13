@@ -74,3 +74,20 @@ def test_idempotence_preservation_and_atomicity(db):
     load_records([], db)
     with db.connect() as c:
         assert c.execute(text('SELECT current_status FROM sheriff_sales')).scalar_one() == 'sold'
+
+
+def test_other_counties_load_under_their_own_source_and_skip_cases_already_listed(db):
+    from pipeline.queens.loading import load_records
+    from test_queens_foreclosures import NASSAU, URL
+    from pipeline.queens.counties import county
+    from pipeline.queens.parsing import parse_notice
+    row = parse_notice(NASSAU, '712345/2024', URL, 'abc', county('Nassau'))
+    assert load_records([row], db, county='Nassau')['created'] == 1
+    with db.connect() as c:
+        assert c.execute(text("SELECT county, source_system, sheriff_number FROM sheriff_sales")).one() == (
+            'Nassau', 'ny_nyscef_foreclosure', 'NASSAU-NYSCEF-712345/2024')
+    with db.begin() as c:
+        c.execute(text("""UPDATE sheriff_sales SET county='Kings', source_system='ny_court_foreclosure_auction',
+            court_case_number='712345/2024'"""))
+    assert load_records([{**row, 'county': 'Kings'}], db, county='Kings')['already_listed'] == 1
+    assert count(db, 'sheriff_sales') == 1

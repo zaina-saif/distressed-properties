@@ -9,6 +9,10 @@ from io import BytesIO
 
 from pypdf import PdfReader
 
+from .counties import COUNTIES, County
+
+QUEENS = COUNTIES["queens"]
+
 PARSER_VERSION = "queens-notice-v1"
 INDEX = re.compile(r"(?<!\d)(\d{5,6})\s*[/‐‑–-]\s*((?:19|20)\d{2})(?!\d)")
 MONTH = r"(?:January|February|March|April|May|June|July|August|September|October|November|December)"
@@ -31,21 +35,21 @@ def pdf_text(body: bytes) -> str:
     return result
 
 
-def calendar_cases(text: str) -> list[str]:
-    if not re.search(r"\bQueens\b", text, re.I):
-        raise ValueError("Calendar does not identify Queens")
+def calendar_cases(text: str, county: County = QUEENS) -> list[str]:
+    if not re.search(county.names, text, re.I):
+        raise ValueError(f"Calendar does not identify {county.name}")
     found = indices(text)
     if not found and not re.search(r"no (?:cases|records|results)", text, re.I):
         raise ValueError("Calendar has no recognizable case indices")
     return found
 
 
-def parse_notice(text: str, case: str, url: str, body_hash: str) -> dict:
+def parse_notice(text: str, case: str, url: str, body_hash: str, county: County = QUEENS) -> dict:
     flat = re.sub(r"\s+", " ", text).strip()
     errors = []
     if indices(flat) != [case]:
         errors.append("case_index_missing_or_ambiguous")
-    if not re.search(r"\bQueens\b", flat, re.I):
+    if not re.search(county.names, flat, re.I):
         errors.append("county_not_confirmed")
     if not re.search(r"NOTICE\s+OF\s+(?:FORECLOSURE\s+)?SALE", flat, re.I):
         errors.append("not_notice_of_sale")
@@ -83,7 +87,7 @@ def parse_notice(text: str, case: str, url: str, body_hash: str) -> dict:
     return {
         "auction_location": venue.group(1) if venue else None,
         "auction_time": auction_time.group(1).replace(".", "").upper() if auction_time else None,
-        "case": case, "street": street, "city": city, "zip_code": zip_code,
+        "county": county.name, "case": case, "street": street, "city": city, "zip_code": zip_code,
         "sale_date": dates[0] if len(dates) == 1 else None,
         "judgment_amount": amounts[0] if len(amounts) == 1 else None,
         "source_url": url, "pdf_sha256": body_hash, "parser_version": PARSER_VERSION,

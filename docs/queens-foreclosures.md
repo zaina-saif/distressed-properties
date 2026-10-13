@@ -8,7 +8,18 @@ Court foreclosure auction and exposes the notice and case number.
 ../.venv/bin/python -m pipeline.queens_foreclosure_refresh --dry-run
 ../.venv/bin/python -m pipeline.queens_foreclosure_refresh --assisted --dry-run
 ../.venv/bin/python -m pipeline.queens_foreclosure_refresh --assisted
+../.venv/bin/python -m pipeline.queens_foreclosure_refresh --assisted --county Nassau --county Suffolk --dry-run
+../.venv/bin/python -m pipeline.queens_foreclosure_refresh --assisted --county all
 ```
+
+`--county` (repeatable, or `all`) covers the Supreme Courts of New York
+(Manhattan), Kings, Queens, Bronx, Richmond, Nassau, Suffolk, Westchester,
+Orange, Onondaga and Erie (`pipeline/queens/counties.py` holds each WebCivil
+court code); Queens is the default. Each county is collected and then loaded
+before the next starts, so a challenge left unanswered in a later county keeps
+the earlier ones. Queens loads as `nyc_queens_nyscef_foreclosure`, the others as
+`ny_nyscef_foreclosure` (`<COUNTY>-NYSCEF-<index>`); a case already listed from
+the Kings/Bronx Notice of Sale PDFs is counted as `already_listed`, not loaded twice.
 
 Defaults: Queens WebCivil court **80**, today through 30 days ahead. Override
 `--start YYYY-MM-DD --end YYYY-MM-DD` (maximum 90 days). Chrome must be installed.

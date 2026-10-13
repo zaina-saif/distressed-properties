@@ -7,6 +7,7 @@ saved by the operator, and the operator-assisted Queens collector.
 """
 import os
 
+from pipeline.queens.counties import COUNTIES as NYSCEF_COUNTIES
 from pipeline.scrape_ny_county_pages import SOURCES as NY_COUNTY_PAGES
 from pipeline.scraping.base import CommandScraper, register
 
@@ -41,7 +42,9 @@ register(CommandScraper(
 ))
 
 register(CommandScraper(
-    name="ny-queens-webcivil-nyscef", state="NY", counties=["Queens"], statewide=False, requires_browser=True,
+    name="ny-webcivil-nyscef", state="NY", counties=[c.name for c in NYSCEF_COUNTIES.values()], statewide=False,
+    requires_browser=True,
     scrape=lambda counties, ctx: ["pipeline.queens_foreclosure_refresh"]
+    + [arg for name in (counties or ["all"]) for arg in ("--county", name)]
     + (["--assisted"] if ctx.assisted else []) + (["--dry-run"] if ctx.dry_run else []),
 ))

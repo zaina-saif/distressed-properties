@@ -15,7 +15,8 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError, TimeoutError as BrowserTimeout
 
-from .parsing import digest, indices, pdf_text, calendar_cases
+from .counties import County
+from .parsing import QUEENS, digest, indices, pdf_text, calendar_cases
 
 CALENDAR = "https://iapps.courts.state.ny.us/webcivil/FCASCalendarSearch"
 NYSCEF = "https://iapps.courts.state.ny.us/nyscef/CaseSearch"
@@ -84,7 +85,7 @@ class CourtBrowser:
             raise AccessChallenge("Court access challenge: rerun with --assisted on the operator machine")
         LOG.warning("Complete the court challenge and submit the search in the visible browser; waiting up to %s seconds", self.operator_timeout)
         from pipeline.scraping.browser import notify_operator
-        notify_operator("Queens court check: complete it and submit the search in the browser window.")
+        notify_operator("NY court check: complete it and submit the search in the browser window.")
         end = time.monotonic() + self.operator_timeout
         while time.monotonic() < end:
             self.page.wait_for_timeout(1000)
@@ -153,11 +154,11 @@ class CourtBrowser:
                 for a in self.page.locator('a[href]').all()
                 if re.search(pattern, (a.inner_text() + ' ' + (a.get_attribute('href') or '')), re.I)]
 
-    def calendars(self, start, end):
+    def calendars(self, start, end, county: County = QUEENS):
         # Fill before guard: invisible hCaptcha is attached to Find Calendar.
         self.goto(CALENDAR, check_access=False)
         if self.page.locator('#cboCourt').count():
-            self.page.locator('#cboCourt').select_option('80')
+            self.page.locator('#cboCourt').select_option(county.webcivil)
             for suffix, day in [('calFromDate', start), ('calToDate', end)]:
                 for prefix, value in [('month', day.month), ('date', day.day), ('year', day.year)]:
                     self.page.locator(f'#f_{prefix}{suffix}').fill(str(value))
@@ -166,7 +167,7 @@ class CourtBrowser:
             matches = [p.get_attribute('value') for p in parts if re.search('foreclosure', p.inner_text(), re.I)]
             if len(matches) == 1:
                 self.page.locator('#cboCourtPart').select_option(matches[0])
-            # A part is optional in the WebCivil form. Searching all Queens
+            # A part is optional in the WebCivil form. Searching all the county's
             # appearances avoids silently omitting foreclosure sessions whose
             # part labels differ; NYSCEF verifies each case type afterward.
             self.page.locator('#btnFindCalendar').click()
@@ -179,19 +180,20 @@ class CourtBrowser:
         found = set()
         for url in dict.fromkeys(urls):
             _, text = self.pdf(url)
-            found.update(calendar_cases(text))
+            found.update(calendar_cases(text, county))
         return sorted(found), urls
 
-    def notices(self, case):
+    def notices(self, case, county: County = QUEENS):
         self.goto(NYSCEF)
         guest = self.page.get_by_role('link', name='Search as Guest', exact=True)
         if guest.count():
             guest.click()
             self.guard()
-        courts = self.page.locator('select').filter(has=self.page.locator('option', has_text=re.compile('Queens.*Supreme', re.I)))
+        court = re.compile(re.escape(county.name) + r'\b.*Supreme', re.I)
+        courts = self.page.locator('select').filter(has=self.page.locator('option', has_text=court))
         if courts.count() != 1:
             raise LayoutChanged("NYSCEF court selector not found")
-        option = courts.locator('option').filter(has_text=re.compile('Queens.*Supreme', re.I)).first
+        option = courts.locator('option').filter(has_text=court).first
         courts.select_option(option.get_attribute('value'))
         field = self.page.get_by_label(re.compile('Index (?:Number|No)', re.I))
         if field.count() != 1:
@@ -208,7 +210,7 @@ class CourtBrowser:
         if not links:
             if re.search('no (?:records|results|cases) found', self.page.inner_text('body'), re.I):
                 return []
-            raise LayoutChanged("No uniquely matched Queens mortgage foreclosure case")
+            raise LayoutChanged(f"No uniquely matched {county.name} mortgage foreclosure case")
         if len(set(links)) != 1:
             raise LayoutChanged("Ambiguous case search results")
         self.goto(links[0])

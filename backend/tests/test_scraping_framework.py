@@ -248,7 +248,9 @@ def test_command_steps_for_a_county_and_a_dry_run(tmp_path):
     assert scraper.commands("bergen", ctx) == [["pipeline.scrape_nj_civilview", "--counties", "Bergen"]]
     queens = next(s for s in find("NY", "queens") if s.requires_browser)
     ctx.assisted = True
-    assert queens.commands("queens", ctx) == [["pipeline.queens_foreclosure_refresh", "--assisted", "--dry-run"]]
+    assert queens.commands("queens", ctx) == [["pipeline.queens_foreclosure_refresh", "--county", "Queens", "--assisted", "--dry-run"]]
+    nassau = next(s for s in find("NY", "nassau") if s.requires_browser)
+    assert nassau.commands("nassau", ctx) == [["pipeline.queens_foreclosure_refresh", "--county", "Nassau", "--assisted", "--dry-run"]]
 
 
 def test_cli_reports_an_uncovered_county(capsys):
