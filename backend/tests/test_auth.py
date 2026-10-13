@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timedelta, timezone
 
 import jwt
 import pytest
@@ -93,6 +94,24 @@ def test_plan_rules():
     assert not Access("u", "e").has_plan
     developer = Access("u", "e", role="developer")
     assert developer.has_plan and developer.scope_state is None and developer.is_developer
+
+
+def test_trial_covers_every_state_until_it_ends():
+    now = datetime.now(timezone.utc)
+    trial = Access("u", "e", plan="trial", plan_status="active", trial_ends_at=now + timedelta(days=3))
+    assert trial.has_plan and trial.scope_state is None and trial.covers("FL", "Lee")
+    assert not Access("u", "e", plan="trial", plan_status="active", trial_ends_at=now - timedelta(minutes=1)).has_plan
+    assert not Access("u", "e", plan="trial", plan_status="active").has_plan
+
+
+def test_trial_is_offered_once_and_not_to_paid_plans():
+    user = Access("u", "e")
+    row = {"plan": "none", "plan_status": "inactive", "trial_started_at": None}
+    assert account.trial_available(row, user)
+    assert account.trial_available({**row, "plan": "free", "plan_status": "active"}, user)
+    assert not account.trial_available({**row, "trial_started_at": datetime.now(timezone.utc)}, user)
+    assert not account.trial_available({**row, "plan": "starter", "plan_status": "active"}, user)
+    assert not account.trial_available(row, Access("u", "e", role="developer"))
 
 
 @pytest.fixture

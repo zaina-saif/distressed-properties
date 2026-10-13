@@ -5,6 +5,7 @@ token as "Authorization: Bearer <token>". The token is verified against the
 project's published signing keys (JWKS), so the API holds no Supabase secret.
 Each user has a user_accounts row with a role, a plan and the plan's coverage:
 
+  trial    every state for 7 days (trial_ends_at), once per account, no card
   free     one county (coverage_state + coverage_county)
   starter  one state (coverage_state)
   pro      every state
@@ -17,6 +18,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from functools import lru_cache
 
 import httpx
@@ -39,6 +41,12 @@ class Access:
     plan_status: str = "inactive"
     coverage_state: str | None = None
     coverage_county: str | None = None
+    trial_ends_at: datetime | None = None
+
+    @property
+    def on_trial(self) -> bool:
+        return (self.plan == "trial" and self.plan_status == "active" and self.trial_ends_at is not None
+                and self.trial_ends_at > datetime.now(timezone.utc))
 
     @property
     def is_developer(self) -> bool:
@@ -48,6 +56,8 @@ class Access:
     def has_plan(self) -> bool:
         if self.is_developer:
             return True
+        if self.plan == "trial":
+            return self.on_trial
         if self.plan == "free":
             return self.plan_status == "active" and bool(self.coverage_state and self.coverage_county)
         if self.plan == "starter":
@@ -57,7 +67,7 @@ class Access:
     @property
     def scope_state(self) -> str | None:
         """The one state this user may see, or None for every state."""
-        if self.is_developer or self.plan == "pro":
+        if self.is_developer or self.plan in ("pro", "trial"):
             return None
         return (self.coverage_state or "").upper() or None
 
@@ -148,7 +158,7 @@ def load_account(user_id: str, email: str) -> Access:
         row = connection.execute(text("""
             INSERT INTO user_accounts (user_id, email) VALUES (:user_id, :email)
             ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email
-            RETURNING user_id::text, email, role, plan, plan_status, coverage_state, coverage_county
+            RETURNING user_id::text, email, role, plan, plan_status, coverage_state, coverage_county, trial_ends_at
         """), {"user_id": user_id, "email": email}).mappings().one()
     return Access(**row)
 

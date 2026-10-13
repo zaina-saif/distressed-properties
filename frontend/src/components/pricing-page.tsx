@@ -36,6 +36,7 @@ export function plans(stateCount: number, countyCount: number | null): PlanCard[
 }
 
 const FAQ = [
+  { q: "Is there a free trial?", a: "Yes. Try every state free for 7 days with no credit card. Before it ends we email you; to keep going free, choose one county within a state on the Free plan, or pick Starter or Pro." },
   { q: "When will I be charged?", a: "Starter and Pro are billed through Stripe when you subscribe, then at the start of each month or year. The Free plan never needs a card." },
   { q: "How does annual billing work?", a: `Pay for a year up front and save ${ANNUAL_DISCOUNT * 100}% compared with paying monthly. The price shown is the monthly equivalent.` },
   { q: "Can I cancel or change plans?", a: "Yes. You can change or cancel at any time, and your plan stays active until the end of the period you have paid for." },

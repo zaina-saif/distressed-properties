@@ -1,4 +1,4 @@
-"""Accounts and billing: the signed-in user's plan, the Free plan, Stripe
+"""Accounts and billing: the signed-in user's plan, the 7-day free trial, the Free plan, Stripe
 Checkout for Starter and Pro, the Stripe customer portal, and the Stripe
 webhook that keeps plans in step with subscriptions.
 
@@ -27,6 +27,7 @@ router = APIRouter(prefix="/api/v1", tags=["account"])
 # States with sale listings; plan coverage must be one of these.
 SUPPORTED_STATES = {"NJ", "NY", "PA", "OH", "FL", "IN", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD"}
 COVERAGE_CHANGE_DAYS = 30
+TRIAL_DAYS = 7
 # Stripe subscription status -> plan_status.
 STATUS = {"active": "active", "trialing": "trialing", "past_due": "past_due", "unpaid": "past_due",
           "canceled": "canceled", "incomplete": "inactive", "incomplete_expired": "inactive", "paused": "inactive"}
@@ -57,7 +58,8 @@ def account_row(user_id: str) -> dict[str, Any]:
     with engine.connect() as connection:
         return dict(connection.execute(text("""
             SELECT user_id::text, email, role, plan, plan_status, billing_interval, coverage_state, coverage_county,
-                   coverage_changed_at, stripe_customer_id, stripe_subscription_id, current_period_end
+                   coverage_changed_at, stripe_customer_id, stripe_subscription_id, current_period_end,
+                   trial_started_at, trial_ends_at
             FROM user_accounts WHERE user_id = :user_id
         """), {"user_id": user_id}).mappings().one())
 
@@ -91,7 +93,35 @@ def me(access: Access = Depends(current_user)) -> dict[str, Any]:
         "coverage_change_available_at": (row["coverage_changed_at"] + timedelta(days=COVERAGE_CHANGE_DAYS))
         if row["coverage_changed_at"] else None,
         "paid_plans_available": sorted({plan for plan, _ in price_ids()}),
+        "trial_ends_at": row["trial_ends_at"],
+        "trial_available": trial_available(row, access),
     }
+
+
+def has_paid_plan(row: dict[str, Any]) -> bool:
+    return row["plan"] in ("starter", "pro") and row["plan_status"] in ("active", "trialing", "past_due")
+
+
+def trial_available(row: dict[str, Any], access: Access) -> bool:
+    """One trial per account, for anyone not already on a paid plan."""
+    return row["trial_started_at"] is None and not access.is_developer and not has_paid_plan(row)
+
+
+@router.post("/account/trial")
+def start_trial(access: Access = Depends(current_user)) -> dict[str, Any]:
+    """Every state for 7 days, no card. Then the account picks Free (one county) or a paid plan."""
+    row = account_row(access.user_id)
+    if not trial_available(row, access):
+        raise HTTPException(status_code=409, detail="The free trial has already been used on this account.")
+    with engine.begin() as connection:
+        ends = connection.execute(text("""
+            UPDATE user_accounts SET plan='trial', plan_status='active', trial_started_at=NOW(),
+                trial_ends_at=NOW() + make_interval(days => :days), updated_at=NOW()
+            WHERE user_id=:user_id AND trial_started_at IS NULL RETURNING trial_ends_at
+        """), {"days": TRIAL_DAYS, "user_id": access.user_id}).scalar()
+    if ends is None:
+        raise HTTPException(status_code=409, detail="The free trial has already been used on this account.")
+    return {"plan": "trial", "trial_ends_at": ends}
 
 
 class FreePlan(BaseModel):
@@ -102,7 +132,7 @@ class FreePlan(BaseModel):
 @router.post("/account/free-plan")
 def start_free_plan(body: FreePlan, access: Access = Depends(current_user)) -> dict[str, Any]:
     row = account_row(access.user_id)
-    if row["plan"] in ("starter", "pro") and row["plan_status"] in ("active", "trialing", "past_due"):
+    if has_paid_plan(row):
         raise HTTPException(status_code=409, detail="You have a paid plan. Manage it from billing instead.")
     state, county = check_coverage(body.state, body.county)
     with engine.begin() as connection:

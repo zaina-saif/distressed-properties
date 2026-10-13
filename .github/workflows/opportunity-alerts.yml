@@ -58,3 +58,13 @@ jobs:
             python -m pipeline.send_opportunity_alerts --frequency daily
             if [ "$(date -u +%u)" = "1" ]; then python -m pipeline.send_opportunity_alerts --frequency weekly; fi
           fi
+
+      # Free-trial reminders (two days before the end) and trial-ended emails.
+      - name: Send trial reminders
+        if: ${{ !cancelled() }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.dry_run }}" = "true" ]; then
+            python -m pipeline.send_trial_reminders --dry-run
+          else
+            python -m pipeline.send_trial_reminders
+          fi

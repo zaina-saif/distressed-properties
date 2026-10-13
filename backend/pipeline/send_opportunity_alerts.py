@@ -48,7 +48,7 @@ HOME_TYPES = {"single_family": ["SINGLE_FAMILY", "MANUFACTURED"], "multi_2_4": [
 def subscribers(frequency: str) -> list[dict]:
     with engine.connect() as connection:
         return [dict(row) for row in connection.execute(text("""
-            SELECT p.user_id::text, a.email, a.role, a.plan, a.plan_status, a.coverage_state, a.coverage_county,
+            SELECT p.user_id::text, a.email, a.role, a.plan, a.plan_status, a.coverage_state, a.coverage_county, a.trial_ends_at,
                    p.budget_range, p.states, p.property_types, p.min_equity
             FROM investor_profiles p JOIN user_accounts a ON a.user_id = p.user_id
             WHERE p.email_alerts AND p.alert_frequency = :frequency
@@ -59,7 +59,7 @@ def criteria(profile: dict) -> tuple[str, dict]:
     """SQL conditions and parameters for one subscriber's matches."""
     access = Access(profile["user_id"], profile["email"], role=profile["role"], plan=profile["plan"],
                     plan_status=profile["plan_status"], coverage_state=profile["coverage_state"],
-                    coverage_county=profile["coverage_county"])
+                    coverage_county=profile["coverage_county"], trial_ends_at=profile.get("trial_ends_at"))
     conditions = [f"strpos({EFFECTIVE_STATUS_SQL}, 'scheduled') > 0", "ss.current_sale_date >= CURRENT_DATE",
                   "ss.property_id IS NOT NULL",
                   "NOT EXISTS (SELECT 1 FROM opportunity_alert_items i WHERE i.user_id = CAST(:user_id AS UUID) "
@@ -182,7 +182,7 @@ def run(frequency: str, dry_run: bool) -> dict[str, int]:
         counts["subscribers"] += 1
         access = Access(profile["user_id"], profile["email"], role=profile["role"], plan=profile["plan"],
                         plan_status=profile["plan_status"], coverage_state=profile["coverage_state"],
-                        coverage_county=profile["coverage_county"])
+                        coverage_county=profile["coverage_county"], trial_ends_at=profile.get("trial_ends_at"))
         if not access.has_plan:
             counts["no_plan"] += 1
             continue

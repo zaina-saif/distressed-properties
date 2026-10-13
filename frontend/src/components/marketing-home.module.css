@@ -224,3 +224,8 @@
 .root :global(.footer-top nav) { flex-wrap: wrap; row-gap: 12px; }
 .root :global(.state-note) { scroll-margin-top: 90px; }
 .root :global(.state-note:target) { border-color: var(--equity); box-shadow: 0 0 0 3px var(--soft-equity); }
+.root :global(.hero-trial-note) { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--foreground); }
+.root :global(.hero-trial-note svg) { color: var(--equity); }
+.root :global(.trial-banner) { margin-top: 18px; padding: 14px 16px; border-radius: 6px; background: #ecfdf5; color: #065f46; font-size: 14px; line-height: 1.6; }
+.root :global(.trial-banner .site-button) { margin-top: 10px; }
+@media(max-width:600px) { .root :global(.hero-buttons) { flex-wrap: wrap; } .root :global(.hero-trial-note) { font-size: 12px; } }

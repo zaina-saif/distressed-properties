@@ -50,6 +50,9 @@ python -m pipeline.sale_results --dry-run
 # Opportunity alert emails (needs RESEND_API_KEY, ALERTS_SIGNING_SECRET, ALERTS_POSTAL_ADDRESS)
 python -m pipeline.send_opportunity_alerts --frequency daily --dry-run
 
+# Free-trial emails: a reminder 2 days before a 7-day trial ends, and one when it ends (needs RESEND_API_KEY, ALERTS_POSTAL_ADDRESS)
+python -m pipeline.send_trial_reminders --dry-run
+
 # One source at a time: scrape, then load (the SOURCES list in multistate_refresh.py has every pair)
 python -m pipeline.scrape_realauction --state OH --all && python -m pipeline.load_realauction_sales --state OH --all
 
@@ -72,7 +75,7 @@ The sale-probability model the `score` stage uses is `backend/models/<MODEL_VERS
 |---|---|---|
 | `nj-sale-refresh.yml` | 11:00 on the 1st and 15th | `pipeline.nj_sale_refresh` (Zillow cap 400) |
 | `multistate-sale-refresh.yml` | Mondays 10:00 | `pipeline.multistate_refresh` (Zillow cap 600) |
-| `opportunity-alerts.yml` | daily 14:00 | `send_opportunity_alerts` daily, plus weekly on Mondays |
+| `opportunity-alerts.yml` | daily 14:00 | `send_opportunity_alerts` daily, plus weekly on Mondays; then `send_trial_reminders` |
 
 Their secrets are GitHub repository secrets: `DATABASE_URL`, `APIFY_API_TOKEN`, `RESEND_API_KEY`, `ALERTS_SIGNING_SECRET`, `ALERTS_POSTAL_ADDRESS`.
 
@@ -173,7 +176,7 @@ Other states load complete snapshots of each county's upcoming sales through `sa
 
 `DEPLOYMENT.md` covers production. Both services run on Railway in one project and deploy automatically on every push to `main` (a build takes a few minutes): the API (`api.sheriffsalehunter.ai`) from `backend/Dockerfile` with `backend/railway.json`, and the frontend (`www.sheriffsalehunter.ai`) from `frontend/Dockerfile` with `frontend/railway.json`. Production env vars are set in each Railway service's Variables, not in files; the frontend's `NEXT_PUBLIC_*` values are baked in at build time, so changing them needs a redeploy. To check a deploy: `gh api repos/zaina-saif/distressed-properties/commits/<sha>/status` shows Railway's status per service. Data refreshes run in GitHub Actions (see Running the pipelines). The API's allowed browser origins come from `CORS_ALLOWED_ORIGINS` / `CORS_ALLOWED_ORIGIN_REGEX`, and `ENABLE_WAREHOUSE_API=0` drops the warehouse routes on hosts that cannot reach the warehouse.
 
-**Access control** (`backend/app/auth.py`, `app/api/account.py`): Supabase Auth tokens are verified against the project's JWKS (`SUPABASE_URL`); `user_accounts` holds role, plan and coverage (Free one county, Starter one state, Pro all; `role = developer` sees everything). Data routes depend on `require_access` / `require_property_access` and must apply the user's `scope_state` / `scope_county`; maintenance routes use `require_developer`; only aggregate facets are public. Stripe Checkout and its webhook set plans. Every table in `public` has RLS on with no access for the `anon`/`authenticated` roles (migration 034), because the browser holds the publishable key: keep RLS on for new tables and never query data from the browser with Supabase.
+**Access control** (`backend/app/auth.py`, `app/api/account.py`): Supabase Auth tokens are verified against the project's JWKS (`SUPABASE_URL`); `user_accounts` holds role, plan and coverage (Trial all states for 7 days, once per account, no card; Free one county, Starter one state, Pro all; `role = developer` sees everything). The front page's free-trial button goes to `/get-started?plan=trial`, which starts the trial on sign-in; an ended trial leaves the account without access until it picks a plan. Data routes depend on `require_access` / `require_property_access` and must apply the user's `scope_state` / `scope_county`; maintenance routes use `require_developer`; only aggregate facets are public. Stripe Checkout and its webhook set plans. Every table in `public` has RLS on with no access for the `anon`/`authenticated` roles (migration 034), because the browser holds the publishable key: keep RLS on for new tables and never query data from the browser with Supabase.
 
 ## Cloud agent environments
 

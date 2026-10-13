@@ -66,7 +66,7 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
 
   const canChange = account && ["free", "starter"].includes(account.plan) && !account.is_developer
     && (!account.coverage_change_available_at || new Date(account.coverage_change_available_at) <= new Date());
-  const coverageText = !account ? "" : account.is_developer || account.plan === "pro" ? "Every state and county"
+  const coverageText = !account ? "" : account.is_developer || account.plan === "pro" || account.plan === "trial" ? "Every state and county"
     : account.plan === "starter" ? stateName(account.coverage_state)
     : account.coverage_county ? `${account.coverage_county} County, ${stateName(account.coverage_state)}` : "Not chosen";
 
@@ -80,9 +80,10 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
       {!account ? <p className="account-muted">{loading ? "Loading…" : "We could not load your account. Try again shortly."}</p> : <>
         <dl className="account-facts">
           <div><dt>Email</dt><dd>{account.email}</dd></div>
-          <div><dt>Plan</dt><dd>{account.is_developer ? "Developer (full access)" : account.plan === "none" ? "No plan" : account.plan[0].toUpperCase() + account.plan.slice(1)}
+          <div><dt>Plan</dt><dd>{account.is_developer ? "Developer (full access)" : account.plan === "none" ? "No plan" : account.plan === "trial" ? "Free trial" : account.plan[0].toUpperCase() + account.plan.slice(1)}
             {!account.is_developer && account.plan !== "none" && <span className={`plan-status status-${account.plan_status}`}>{account.plan_status.replace("_", " ")}</span>}</dd></div>
           <div><dt>Coverage</dt><dd>{coverageText}</dd></div>
+          {account.plan === "trial" && account.trial_ends_at && <div><dt>{account.has_access ? "Trial ends" : "Trial ended"}</dt><dd>{day(account.trial_ends_at)}</dd></div>}
           {account.current_period_end && <div><dt>{account.plan_status === "canceled" ? "Ended" : "Renews"}</dt><dd>{day(account.current_period_end)}</dd></div>}
         </dl>
         {account.plan_status === "past_due" && <p className="form-error">Your last payment failed. Update your payment method in billing to keep access.</p>}
@@ -91,6 +92,7 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
             : <Link href="/choose-plan" className="site-button">Choose a plan<ArrowRight/></Link>}
           {account.has_billing && <button type="button" className="site-button button-outline" disabled={busy}
             onClick={() => run(async () => { window.location.assign((await openBillingPortal()).url); })}>Manage billing</button>}
+          {account.has_access && account.plan === "trial" && <Link href="/choose-plan" className="site-button button-outline">Choose a plan</Link>}
           {account.has_access && account.plan === "free" && <Link href="/choose-plan?plan=starter" className="site-button button-outline">Upgrade</Link>}
           <button type="button" className="site-button button-ghost" onClick={async () => { await signOut(); router.push("/"); }}><LogOut/>Sign out</button>
         </div>

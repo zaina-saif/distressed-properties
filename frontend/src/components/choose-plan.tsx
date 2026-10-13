@@ -3,12 +3,12 @@
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
 import { SiteFooter, SiteHeader } from "@/components/marketing-chrome";
 import { ANNUAL_DISCOUNT, type PlanCard, plans, price } from "@/components/pricing-page";
-import { type BillingInterval, startCheckout, startFreePlan } from "@/lib/account";
+import { type BillingInterval, startCheckout, startFreePlan, startTrial, TRIAL_DAYS, trialDaysLeft } from "@/lib/account";
 import { STATES } from "@/lib/states";
 import { getPropertyCoverage } from "@/services/properties";
 import type { PropertyCoverageItem } from "@/types/property";
@@ -34,6 +34,27 @@ export function ChoosePlan({ initialPlan, initialInterval, cancelled }: { initia
   useEffect(() => {
     getPropertyCoverage("scheduled").then(setCoverage).catch(() => setCoverage([]));
   }, []);
+
+  // Arriving from the free-trial button (or its confirmation email): start the trial once.
+  const trialStarted = useRef(false);
+  useEffect(() => {
+    if (initialPlan !== "trial" || trialStarted.current || !account?.trial_available || account.has_access) return;
+    trialStarted.current = true;
+    beginTrial();
+  });
+
+  async function beginTrial() {
+    setError(null);
+    setBusy(true);
+    try {
+      await startTrial();
+      await refresh();
+      router.push("/dashboard");
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Something went wrong. Try again.");
+      setBusy(false);
+    }
+  }
 
   const counties = useMemo(() => coverage.filter((item) => item.state === state && item.property_count > 0)
     .sort((a, b) => a.county.localeCompare(b.county)), [coverage, state]);
@@ -61,6 +82,9 @@ export function ChoosePlan({ initialPlan, initialInterval, cancelled }: { initia
   }
 
   const activePaid = account && ["starter", "pro"].includes(account.plan) && ["active", "trialing", "past_due"].includes(account.plan_status);
+  const trialLeft = trialDaysLeft(account);
+  const trialEnded = account?.plan === "trial" && !account.has_access;
+  const trialEnds = account?.trial_ends_at ? new Date(account.trial_ends_at).toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }) : "";
   return <div className={styles.root}>
     <SiteHeader active="pricing"/>
     <main className="choose-plan container">
@@ -72,6 +96,11 @@ export function ChoosePlan({ initialPlan, initialInterval, cancelled }: { initia
           <div className="choose-plan-actions"><Link href="/dashboard" className="site-button">Open the dashboard<ArrowRight/></Link><Link href="/account" className="site-button button-outline">Your account</Link></div>
         </div>
       ) : <>
+        {trialEnded ? <p className="trial-banner" role="status"><b>Your free {TRIAL_DAYS}-day trial has ended.</b> You can stay free: choose one county within a state on the Free plan below. Or choose Starter to work a whole state, or Pro for every state we cover.</p>
+          : account?.has_access && trialLeft != null ? <p className="trial-banner" role="status"><b>Your free trial ends {trialEnds} ({trialLeft} day{trialLeft === 1 ? "" : "s"} left).</b> To keep access after that, stay free with one county within a state, or choose Starter or Pro.</p>
+          : account?.trial_available && !account.has_access ? <div className="trial-banner"><b>Not ready to choose?</b> Explore every state free for {TRIAL_DAYS} days. No credit card needed.<br/>
+            <button type="button" className="site-button" disabled={busy} onClick={beginTrial}>{busy && initialPlan === "trial" ? "Starting your trial…" : `Start my free ${TRIAL_DAYS}-day trial`}<ArrowRight/></button></div>
+          : null}
         <div className="billing-toggle" role="radiogroup" aria-label="Billing period">
           <button type="button" role="radio" aria-checked={interval === "month"} className={interval === "month" ? "is-selected" : ""} onClick={() => setBillingInterval("month")}>Monthly</button>
           <button type="button" role="radio" aria-checked={interval === "year"} className={interval === "year" ? "is-selected" : ""} onClick={() => setBillingInterval("year")}>Annual <span>Save {ANNUAL_DISCOUNT * 100}%</span></button>

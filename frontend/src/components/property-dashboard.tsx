@@ -20,6 +20,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
+import { trialDaysLeft } from "@/lib/account";
 import { SheriffSaleHunterBrand } from "@/components/brand-logo";
 import { PropertyCard } from "@/components/property-card";
 import { PropertyDetailModal } from "@/components/property-detail-modal";
@@ -96,9 +97,10 @@ export default function PropertyDashboard({
     setProfilePrompt(false);
     try { window.localStorage.setItem("profile-prompt-dismissed", "1"); } catch { /* storage unavailable */ }
   };
+  const trialLeft = trialDaysLeft(account);
   // Free covers one county and Starter one state; the API enforces the same limits.
   const allowedStates = useMemo(
-    () => account && !account.is_developer && account.plan !== "pro" && account.coverage_state
+    () => account && !account.is_developer && account.plan !== "pro" && account.plan !== "trial" && account.coverage_state
       ? STATES.filter((item) => item.code === account.coverage_state)
       : STATES,
     [account],
@@ -395,6 +397,13 @@ export default function PropertyDashboard({
       </header>
 
       <section className="z-20 shrink-0 space-y-2 border-b empty:hidden border-slate-200 bg-white px-4 py-2 shadow-sm sm:px-6">
+        {trialLeft != null && (
+          <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border px-3 py-1.5 text-xs ${trialLeft <= 2 ? "border-amber-300 bg-amber-50 text-amber-950" : "border-teal-200 bg-teal-50 text-teal-900"}`} role="status">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span><span className="font-semibold">Free trial: {trialLeft === 0 ? "ends today" : `${trialLeft} day${trialLeft === 1 ? "" : "s"} left`}.</span> To keep access, stay free with one county within a state, or choose Starter (one state) or Pro (every state).</span>
+            <Link href="/choose-plan" className="shrink-0 font-semibold underline">Choose my plan</Link>
+          </div>
+        )}
         {profilePrompt && (
           <div className="flex items-center gap-x-3 gap-y-1 rounded-lg border border-teal-200 bg-teal-50 sm:flex-wrap px-3 py-1.5 text-xs text-teal-900">
             <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />

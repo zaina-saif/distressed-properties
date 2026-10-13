@@ -8,6 +8,7 @@ import { FormEvent, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
 import { SheriffSaleHunterBrand } from "@/components/brand-logo";
+import { startTrial, TRIAL_DAYS } from "@/lib/account";
 import { supabase } from "@/lib/supabase";
 
 import styles from "./auth-gate.module.css";
@@ -28,6 +29,8 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const choosePlan = plan ? `/choose-plan?plan=${encodeURIComponent(plan)}` : "/choose-plan";
+  // From the front page's free-trial button: the trial starts as soon as they are signed in.
+  const trial = plan === "trial";
 
   function switchMode(value: AuthMode) {
     setMode(value);
@@ -36,7 +39,11 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
   }
 
   async function goOn() {
-    const account = await refresh();
+    let account = await refresh();
+    if (trial && account?.trial_available && !account.has_access) {
+      await startTrial();
+      account = await refresh();
+    }
     router.push(account?.has_access ? safeNext(next) ?? "/dashboard" : choosePlan);
   }
 
@@ -97,8 +104,8 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
         <section className={styles.formPanel} aria-labelledby="auth-title">
           <div className={styles.formIntro}>
             <span className={styles.formEyebrow}>WELCOME TO SHERIFF SALE HUNTER</span>
-            <h2 id="auth-title">{mode === "create" ? "Create your account" : mode === "login" ? "Welcome back" : "Reset your password"}</h2>
-            <p>{mode === "create" ? "Create an account, then choose a plan to open the dashboard." : mode === "login" ? "Log in to continue to your research workspace." : "Enter your email and we will send you a link to set a new password."}</p>
+            <h2 id="auth-title">{mode === "create" ? (trial ? `Start your free ${TRIAL_DAYS}-day trial` : "Create your account") : mode === "login" ? "Welcome back" : "Reset your password"}</h2>
+            <p>{mode === "create" ? (trial ? `No credit card needed. Create an account to explore every state we cover, free for ${TRIAL_DAYS} days.` : "Create an account, then choose a plan to open the dashboard.") : mode === "login" ? (trial ? `Log in to start your free ${TRIAL_DAYS}-day trial.` : "Log in to continue to your research workspace.") : "Enter your email and we will send you a link to set a new password."}</p>
           </div>
 
           <div className={styles.modeSwitch} role="tablist" aria-label="Account access">
@@ -112,7 +119,7 @@ export function AuthGate({ initialMode = "create", next, plan }: { initialMode?:
             {mode !== "reset" && <label>Password<span className={styles.inputWrap}><LockKeyhole aria-hidden="true" /><input autoComplete={mode === "create" ? "new-password" : "current-password"} name="password" type={showPassword ? "text" : "password"} required minLength={8} placeholder="At least 8 characters" /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}</button></span></label>}
             {error && <p className={styles.error} role="alert">{error}</p>}
             {notice && <p className={styles.notice} role="status">{notice}</p>}
-            <button type="submit" className={styles.submit} disabled={busy}>{busy ? "Please wait…" : mode === "create" ? "Create account" : mode === "login" ? "Log in" : "Send reset link"}<ArrowRight aria-hidden="true" /></button>
+            <button type="submit" className={styles.submit} disabled={busy}>{busy ? "Please wait…" : mode === "create" ? (trial ? "Start my free trial" : "Create account") : mode === "login" ? "Log in" : "Send reset link"}<ArrowRight aria-hidden="true" /></button>
           </form>
           {mode === "login" && <button type="button" className={styles.linkButton} onClick={() => switchMode("reset")}>Forgot your password?</button>}
           {mode === "reset" && <button type="button" className={styles.linkButton} onClick={() => switchMode("login")}>Back to log in</button>}
