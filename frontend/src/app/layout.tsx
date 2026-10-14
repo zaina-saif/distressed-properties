@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import { DM_Sans, Manrope } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 import { AccountProvider } from "@/components/account-provider";
+
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   title: "Sheriff Sale Hunter",
@@ -15,12 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;550;600;650;700;750&family=Manrope:wght@400;500;550;600;650;700;750;800&display=swap" />
-      </head>
+    <html lang="en" className={`${dmSans.variable} ${manrope.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="min-h-full flex flex-col"><AccountProvider>{children}</AccountProvider></body>
     </html>
   );
