@@ -77,6 +77,28 @@ def mismatch_reason(row: dict, item: dict) -> str | None:
     return None
 
 
+# The newest match stays current; without one, the newest result does. A later miss or
+# wrong-house answer is kept for the record but does not hide an earlier good match.
+RETIRE_OTHERS = """UPDATE apify_zillow_results SET is_current=FALSE
+    WHERE property_id=:property_id AND is_current
+      AND NOT (run_id=:run_id AND submitted_address=:address)"""
+HAS_OTHER_MATCH = """SELECT EXISTS(SELECT 1 FROM apify_zillow_results
+    WHERE property_id=:property_id AND is_current AND match_status='matched'
+      AND NOT (run_id=:run_id AND submitted_address=:address))"""
+RETIRE_SUPERSEDED = """WITH ranked AS (
+    SELECT id, ROW_NUMBER() OVER (PARTITION BY property_id
+        ORDER BY (match_status='matched') DESC, retrieved_at DESC, id DESC) AS rank
+    FROM apify_zillow_results WHERE is_current AND property_id IS NOT NULL)
+UPDATE apify_zillow_results z SET is_current=FALSE FROM ranked r WHERE z.id=r.id AND r.rank>1"""
+
+
+def retire_superseded() -> int:
+    """One current result per property, by the same rule as persist (for rows saved
+    before persist retired older results)."""
+    with engine.begin() as connection:
+        return connection.execute(text(RETIRE_SUPERSEDED)).rowcount
+
+
 def persist(output_dir: Path) -> dict[str, int]:
     manifest = json.loads((output_dir / "manifest.json").read_text())
     dataset = json.loads((output_dir / "dataset.json").read_text())
@@ -109,10 +131,9 @@ def persist(output_dir: Path) -> dict[str, int]:
                 "submitted_count": len(manifest), "returned_count": len(dataset),
                 "metadata": json.dumps(metadata),
             }).scalar_one()
-        connection.execute(text("""UPDATE apify_zillow_results SET is_current=FALSE
-            WHERE run_id=:run_id OR property_id IN (
-                SELECT property_id FROM apify_zillow_results WHERE run_id=:run_id
-                  AND property_id IS NOT NULL)"""), {"run_id": db_run_id})
+        # A rerun of the same run starts over; each row below then retires what it replaces.
+        connection.execute(text("UPDATE apify_zillow_results SET is_current=FALSE WHERE run_id=:run_id"),
+                           {"run_id": db_run_id})
         for row in manifest:
             address = row["input_address"].strip()
             item = by_address.get(address)
@@ -132,20 +153,25 @@ def persist(output_dir: Path) -> dict[str, int]:
                 no_match += 1
             zestimate = item.get("zestimate") if item_found else None
             payload = json.dumps({**item, "_mismatch_reason": reason} if reason else (item or {}))
+            keys = {"property_id": row["property_id"], "run_id": db_run_id, "address": address}
+            current = status == "matched" or not connection.execute(text(HAS_OTHER_MATCH), keys).scalar()
+            if current:
+                connection.execute(text(RETIRE_OTHERS), keys)
             connection.execute(text("""INSERT INTO apify_zillow_results
                 (run_id,property_id,submitted_address,match_status,zillow_id,zestimate,
                  raw_payload,retrieved_at,is_current)
                 VALUES(:run_id,:property_id,:address,:status,:zpid,:zestimate,
-                       CAST(:payload AS JSONB),:retrieved_at,TRUE)
+                       CAST(:payload AS JSONB),:retrieved_at,:current)
                 ON CONFLICT(run_id,submitted_address) DO UPDATE SET
                     property_id=EXCLUDED.property_id,match_status=EXCLUDED.match_status,
                     zillow_id=EXCLUDED.zillow_id,zestimate=EXCLUDED.zestimate,
                     raw_payload=EXCLUDED.raw_payload,retrieved_at=EXCLUDED.retrieved_at,
-                    is_current=TRUE"""), {
+                    is_current=EXCLUDED.is_current"""), {
                     "run_id": db_run_id, "property_id": row["property_id"],
                     "address": address, "status": status,
                     "zpid": str(item["zpid"]) if item and item.get("zpid") is not None else None,
                     "zestimate": zestimate, "payload": payload, "retrieved_at": retrieved_at,
+                    "current": current,
                 })
             if status == "matched" and zestimate is not None:
                 connection.execute(text("""UPDATE property_valuations SET is_current=FALSE
@@ -167,10 +193,16 @@ def persist(output_dir: Path) -> dict[str, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("output_dir", nargs="+", type=Path)
+    parser.add_argument("output_dir", nargs="*", type=Path)
+    parser.add_argument("--retire-superseded", action="store_true",
+                        help="leave one current result per property (newest match, else newest result)")
     args = parser.parse_args()
+    if not args.output_dir and not args.retire_superseded:
+        parser.error("give output directories, --retire-superseded, or both")
     for path in args.output_dir:
         print(json.dumps(persist(path)))
+    if args.retire_superseded:
+        print(json.dumps({"retired": retire_superseded()}))
 
 
 if __name__ == "__main__":
