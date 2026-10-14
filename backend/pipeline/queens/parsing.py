@@ -44,6 +44,31 @@ def calendar_cases(text: str, county: County = QUEENS) -> list[str]:
     return found
 
 
+# One appearance on a WebCivil calendar page starts with "<index> -" on its own line.
+ENTRY = re.compile(r"^\s*(\d{5,6}/(?:19|20)\d{2})\s*-\s*$", re.M)
+
+
+def calendar_page_cases(html: str, county: County = QUEENS) -> list[str]:
+    """Index numbers of the auctions on a WebCivil calendar results page (HTML output).
+
+    Only appearances whose purpose is an auction and whose court is the county's
+    Supreme Court count; motions and conferences in the same part are left out."""
+    from bs4 import BeautifulSoup
+    text = BeautifulSoup(html, "html.parser").get_text("\n", strip=True)
+    if not re.search(r"Court\s+Calendar\s+Details", text, re.I):
+        raise ValueError("Not a WebCivil calendar results page")
+    court = re.compile(rf"(?:{county.names})[^\n]*Supreme\s+Court", re.I)
+    starts = list(ENTRY.finditer(text))
+    found = set()
+    for number, match in enumerate(starts):
+        entry = text[match.end():starts[number + 1].start() if number + 1 < len(starts) else len(text)]
+        if re.search(r"Court\s+Date\s+Purpose:\s*Auction", entry, re.I) and court.search(entry):
+            found.add(match.group(1))
+    if not found and starts and not re.search(r"Auction", text, re.I):
+        return []
+    return sorted(found)
+
+
 def parse_notice(text: str, case: str, url: str, body_hash: str, county: County = QUEENS) -> dict:
     flat = re.sub(r"\s+", " ", text).strip()
     errors = []

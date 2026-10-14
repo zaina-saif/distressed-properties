@@ -11,7 +11,8 @@ updates listings instead of duplicating them.
 
 A record that fails validation is written to <run-dir>/ny_court_parse_failures.json
 and never loaded. The Manhattan Foreclosure Auction Part list has no addresses,
-so its cases are reported, not loaded.
+so its cases are reported, not loaded. A WebCivil Appearance Detail page saved for
+a case adds that case's earlier auction dates and outcomes to its listing.
 """
 from __future__ import annotations
 
@@ -32,7 +33,7 @@ from app.database.session import engine
 from pipeline.collect_nyc_kings_foreclosure_pdfs import macos_ocr
 from pipeline.load_nyc_referee_sales import merge_court_duplicates
 from pipeline.parse_ny_court_pdfs import (
-    kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale,
+    kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale, parse_webcivil_appearances,
 )
 from pipeline.sale_listing_loader import Sale, load_sales
 
@@ -45,6 +46,12 @@ SOURCE_URLS = {
     "Bronx": "https://nycourts.gov/LegacyPDFS/courts/12jd/bronx/civil/pdfs/foreclosure-auctions.pdf",
     "New York": "https://www.nycourts.gov/courts/1jd/supctmanh/foreclosures.shtml",
 }
+WEBCIVIL_URL = "https://iapps.courts.state.ny.us/webcivil/FCASMain"
+# WebCivil auction outcomes as listing statuses.
+OUTCOME_STATUS = {"Not Held": "adjourned", "Adjourned": "adjourned", "Sold": "sold", "Cancelled": "cancelled",
+                  "Canceled": "cancelled", "Stayed": "stayed", "Marked Off": "cancelled", "Withdrawn": "cancelled",
+                  "Vacated": "cancelled", "Released": "cancelled"}
+CALENDAR_NOTE = re.compile(r"\s*Court calendar \(WebCivil\):.*$", re.S)
 # Streets OCR misread, corrected by hand and keyed by index number so every rerun keeps them.
 STREET_CORRECTIONS = {
     "804535/2024": "2065 Turnbull Avenue",  # OCR read "Tumbul Avenue" (Bronx calendar)
@@ -112,6 +119,8 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
     for document in documents:
         source = {"file": document["file"], "sha256": document["sha256"], "text_method": document["method"]}
         layout, county = kind(document["text"]), county_of(document["text"])
+        if layout.startswith("webcivil_"):
+            continue  # case pages, read by parse_appearances
         if not county:
             failures.append({**source, "problems": ["county_not_recognised"], "layout": layout})
             continue
@@ -136,6 +145,75 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
     return records, failures, reported
 
 
+def parse_appearances(documents: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Auction histories from WebCivil Appearance Detail pages, and the pages that failed."""
+    histories, failures = [], []
+    for document in documents:
+        if kind(document["text"]) != "webcivil_appearances":
+            continue
+        record, problems = parse_webcivil_appearances(document["text"])
+        entry = {**record, "file": document["file"], "sha256": document["sha256"]}
+        (failures if problems else histories).append({**entry, "problems": problems} if problems else entry)
+    return histories, failures
+
+
+def calendar_note(auctions: list[dict], today: date) -> str | None:
+    """One sentence on a case's earlier auction dates, for the notice details."""
+    past = sorted((a for a in auctions if a["outcome"] and a["date"] < today.isoformat()), key=lambda a: a["date"])
+    if not past:
+        return None
+    not_held = [a["date"] for a in past if a["outcome"] == "Not Held"]
+    parts = []
+    if not_held:
+        parts.append(f"{len(not_held)} earlier auction date{'s' if len(not_held) > 1 else ''} not held "
+                     f"({', '.join(not_held)})")
+    for auction in past:
+        if auction["outcome"] == "Not Held":
+            continue
+        phrase = f"the {auction['date']} auction is recorded as {auction['outcome'].lower()}"
+        if auction["outcome"] == "Sold" and any(a["date"] > auction["date"] for a in auctions):
+            phrase += ", and the case was put back on the auction calendar afterwards"
+        parts.append(phrase)
+    return f"Court calendar (WebCivil): {'; '.join(parts)}."
+
+
+def apply_appearances(histories: list[dict], today: date) -> dict[str, int]:
+    """Adds each past auction appearance to the matching listing's status history, updates the
+    listing when its own auction date has an outcome, and notes the history in its details."""
+    counts = Counter()
+    with engine.begin() as connection:
+        for history in histories:
+            sales = connection.execute(text("""SELECT id, current_sale_date::date AS sale_date, current_status,
+                description_text FROM sheriff_sales WHERE state='NY' AND county=:county AND sheriff_number=:index"""),
+                {"county": history["county"], "index": history["index_number"]}).mappings().all()
+            if not sales:
+                counts["cases_without_listing"] += 1
+                continue
+            for sale in sales:
+                for auction in history["auctions"]:
+                    status = OUTCOME_STATUS.get(auction["outcome"])
+                    if not status or auction["date"] >= today.isoformat():
+                        continue
+                    raw = f"Auction {'held: sold' if status == 'sold' else auction['outcome'].lower()} (WebCivil)"
+                    counts["history_added"] += connection.execute(text("""INSERT INTO sheriff_sale_status_history
+                        (id,sheriff_sale_id,status,sale_date,observed_at,source_url,raw_status)
+                        SELECT :hid,:id,:status,:sale_date,NOW(),:url,:raw WHERE NOT EXISTS(
+                          SELECT 1 FROM sheriff_sale_status_history WHERE sheriff_sale_id=:id AND status=:status
+                            AND sale_date::date = CAST(:sale_date AS DATE))"""),
+                        {"hid": str(uuid.uuid4()), "id": sale["id"], "status": status, "sale_date": auction["date"],
+                         "url": WEBCIVIL_URL, "raw": raw}).rowcount
+                    if sale["sale_date"] and auction["date"] == sale["sale_date"].isoformat() \
+                            and sale["current_status"] in ("scheduled", "scheduled_unverified", "sold_or_cancelled_unverified"):
+                        connection.execute(text("""UPDATE sheriff_sales SET current_status=:status, updated_at=NOW()
+                            WHERE id=:id"""), {"status": status, "id": sale["id"]})
+                        counts["listings_updated"] += 1
+                note = calendar_note(history["auctions"], today)
+                described = CALENDAR_NOTE.sub("", sale["description_text"] or "").strip()
+                connection.execute(text("""UPDATE sheriff_sales SET description_text=:details, updated_at=NOW()
+                    WHERE id=:id"""), {"details": " ".join(filter(None, [described, note])) or None, "id": sale["id"]})
+    return dict(counts)
+
+
 def details(record: dict) -> str:
     parts = ["Court-ordered referee foreclosure auction."]
     when = " ".join(filter(None, [record.get("sale_date"), record.get("sale_time")]))
@@ -147,6 +225,9 @@ def details(record: dict) -> str:
     if record.get("judgment"):
         parts.append(f"Approximate judgment: ${record['judgment']:,.2f} plus interest and costs (the minimum bid is "
                      "set by the plaintiff at the sale; the judgment is an estimate of it).")
+    if record.get("approximate_lien_amount"):
+        parts.append(f"Notice states an approximate lien amount of ${record['approximate_lien_amount']:,.2f} plus interest and costs; "
+                     "this is not treated as a verified judgment or unpaid principal balance.")
     if record.get("block") and record.get("lot"):
         parts.append(f"Block {record['block']}, Lot {record['lot']}.")
     if record.get("plaintiff_attorney"):
@@ -189,7 +270,10 @@ def apply_details(records: list[dict]) -> None:
         latest[(record["county"], record["index_number"])] = record
     with engine.begin() as connection:
         for (county, index), record in latest.items():
-            connection.execute(text("""UPDATE sheriff_sales SET description_text=:details, updated_at=NOW()
+            # Keeps a WebCivil calendar note added by an earlier run (apply_appearances).
+            connection.execute(text("""UPDATE sheriff_sales SET description_text=:details
+                || COALESCE(' ' || substring(description_text from ' (Court calendar \\(WebCivil\\):.*)$'), ''),
+                updated_at=NOW()
                 WHERE state='NY' AND county=:county AND source_system=:source AND sheriff_number=:index"""),
                 {"details": details(record), "county": county, "source": SOURCE_SYSTEM, "index": index})
 
@@ -223,10 +307,13 @@ def main() -> None:
     args = parser.parse_args()
     documents = read_folder(args.folder.expanduser())
     records, failures, reported = parse_documents(documents)
+    histories, history_failures = parse_appearances(documents)
+    failures += history_failures
     args.run_dir.mkdir(parents=True, exist_ok=True)
     (args.run_dir / "ny_court_parse_failures.json").write_text(json.dumps(failures, indent=1, default=str))
     (args.run_dir / "ny_court_records.json").write_text(json.dumps(records, indent=1, default=str))
     (args.run_dir / "ny_court_reported_only.json").write_text(json.dumps(reported, indent=1, default=str))
+    (args.run_dir / "ny_court_webcivil_histories.json").write_text(json.dumps(histories, indent=1, default=str))
     indexes = {(r["county"], r["index_number"]) for r in records}
     summary = {
         "pdfs": len(documents), "records": len(records), "distinct_cases": len(indexes),
@@ -234,13 +321,16 @@ def main() -> None:
         "with_judgment": sum(1 for r in records if r.get("judgment")),
         "with_block_lot": sum(1 for r in records if r.get("block")),
         "upcoming": sum(1 for r in records if r["sale_date"] >= date.today().isoformat()),
-        "failures": len(failures), "reported_without_address": len(reported), "run_dir": str(args.run_dir),
+        "failures": len(failures), "reported_without_address": len(reported),
+        "webcivil_case_histories": len(histories), "run_dir": str(args.run_dir),
     }
     print(json.dumps(summary, indent=1))
     if args.dry_run:
         for record in records[:10]:
             print(json.dumps({k: record.get(k) for k in ("county", "index_number", "sale_date", "street", "city",
                                                           "zip_code", "block", "lot", "judgment", "referee")}))
+        for history in histories:
+            print(json.dumps({k: history[k] for k in ("county", "index_number", "auctions")}))
         return
     now = datetime.now(timezone.utc)
     for county, sales in to_sales(records, date.today()).items():
@@ -248,6 +338,7 @@ def main() -> None:
                             job=f"ny_court_pdfs_{county.lower().replace(' ', '_')}", complete=False)
         print(f"NY {county}: {result}", flush=True)
     apply_details(records)
+    print(f"WebCivil auction histories: {apply_appearances(histories, date.today())}")
     print(f"Older Kings index rows marked adjourned: {supersede_old_kings_index(records)}")
     with engine.begin() as connection:
         print(f"NYCTL tax-lien listings merged into court listings: {merge_court_duplicates(connection)}")

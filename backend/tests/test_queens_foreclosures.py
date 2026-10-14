@@ -219,3 +219,21 @@ def test_counties_are_collected_and_loaded_one_after_another(tmp_path, monkeypat
     assert [c.args[2].name for c in b.calendars.call_args_list] == ['Queens', 'Nassau']
     report = json.loads((tmp_path / 'report.json').read_text())
     assert report['created'] == 2 and report['counties']['Nassau']['accepted'] == 1
+
+
+CALENDAR_PAGE = '''<html><body><h2>WebCivil Supreme - Court Calendar Details</h2>
+<p>Court:</p><p>Nassau Supreme Court</p><p>Friday October 16, 2026</p>
+<p>612345/2023 -</p><a>BANK vs. OWNER</a><p>Nassau Supreme Court</p><p>/ Part: FORECLOSURE AUCTION PART</p>
+<p>Court Date Purpose: Auction-Foreclosed Property</p>
+<p>698765/2022 -</p><a>LENDER vs. BORROWER</a><p>Nassau Supreme Court</p><p>Court Date Purpose: Motion</p>
+<p>601111/2024 -</p><a>TRUST vs. HOLDER</a><p>Nassau Supreme Court</p>
+<p>Court Date Purpose: Auction-Foreclosed Property</p></body></html>'''
+
+
+def test_html_calendar_lists_only_the_county_auctions():
+    from pipeline.queens.counties import county
+    from pipeline.queens.parsing import calendar_page_cases
+    assert calendar_page_cases(CALENDAR_PAGE, county('Nassau')) == ['601111/2024', '612345/2023']
+    assert calendar_page_cases(CALENDAR_PAGE, county('Suffolk')) == []
+    with pytest.raises(ValueError):
+        calendar_page_cases('<html>Find Calendar</html>', county('Nassau'))

@@ -23,8 +23,20 @@ def parse_time(value: str | None, fallback: datetime) -> datetime:
 
 
 def _house_number(street: str | None) -> str | None:
-    match = re.match(r"\s*(\d+)", street or "")
-    return match.group(1) if match else None
+    match = re.match(r"\s*(\d+(?:\s*-\s*\d+)?)", street or "")
+    return re.sub(r"\s", "", match.group(1)) if match else None
+
+
+def _same_house_number(submitted: str, found: str, queens: bool = False) -> bool:
+    """The same number, ignoring a hyphen ("9745" and "97-45"), or for a range the same
+    first number ("8155-57" and "8155"). A Queens number is a whole: 37-48 is next door to 37-46."""
+    whole = submitted.replace("-", "") == found.replace("-", "")
+    if queens or ("-" in submitted and "-" in found):
+        return whole
+    return whole or submitted.split("-")[0] == found.split("-")[0]
+
+
+UNIT = re.compile(r"(?:#|\b(?:Apt|Unit)\b)\s*\w+", re.IGNORECASE)
 
 
 def _zillow_address(item: dict) -> dict:
@@ -50,8 +62,14 @@ def mismatch_reason(row: dict, item: dict) -> str | None:
     found_number = _house_number(found["street"])
     if found_number and not submitted_number:
         return "submitted address has no house number"
-    if found_number and submitted_number and found_number != submitted_number:
+    queens = row.get("state") == "NY" and str(row.get("county") or "").lower() == "queens"
+    if found_number and submitted_number and not _same_house_number(submitted_number, found_number, queens):
         return f"house number {found_number} != {submitted_number}"
+    # A Queens notice sells the whole block and lot; Zillow sometimes answers with one
+    # apartment in the building ("37-46 79th St #2"), whose facts are not the property's.
+    submitted_street = row.get("street_address") or row.get("normalized_address") or ""
+    if queens and UNIT.search(found["street"] or "") and not UNIT.search(submitted_street):
+        return f"matched one unit ({found['street']}) of the building"
     zip_differs = bool(found["zip"] and row.get("zip_code") and found["zip"][:5] != str(row["zip_code"])[:5])
     city_differs = bool(found["city"] and row.get("city") and found["city"].strip().lower() != str(row["city"]).strip().lower())
     if zip_differs and city_differs:

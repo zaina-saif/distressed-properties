@@ -1,7 +1,11 @@
 from datetime import date
 
-from pipeline.load_ny_court_pdfs import bbl, county_of, details, parse_documents, to_sales
-from pipeline.parse_ny_court_pdfs import kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale, split_address
+from pipeline.load_ny_court_pdfs import (
+    bbl, calendar_note, county_of, details, parse_appearances, parse_documents, to_sales,
+)
+from pipeline.parse_ny_court_pdfs import (
+    kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale, parse_webcivil_appearances, split_address,
+)
 
 # Text as OCR returns it from saved court PDFs (party names shortened).
 MYRTLE = """FILED: KINGS COUNTY CLERK 08/31/2026 10:58 AM
@@ -119,6 +123,16 @@ def test_postponed_notice_keeps_the_earlier_date():
         ("2026-09-17", "adjourned"), ("2026-10-15", "scheduled")]
 
 
+def test_approximate_lien_amount_is_not_reported_as_judgment():
+    text = MYRTLE.replace("Approximate amount of judgment is $1,002,448.69",
+                          "Approximate amount of lien $961,285.38")
+    record, problems = parse_notice_of_sale(text, "Kings", "1312 MYRTLE AVENUE")
+
+    assert problems == []
+    assert record["judgment"] is None
+    assert record["approximate_lien_amount"] == 961285.38
+
+
 def test_bronx_calendar_cases_dates_and_failures():
     rows = parse_calendar_summary(BRONX, "Bronx")
 
@@ -173,3 +187,85 @@ def test_street_corrections_survive_reparsing():
     records, _, _ = parse_documents([{"file": "b.pdf", "sha256": "b", "method": "test", "file_address": "b", "text": text}])
 
     assert records[0]["street"] == "2065 Turnbull Avenue" and records[0]["address_source"] == "manual_correction"
+
+
+# A WebCivil Appearance Detail page printed to PDF (rows shortened), across a page break.
+APPEARANCES = """WebCivil Supreme - Appearance Detail
+Court: Queens Supreme Court
+Index Number:  713725/2021
+Case Name:US BANK NATIONAL ASSOCIATION vs. TELLO, JONNI R. ETAL
+Case Type: RP-Mortgage Foreclosure-Residential
+Appearance Information:
+10/16/2026 10:00 AM Auction-
+Foreclosed
+Property
+No Courtroom  (Master Foreclosure
+Part), MFJ
+FORECLOSURE
+AUCTION PART
+07/17/2026 10:00 AM Auction-
+Foreclosed
+Property
+No Courtroom Not Held (Master Foreclosure
+Part), MFJ
+FORECLOSURE
+AUCTION PART
+04/02/2025  Motion-Notice of
+Motion
+No Courtroom Fully Submitted -
+No Opposition
+PART 22 MOTIONS
+ 9
+11/15/2024 11:00 AM Auction-
+Foreclosed
+Property
+No Administrative - No
+Appearance
+Required
+Not Held (Master Foreclosure
+Part), MFJ
+10/14/26, 10:53 AM WebCivil Supreme - Appearance Detail
+https://iapps.courts.state.ny.us/webcivil/FCASCaseInfo?parm=Appearance 1/2
+STATUS
+04/12/2024 10:45 AM Auction-
+Foreclosed
+Property
+No Administrative - No
+Appearance
+Required
+Sold (Master Foreclosure
+Part), MFJ
+07/28/2021 03:15 PM Conference-
+Status
+No None Held Gordon, Daniel S.
+"""
+
+
+def test_webcivil_appearances_keep_auctions_and_outcomes():
+    record, problems = parse_webcivil_appearances(APPEARANCES)
+
+    assert kind(APPEARANCES) == "webcivil_appearances" and problems == []
+    assert record["county"] == "Queens" and record["index_number"] == "713725/2021"
+    assert [(a["date"], a["outcome"]) for a in record["auctions"]] == [
+        ("2026-10-16", None), ("2026-07-17", "Not Held"), ("2024-11-15", "Not Held"), ("2024-04-12", "Sold")]
+
+
+def test_webcivil_pages_are_histories_not_listings():
+    case_detail = "WebCivil Supreme - Case Detail\nCourt: Queens Supreme Court\nIndex Number: 713725/2021"
+    documents = [{"file": name, "sha256": name, "method": "test", "file_address": name, "text": body}
+                 for name, body in (("a.pdf", APPEARANCES), ("b.pdf", case_detail))]
+    records, failures, reported = parse_documents(documents)
+    histories, history_failures = parse_appearances(documents)
+
+    assert records == failures == reported == history_failures == []
+    assert [h["index_number"] for h in histories] == ["713725/2021"]
+
+
+def test_calendar_note_lists_past_auctions_only():
+    record, _ = parse_webcivil_appearances(APPEARANCES)
+    note = calendar_note(record["auctions"], date(2026, 10, 14))
+
+    assert note == ("Court calendar (WebCivil): 2 earlier auction dates not held (2024-11-15, 2026-07-17); "
+                    "the 2024-04-12 auction is recorded as sold, and the case was put back on the auction "
+                    "calendar afterwards.")
+    assert calendar_note(record["auctions"][:1], date(2026, 10, 14)) is None

@@ -9,6 +9,10 @@ Three layouts, recognised from their text (OCR'd when scanned):
   - Manhattan "Foreclosure Auction Part" list: index number, parties, time and
     outcome, but no property address.
 
+A WebCivil "Appearance Detail" page (one case, saved from iapps.courts.state.ny.us)
+gives a case's earlier auction dates and their outcomes ("Not Held", "Sold"); it
+adds history to a listing loaded from a notice, never a listing of its own.
+
 Parsers return records plus a list of problems; a record with a problem is
 never loaded (see load_ny_court_pdfs).
 """
@@ -62,6 +66,11 @@ def ordinal_case(street: str) -> str:
 
 def kind(text: str) -> str:
     body = flat(text)
+    # WebCivil case pages name the auction part too, so they are recognised first.
+    if re.search(r"WebCivil Supreme - Appearance Detail", body, re.I):
+        return "webcivil_appearances"
+    if re.search(r"WebCivil Supreme - Case Detail", body, re.I):
+        return "webcivil_case_detail"
     if re.search(r"Calendar Summary Report", body, re.I):
         return "calendar_summary"
     if re.search(r"FORECLOSURE AUCTION PART", body, re.I):
@@ -116,7 +125,8 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
         problems.append("premises_address_missing")
     postponed = re.search(rf"original\s+sale\s+was\s+scheduled\s+for\s+({DATE})", body, re.I)
     block_lot = re.search(r"Block\s*:?\s*(\d{1,5})\W{0,5}(?:and\s+)?Lots?\s*:?\s*(\d{1,4})", body, re.I)
-    judgment = re.search(r"amount\s+of\s+(?:the\s+)?(?:current\s+)?(?:judgment(?:\s+lien)?|lien)\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
+    judgment = re.search(r"amount\s+of\s+(?:the\s+)?(?:current\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
+    lien = re.search(r"amount\s+of\s+(?:the\s+)?lien\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
     # The referee signs at the end: "Mark Longo, Esq., Referee" / "Leonard C. Spector, Referee".
     referees = list(re.finditer(r"([A-Z][A-Za-z.'\-]*(?:\s+[A-Z][A-Za-z.'\-]*){1,3}),\s*(?:(?i:Esq)\.?\s*,?\s*[-–]?\s*)?(?i:Referee)\b\.?", body))
     referee = referees[-1].group(1) if referees else None
@@ -136,6 +146,7 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
         "postponed_from": to_date(postponed.group(1)).isoformat() if postponed and to_date(postponed.group(1)) else None,
         "block": block_lot.group(1) if block_lot else None, "lot": block_lot.group(2) if block_lot else None,
         "judgment": float(judgment.group(1).replace(",", "")) if judgment else None,
+        "approximate_lien_amount": float(lien.group(1).replace(",", "")) if lien else None,
         "referee": referee,
         "plaintiff": plaintiff.group(1).strip() if plaintiff else None,
         "plaintiff_attorney": attorney.group(1).strip(" ,") if attorney else None,
@@ -203,3 +214,38 @@ def parse_auction_part_list(text: str, county: str) -> list[tuple[dict, list[str
             "outcome": outcome.group(1).strip() if outcome else None,
         }, ["premises_address_not_published"]))
     return results
+
+
+# One appearance row starts with its date (four-digit year; the browser's print
+# header "10/14/26, 10:53 AM" has two).
+APPEARANCE = re.compile(r"^(\d{2}/\d{2}/\d{4})(?:\s+(\d{1,2}:\d{2}\s*[AP]M))?\s", re.M)
+OUTCOMES = r"Not Held|Sold|Adjourned|Cancell?ed|Stayed|Marked Off|Withdrawn|Vacated|Released|Held"
+
+
+def parse_webcivil_appearances(text: str) -> tuple[dict, list[str]]:
+    """Auction appearances (date, time, outcome) from a WebCivil Appearance Detail page.
+
+    An appearance without an outcome is still to come. Motions and conferences are left out."""
+    body = text or ""
+    court = re.search(r"Court:\s*(.+?)\s+(?:County\s+)?Supreme Court", body)
+    case = re.search(r"Index Number:\s*(\d{3,6})/((?:19|20)\d{2})", body)
+    record = {"document": "webcivil_appearances",
+              "county": court.group(1).strip() if court else None,
+              "index_number": index_number(case.group(1), case.group(2)) if case else None,
+              "case_name": flat(re.search(r"Case Name:\s*([^\n]+)", body).group(1)) if "Case Name:" in body else None,
+              "auctions": []}
+    starts = list(APPEARANCE.finditer(body))
+    for number, match in enumerate(starts):
+        row = body[match.end():starts[number + 1].start() if number + 1 < len(starts) else len(body)]
+        row = flat(re.split(r"\n\d{2}/\d{2}/\d{2}, \d", row)[0])  # stop at a page footer
+        if not re.match(r"Auction\s*-?\s*Foreclosed", row, re.I):
+            continue
+        # The outcome follows the court date type ("Courtroom", "Administrative - No Appearance Required").
+        outcome = re.search(rf"(?:Courtroom|Required|None|Virtual)\s+({OUTCOMES})\b", row, re.I)
+        record["auctions"].append({
+            "date": to_date(match.group(1)).isoformat(), "time": match.group(2),
+            "outcome": outcome.group(1).title() if outcome else None,
+        })
+    problems = [name for name, value in (("county_missing", record["county"]),
+                                         ("index_missing", record["index_number"])) if not value]
+    return record, problems

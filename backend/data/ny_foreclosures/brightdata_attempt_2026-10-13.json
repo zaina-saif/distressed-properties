@@ -1,0 +1,30 @@
+{
+  "run_date": "2026-10-13",
+  "provider": "Bright Data MCP",
+  "status": "blocked_by_provider_policy",
+  "requested_counties": [
+    "Queens",
+    "New York",
+    "Kings",
+    "Bronx",
+    "Richmond",
+    "Nassau",
+    "Suffolk",
+    "Westchester",
+    "Orange",
+    "Onondaga",
+    "Erie"
+  ],
+  "queens_test": {
+    "status": "not_started",
+    "url": "https://iapps.courts.state.ny.us/webcivil/FCASCalendarSearch",
+    "error": "Bright Data rejected the host as Government and blocked it under its network access policy. No calendar or case data was returned."
+  },
+  "remaining_counties": {
+    "status": "not_attempted",
+    "reason": "The prompt requires Queens extraction and validation to succeed before processing the other counties."
+  },
+  "records": [],
+  "verified_results": 0,
+  "note": "No foreclosure data was fabricated. The repository's operator-assisted Playwright collector remains available for a human-completed court verification flow."
+}

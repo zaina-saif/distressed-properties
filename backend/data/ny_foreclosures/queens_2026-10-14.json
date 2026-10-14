@@ -1,0 +1,410 @@
+[
+  {
+    "county": "Queens",
+    "index_number": "713725/2021",
+    "court": "Queens Supreme Court",
+    "court_part": "FORECLOSURE AUCTION PART",
+    "sale_type": "Court foreclosure auction",
+    "source_system": "ny_court_foreclosure_auction",
+    "case_caption": "US BANK NATIONAL ASSOCIATION vs. TELLO, JONNI R. ETAL",
+    "case_type": "RP-Mortgage Foreclosure-Residential",
+    "track": "Standard",
+    "case_status": null,
+    "disposition_date": "10/04/2024",
+    "scheduled_auction_date": "2026-10-16",
+    "scheduled_auction_time": "10:00 a.m.",
+    "scheduled_auction_place": "the Queens County Supreme Courthouse, 88-11 Sutphin Blvd., in Courtroom # 25, Jamaica, NY",
+    "status": "Scheduled",
+    "raw_status": null,
+    "plaintiff": "U.S. BANK NATIONAL ASSOCIATION, AS TRUSTEE FOR CREDIT SUISSE FIRST BOSTON MORTGAGE SECURITIES CORP., CSMC MORTGAGE-BACKED PASS-THROUGH CERTIFICATES, SERIES 2006-7",
+    "defendant": "TELLO, JONNI R.",
+    "property_details": {
+      "address": "37-46 79th Street",
+      "raw_address": "37-46 79TH STREET",
+      "city": "Jackson Heights",
+      "state": "NY",
+      "zip": "11372",
+      "borough_block_lot": "4-01289-0029",
+      "tax_parcel_id": null,
+      "block": "1289",
+      "lot": "29",
+      "section": null,
+      "original_mortgage_amount": null,
+      "unpaid_principal_balance": null,
+      "amount_claimed_due": null,
+      "judgment_amount": null,
+      "approximate_lien_amount": 961285.38,
+      "amount_source_text": "Approximate amount of lien $961,285.38"
+    },
+    "referee_name": "MARTHA TAYLOR",
+    "plaintiff_attorney": "DRUCKMAN LAW GROUP PLLC",
+    "defendant_attorney": "Olshaker, Clifford Bryan",
+    "assigned_justice": "Fern, Hon. Ilene",
+    "case_metadata": {
+      "cms_index_number": "0017567/2009",
+      "rji_filed": "09/28/2009",
+      "disposition_date": "10/04/2024",
+      "judgment_date": "2024-01-16",
+      "court_listed_plaintiff": "US BANK NATIONAL ASSOCIATION"
+    },
+    "appearance_history": [
+      {
+        "date": "2026-10-16",
+        "time": "10:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": null,
+        "justice": null,
+        "raw_text": "10/16/2026 10:00 AM Auction- Foreclosed Property No Courtroom (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2026-07-17",
+        "time": "10:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Not Held",
+        "justice": null,
+        "raw_text": "07/17/2026 10:00 AM Auction- Foreclosed Property No Courtroom Not Held (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2026-04-10",
+        "time": "11:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Not Held",
+        "justice": null,
+        "raw_text": "04/10/2026 11:00 AM Auction- Foreclosed Property No Courtroom Not Held (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2026-02-06",
+        "time": "11:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Not Held",
+        "justice": null,
+        "raw_text": "02/06/2026 11:00 AM Auction- Foreclosed Property No Courtroom Not Held (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2025-06-06",
+        "time": "11:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Not Held",
+        "justice": null,
+        "raw_text": "06/06/2025 11:00 AM Auction- Foreclosed Property No Courtroom Not Held (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2025-04-02",
+        "time": null,
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "04/02/2025 Motion-Notice of Motion No Courtroom Fully Submitted - No Opposition Mayersohn, Hon. Lee A. PART 22 MOTIONS 9"
+      },
+      {
+        "date": "2024-11-15",
+        "time": "11:00 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Not Held",
+        "justice": null,
+        "raw_text": "11/15/2024 11:00 AM Auction- Foreclosed Property No Administrative - No Appearance Required Not Held (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2024-04-12",
+        "time": "10:45 AM",
+        "part": "FORECLOSURE AUCTION PART",
+        "purpose": "Auction- Foreclosed Property",
+        "outcome": "Sold",
+        "justice": null,
+        "raw_text": "04/12/2024 10:45 AM Auction- Foreclosed Property No Administrative - No Appearance Required Sold (Master Foreclosure Part), MFJ FORECLOSURE AUCTION PART"
+      },
+      {
+        "date": "2023-12-20",
+        "time": null,
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "12/20/2023 Motion-Notice of Motion No None Fully Submitted - No Opposition Mayersohn, Hon. Lee A. PART 22 MOTIONS- GUARDIANSHIP 8"
+      },
+      {
+        "date": "2023-09-06",
+        "time": "09:30 AM",
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "09/06/2023 09:30 AM Motion-Notice of Motion No None Fully Submitted - No Opposition Mayersohn, Hon. Lee A. PART 22 MOTIONS 7"
+      },
+      {
+        "date": "2023-08-30",
+        "time": "09:30 AM",
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Rescheduled",
+        "justice": "Rescheduled Mayersohn, Hon. Lee A.",
+        "raw_text": "08/30/2023 09:30 AM Motion-Notice of Motion No None Rescheduled Mayersohn, Hon. Lee A. PART 22 MOTIONS 7"
+      },
+      {
+        "date": "2022-09-07",
+        "time": "09:30 AM",
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Granted",
+        "justice": "Granted Mayersohn, Hon. Lee A.",
+        "raw_text": "09/07/2022 09:30 AM Motion-Notice of Motion No None Granted Mayersohn, Hon. Lee A. PART 22 MOTIONS 6"
+      },
+      {
+        "date": "2021-12-01",
+        "time": null,
+        "part": "PART 22 MOTIONS",
+        "purpose": "Motion-Notice of Motion",
+        "outcome": "Rescheduled",
+        "justice": "Rescheduled Mayersohn, Hon. Lee A.",
+        "raw_text": "12/01/2021 Motion-Notice of Motion No None Rescheduled Mayersohn, Hon. Lee A. PART 22 MOTIONS 6"
+      },
+      {
+        "date": "2021-07-28",
+        "time": "03:15 PM",
+        "part": "FORECLOSURE AO CONF PART",
+        "purpose": "Conference- Status",
+        "outcome": "Held",
+        "justice": "Gordon, Daniel S.",
+        "raw_text": "07/28/2021 03:15 PM Conference- Status No None Held Gordon, Daniel S. FORECLOSURE AO CONF PART VIRTUAL"
+      },
+      {
+        "date": "2021-05-26",
+        "time": "11:00 AM",
+        "part": "FORECLOSURE AO CONF PART",
+        "purpose": "Conference- Status",
+        "outcome": "Continued",
+        "justice": "Gordon, Daniel S.",
+        "raw_text": "05/26/2021 11:00 AM Conference- Status No None Continued Gordon, Daniel S. FORECLOSURE AO CONF PART 11:00A.M., VIRTUAL (Conversion)"
+      },
+      {
+        "date": "2021-04-13",
+        "time": "11:00 AM",
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Rescheduled",
+        "justice": null,
+        "raw_text": "04/13/2021 11:00 AM Conversion- Other No None Rescheduled (Master Foreclosure Part), MFJ VIRTUAL - 11:00AM (Conversion) 10/14/26, 10:53 AM WebCivil Supreme - Appearance Detail https://iapps.courts.state.ny.us/webcivil/FCASCaseInfo?parm=Appearance&index=8UB2gK%2F4dT2IoyDquADbCQ%3D%3D&county=oMckKjFaWh86S2HYiUT… 1/2 STATUS CONFERENCE PT. F"
+      },
+      {
+        "date": "2021-01-26",
+        "time": "02:15 PM",
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Rescheduled",
+        "justice": null,
+        "raw_text": "01/26/2021 02:15 PM Conversion- Other No None Rescheduled (Master Foreclosure Part), MFJ STATUS CONFERENCE PT. F 2:15PM-FINAL M OREF (Conversion)"
+      },
+      {
+        "date": "2020-11-10",
+        "time": "02:15 PM",
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Rescheduled",
+        "justice": "Rescheduled Gibbons, Hon. Wyatt N.",
+        "raw_text": "11/10/2020 02:15 PM Conversion- Other No None Rescheduled Gibbons, Hon. Wyatt N. STATUS CONFERENCE PT. F 2:15PM-FINAL, *COURT CLOSURE (Conversion)"
+      },
+      {
+        "date": "2020-08-18",
+        "time": "02:15 PM",
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Rescheduled",
+        "justice": "Rescheduled Gibbons, Hon. Wyatt N.",
+        "raw_text": "08/18/2020 02:15 PM Conversion- Other No None Rescheduled Gibbons, Hon. Wyatt N. STATUS CONFERENCE PT. F 2:15PM-FINAL, *COURT CLOSURE (Conversion)"
+      },
+      {
+        "date": "2020-05-26",
+        "time": null,
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Rescheduled",
+        "justice": "Rescheduled Gibbons, Hon. Wyatt N.",
+        "raw_text": "05/26/2020 Conversion- Other No None Rescheduled Gibbons, Hon. Wyatt N. STATUS CONFERENCE PT. F FINAL (Conversion)"
+      },
+      {
+        "date": "2020-03-17",
+        "time": "02:15 PM",
+        "part": "STATUS CONFERENCE PT. F",
+        "purpose": "Conversion- Other",
+        "outcome": "Adjourned",
+        "justice": "Cohanim Lancman, Hon. Mojgan",
+        "raw_text": "03/17/2020 02:15 PM Conversion- Other No None Adjourned Cohanim Lancman, Hon. Mojgan STATUS CONFERENCE PT. F 2:15 P.M. (Conversion)"
+      },
+      {
+        "date": "2019-10-16",
+        "time": null,
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conference- Foreclosure Settlement",
+        "outcome": "Default",
+        "justice": "Johnson, Cassandra",
+        "raw_text": "10/16/2019 Conference- Foreclosure Settlement No None Default Johnson, Cassandra FORECLOSURE CONFERENCE PART S Supreme Trial (Conversion)"
+      },
+      {
+        "date": "2019-07-10",
+        "time": "09:30 AM",
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conference- Foreclosure Settlement",
+        "outcome": "Continued",
+        "justice": "Johnson, Cassandra",
+        "raw_text": "07/10/2019 09:30 AM Conference- Foreclosure Settlement No None Continued Johnson, Cassandra FORECLOSURE CONFERENCE PART E Supreme Trial; 9:30AM- RESCHED-SOS (Conversion)"
+      },
+      {
+        "date": "2017-07-10",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Fully Submitted -",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "07/10/2017 Motion-OtherNo None Fully Submitted - No Opposition Mayersohn, Hon. Lee A. Centralized Motion Part 5"
+      },
+      {
+        "date": "2017-05-24",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Fully Submitted Mayersohn, Hon. Lee A. Centralized Motion Part 040517 (Conversion) 4",
+        "outcome": null,
+        "justice": "Submitted Mayersohn, Hon. Lee A.",
+        "raw_text": "05/24/2017 Motion-OtherNo None Fully Submitted Mayersohn, Hon. Lee A. Centralized Motion Part 040517 (Conversion) 4"
+      },
+      {
+        "date": "2017-04-05",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 040517, *MSO 3/16/17 (Conversion) 4",
+        "outcome": "Adjourned",
+        "justice": "Adjourned Mayersohn, Hon. Lee A.",
+        "raw_text": "04/05/2017 Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 040517, *MSO 3/16/17 (Conversion) 4"
+      },
+      {
+        "date": "2015-12-07",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Fully Submitted -",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "12/07/2015 Motion-OtherNo None Fully Submitted - No Opposition Mayersohn, Hon. Lee A. Centralized Motion Part VACATED 7/31/18 SOS, JTC: 03/16/16 (Conversion) 3"
+      },
+      {
+        "date": "2015-10-13",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 101315 (Conversion) 3",
+        "outcome": "Adjourned",
+        "justice": "Adjourned Mayersohn, Hon. Lee A.",
+        "raw_text": "10/13/2015 Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 101315 (Conversion) 3"
+      },
+      {
+        "date": "2015-08-10",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 081015 (Conversion) 3",
+        "outcome": "Adjourned",
+        "justice": "Adjourned Mayersohn, Hon. Lee A.",
+        "raw_text": "08/10/2015 Motion-OtherNo None Adjourned Mayersohn, Hon. Lee A. Centralized Motion Part 081015 (Conversion) 3"
+      },
+      {
+        "date": "2013-11-25",
+        "time": null,
+        "part": "Centralized Motion Part",
+        "purpose": "Motion-OtherNo None Fully Submitted -",
+        "outcome": "Fully Submitted - No Opposition",
+        "justice": "Opposition Mayersohn, Hon. Lee A.",
+        "raw_text": "11/25/2013 Motion-OtherNo None Fully Submitted - No Opposition Mayersohn, Hon. Lee A. Centralized Motion Part VACATED 7/31/18 SOS, OTC: 1/20/15 (Conversion) 2"
+      },
+      {
+        "date": "2010-06-16",
+        "time": null,
+        "part": "EXPARTE",
+        "purpose": "Motion-OtherNo None Decided Mayersohn, Hon. Lee A. EXPARTE 1",
+        "outcome": "Decided",
+        "justice": "Decided Mayersohn, Hon. Lee A.",
+        "raw_text": "06/16/2010 Motion-OtherNo None Decided Mayersohn, Hon. Lee A. EXPARTE 1"
+      },
+      {
+        "date": "2010-05-20",
+        "time": null,
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conference- Foreclosure Settlement",
+        "outcome": "Held",
+        "justice": "Florio Esq., Leonard N.",
+        "raw_text": "05/20/2010 Conference- Foreclosure Settlement No None Held Florio Esq., Leonard N. FORECLOSURE CONFERENCE PART Supreme Trial (Conversion)"
+      },
+      {
+        "date": "2010-03-04",
+        "time": null,
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conference- Foreclosure Settlement",
+        "outcome": "Trial Loan Modification",
+        "justice": "Florio Esq., Leonard N.",
+        "raw_text": "03/04/2010 Conference- Foreclosure Settlement No None Trial Loan Modification Florio Esq., Leonard N. FORECLOSURE CONFERENCE PART Supreme Trial (Conversion)"
+      },
+      {
+        "date": "2010-01-07",
+        "time": null,
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conversion- Other",
+        "outcome": "Adjourned",
+        "justice": "Florio Esq., Leonard N.",
+        "raw_text": "01/07/2010 Conversion- Other No None Adjourned Florio Esq., Leonard N. FORECLOSURE CONFERENCE PART"
+      },
+      {
+        "date": "2009-11-25",
+        "time": null,
+        "part": "FORECLOSURE CONFERENCE PART",
+        "purpose": "Conference- Foreclosure Settlement",
+        "outcome": "Held",
+        "justice": "Florio Esq., Leonard N.",
+        "raw_text": "11/25/2009 Conference- Foreclosure Settlement No None Held Florio Esq., Leonard N. FORECLOSURE CONFERENCE PART Supreme Initial (first time on); MANDATORY, 11/5/09 AT 9:30 AM (Conversion)"
+      }
+    ],
+    "efiled_documents_summary": {
+      "nyscef_accessible": true,
+      "docket_url": null,
+      "initiating_doc": null,
+      "documents": [
+        {
+          "document_number": 133,
+          "document_type": "NOTICE OF SALE",
+          "filing_date": "2026-09-16",
+          "title": "713725_2021_US_BANK_NATIONAL_ASSOC_v_US_BANK_NATIONAL_ASSOC_NOTICE_OF_SALE_133.pdf",
+          "pdf_accessible": true,
+          "extraction_priority": "sale_notice"
+        }
+      ],
+      "note": "The supplied Notice of Sale bears a NYSCEF filing stamp. The docket and initiating complaint were not included in this PDF bundle."
+    },
+    "source_metadata": {
+      "calendar_url": "https://iapps.courts.state.ny.us/webcivil/FCASCalendarSearch",
+      "case_detail_url": null,
+      "appearance_detail_url": null,
+      "nyscef_url": null,
+      "source_files": [
+        {
+          "file": "713725_2021_US_BANK_NATIONAL_ASSOC_v_US_BANK_NATIONAL_ASSOC_NOTICE_OF_SALE_133.pdf",
+          "sha256": "70de4c7c0ee1720b47e26906d2ee8bbb2044a5acd7c31c2c9be854a192240b6a"
+        },
+        {
+          "file": "WebCivil Supreme - Appearance Detail.pdf",
+          "sha256": "c52ae823303ad8a760e46fbf77d2184922872d799ddc6d5cb833f8a5601b1530"
+        },
+        {
+          "file": "WebCivil Supreme - Case Detail.pdf",
+          "sha256": "65ceadf72b7dd8e3cf45c1a461e0ebaecebf8769eb47e8e555969ec93ed6fec1"
+        }
+      ],
+      "extracted_at": "2026-10-14T15:02:25.009619+00:00"
+    },
+    "extraction_notes": [
+      "The notice says approximate amount of lien; it is preserved separately and is not labeled a judgment or unpaid principal balance.",
+      "Auction status is normalized as Scheduled from the future calendar event; no outcome is stated for that event.",
+      "Original mortgage principal, unpaid balance, and judgment amount are absent from the supplied PDFs."
+    ]
+  }
+]

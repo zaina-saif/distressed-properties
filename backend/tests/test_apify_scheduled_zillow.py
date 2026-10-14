@@ -1,4 +1,4 @@
-from pipeline.apify_scheduled_zillow import clean_street, first_pass_address, search_address, searchable
+from pipeline.apify_scheduled_zillow import clean_street, first_pass_address, queens_street, search_address, searchable
 
 
 def test_alias_is_dropped():
@@ -56,3 +56,21 @@ def test_first_pass_adds_a_filled_in_zip_and_skips_unsearchable_rows():
     assert not searchable({"street_address": "0 UNKNOWN", "normalized_address": "0 UNKNOWN, Edmond, OK"})
     assert not searchable({"street_address": "205 NW 89TH ST",
                            "normalized_address": "205 NW 89TH ST, Oklahoma City & 432 Larkspur Ln, Edmond, OK"})
+
+
+def test_queens_streets_keep_the_hyphenated_house_number_and_a_short_suffix():
+    assert queens_street("37-46 79th Street") == "37-46 79th St"
+    assert queens_street("9745 86TH ST") == "97-45 86TH ST"
+    assert queens_street("101 - 20 Lefferts Boulevard") == "101-20 Lefferts Blvd"
+    assert queens_street("123 Beach 120th Street") == "123 Beach 120th St"
+    assert queens_street("21-10 Court Square") == "21-10 Court Square"
+
+
+def test_queens_search_leaves_out_the_neighborhood():
+    row = {"street_address": "37-46 79th Street", "city": "Jackson Heights", "state": "NY", "county": "Queens",
+           "zip_code": "11372", "normalized_address": "37-46 79th Street, Jackson Heights, NY 11372"}
+
+    assert first_pass_address(row) == search_address(row) == "37-46 79th St, NY 11372"
+    # Brooklyn numbers are not Queens numbers: a range there still uses its first number.
+    assert search_address({**row, "county": "Kings", "street_address": "8155-57 Throop Street"}) == \
+        "8155 Throop Street, NY 11372"

@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import Error as PlaywrightError, TimeoutError as BrowserTimeout
 
 from .counties import County
-from .parsing import QUEENS, digest, indices, pdf_text, calendar_cases
+from .parsing import QUEENS, digest, indices, pdf_text, calendar_cases, calendar_page_cases
 
 CALENDAR = "https://iapps.courts.state.ny.us/webcivil/FCASCalendarSearch"
 NYSCEF = "https://iapps.courts.state.ny.us/nyscef/CaseSearch"
@@ -174,14 +174,22 @@ class CourtBrowser:
             self.guard()
         else:
             self.guard()
+        # Keep the results page: it is the evidence for the case list, and the fixture
+        # to compare against if the court changes its layout.
+        html = self.page.content()
+        (self.folder.parent / f"calendar-{county.name.lower().replace(' ', '-')}.html").write_text(html)
         urls = self.links(r'\.pdf\b|calendar.*pdf|pdf.*calendar')
-        if not urls:
-            raise LayoutChanged("No calendar PDF links found; capture a current court fixture")
-        found = set()
-        for url in dict.fromkeys(urls):
-            _, text = self.pdf(url)
-            found.update(calendar_cases(text, county))
-        return sorted(found), urls
+        if urls:
+            found = set()
+            for url in dict.fromkeys(urls):
+                _, text = self.pdf(url)
+                found.update(calendar_cases(text, county))
+            return sorted(found), urls
+        # WebCivil's default output: the calendar itself as an HTML page.
+        try:
+            return calendar_page_cases(html, county), [self.page.url]
+        except ValueError as exc:
+            raise LayoutChanged(f"{exc}; see the saved calendar page in the run folder") from exc
 
     def notices(self, case, county: County = QUEENS):
         self.goto(NYSCEF)

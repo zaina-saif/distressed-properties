@@ -35,3 +35,22 @@ def test_different_zip_and_town_is_invalid():
 
 def test_result_without_address_is_not_flagged():
     assert mismatch_reason(ROW, {"zpid": 1}) is None
+
+
+QUEENS = {"street_address": "37-46 79th Street", "city": "Jackson Heights", "state": "NY", "county": "Queens",
+          "zip_code": "11372"}
+
+
+def test_queens_house_number_matches_with_or_without_its_hyphen():
+    assert mismatch_reason(QUEENS, _item("37-46 79th Street", "Flushing", "NY", "11372")) is None
+    assert mismatch_reason({**QUEENS, "street_address": "9745 86TH ST"}, _item("97-45 86th St", "Ozone Park", "NY", "11372")) is None
+    assert mismatch_reason(QUEENS, _item("37-48 79th Street", "Flushing", "NY", "11372")) == "house number 37-48 != 37-46"
+
+
+def test_one_apartment_is_not_a_queens_building():
+    assert mismatch_reason(QUEENS, _item("37-46 79th St #2", "Jackson Heights", "NY", "11372")) == \
+        "matched one unit (37-46 79th St #2) of the building"
+    assert mismatch_reason({**QUEENS, "street_address": "37-46 79th Street #2"},
+                           _item("37-46 79th St #2", "Jackson Heights", "NY", "11372")) is None
+    # Elsewhere a unit answer stays a match (condos listed without their unit).
+    assert mismatch_reason(ROW, _item("830 Avenue A #2", "Bayonne", "NJ", "07002")) is None
