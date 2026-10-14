@@ -57,6 +57,10 @@ STREET_CORRECTIONS = {
     "804535/2024": "2065 Turnbull Avenue",  # OCR read "Tumbul Avenue" (Bronx calendar)
     "705527/2014": "133-44 122nd Street",  # broken over a line; both text layers lose "133-44" (Queens notice)
 }
+# Plaintiffs OCR misread, the same way.
+PLAINTIFF_CORRECTIONS = {
+    "705527/2014": "NATIONSTAR MORTGAGE LLC",  # OCR read "LIC"
+}
 
 
 def ocr_text(document: dict) -> str | None:
@@ -158,6 +162,8 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
             else:
                 if entry["index_number"] in STREET_CORRECTIONS:
                     entry.update(street=STREET_CORRECTIONS[entry["index_number"]], address_source="manual_correction")
+                if entry["index_number"] in PLAINTIFF_CORRECTIONS:
+                    entry.update(plaintiff=PLAINTIFF_CORRECTIONS[entry["index_number"]])
                 records.append(entry)
     return records, failures, reported
 
