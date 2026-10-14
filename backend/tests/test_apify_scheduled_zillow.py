@@ -16,8 +16,26 @@ def test_unit_is_kept():
     assert clean_street("107 RED BARN ROAD, UNIT 2-16") == "107 RED BARN ROAD UNIT 2-16"
 
 
-def test_house_number_range_uses_first_number():
+def test_abbreviated_house_number_range_uses_first_number():
     assert clean_street("8155-57 S THROOP ST") == "8155 S THROOP ST"
+
+
+def test_full_house_number_range_is_kept():
+    assert clean_street("8-10 Sandford Avenue") == "8-10 Sandford Avenue"
+    assert clean_street("157-171 3Rd Avenue") == "157-171 3Rd Avenue"
+    assert clean_street("7-06 5Th Street") == "7-06 5Th Street"
+
+
+def test_numbered_street_words_become_digits():
+    assert clean_street("248 Second Avenue") == "248 2nd Avenue"
+    assert clean_street("135 North Fourth Street") == "135 North 4th Street"
+    assert clean_street("304 South Twentieth Street") == "304 South 20th Street"
+    assert clean_street("12 First Union Road") == "12 First Union Road"
+
+
+def test_county_road_keeps_its_route_letter():
+    assert clean_street("18925 CO RD Y") == "18925 County Road Y"
+    assert clean_street("40 County Road 537 Colts Neck") == "40 County Road 537"
 
 
 def test_suffix_right_after_house_number_is_the_street_name():
@@ -74,3 +92,10 @@ def test_queens_search_leaves_out_the_neighborhood():
     # Brooklyn numbers are not Queens numbers: a range there still uses its first number.
     assert search_address({**row, "county": "Kings", "street_address": "8155-57 Throop Street"}) == \
         "8155 Throop Street, NY 11372"
+
+
+def test_full_range_search_adds_the_town_and_a_short_suffix():
+    assert search_address({"street_address": "8-10 Sandford Avenue", "city": "Plainfield", "state": "NJ",
+                           "zip_code": "07060"}) == "8-10 Sandford Ave, Plainfield, NJ 07060"
+    assert search_address({"street_address": "8155-57 S THROOP ST", "city": "Chicago", "state": "IL",
+                           "zip_code": "60620"}) == "8155 S THROOP ST, IL 60620"

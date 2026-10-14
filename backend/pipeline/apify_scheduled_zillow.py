@@ -47,6 +47,22 @@ SHORT_SUFFIX = {"street": "St", "avenue": "Ave", "road": "Rd", "place": "Pl", "b
                 "drive": "Dr", "lane": "Ln", "court": "Ct", "parkway": "Pkwy", "terrace": "Ter"}
 
 
+ORDINALS = {word: f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+            for n, word in enumerate(["first", "second", "third", "fourth", "fifth", "sixth", "seventh",
+                                      "eighth", "ninth", "tenth", "eleventh", "twelfth", "thirteenth",
+                                      "fourteenth", "fifteenth", "sixteenth", "seventeenth", "eighteenth",
+                                      "nineteenth", "twentieth"], start=1)}
+# "Second Avenue" -> "2nd Avenue": Zillow lists numbered streets in digits.
+ORDINAL_WORD = re.compile(r"\b(?:" + "|".join(ORDINALS) + r")\b(?=\s+" + STREET_SUFFIX.pattern + ")",
+                          re.IGNORECASE)
+
+
+def whole_range(first, second):
+    """A full range ("8-10", "7-06" in Fair Lawn) is how Zillow lists the lot; an abbreviated one
+    ("8155-57") is not, so it is cut to the first number."""
+    return second.startswith("0") or (len(second) >= len(first) and int(second) > int(first))
+
+
 def is_queens(row):
     return row.get("state") == "NY" and str(row.get("county") or "").strip().lower() == "queens"
 
@@ -54,7 +70,11 @@ def is_queens(row):
 def queens_street(street):
     """A Queens street as Zillow lists it: hyphenated house number and short suffix
     ("37-46 79th Street" -> "37-46 79th St", "9745 86TH ST" -> "97-45 86TH ST")."""
-    street = QUEENS_NUMBER.sub(r"\1-\2", clean_street(street, keep_hyphen=True), count=1)
+    return short_suffix(QUEENS_NUMBER.sub(r"\1-\2", clean_street(street, keep_hyphen=True), count=1))
+
+
+def short_suffix(street):
+    """The last street suffix in its short form ("79th Street" -> "79th St")."""
     suffixes = list(STREET_SUFFIX.finditer(street))
     if suffixes and (short := SHORT_SUFFIX.get(suffixes[-1].group(0).rstrip(".").lower())):
         street = street[:suffixes[-1].start()] + short + street[suffixes[-1].end():]
@@ -66,11 +86,15 @@ def clean_street(street, keep_hyphen=False):
 
     Drops "A/K/A ..." aliases, parentheticals and trailing municipality text
     ("East Pennsboro - Township Enola"), keeps a unit, and reduces a house
-    number range ("8155-57") to its first number unless keep_hyphen (Queens)."""
+    number range ("8155-57") to its first number unless keep_hyphen (Queens) or it is
+    a full range ("8-10"). Numbered streets become digits and "CO RD Y" becomes "County Road Y"."""
     street = re.split(r"\b(?:A/K/A|AKA|F/K/A|Is Also Known As|Also Known As)\b|\(|,(?!\s*(?:Unit|Apt|#))",
                       street or "", maxsplit=1, flags=re.IGNORECASE)[0]
     street = re.sub(r"^Mailing Address:\s*", "", street.strip(), flags=re.IGNORECASE)
-    street = re.sub(r"^(\d+)\s*-\s*(\d+)\b", r"\1-\2" if keep_hyphen else r"\1", street)
+    street = re.sub(r"^(\d+)\s*-\s*(\d+)\b", lambda m: f"{m[1]}-{m[2]}" if keep_hyphen or (
+        whole_range(m[1], m[2])) else m[1], street)
+    street = re.sub(r"\bCO\.?\s+RD\b\.?", "County Road", street, flags=re.IGNORECASE)
+    street = ORDINAL_WORD.sub(lambda m: ORDINALS[m[0].lower()], street)
     # The suffix ends the street name unless it directly follows the house
     # number ("830 Avenue A"); anything after it except a unit is noise.
     for match in STREET_SUFFIX.finditer(street):
@@ -80,6 +104,10 @@ def clean_street(street, keep_hyphen=False):
         # "West Terrace Drive": a following suffix word is still the street name.
         while following := NEXT_SUFFIX.match(street, end):
             end = following.end()
+        # "County Road Y": the route letter or number belongs to the name.
+        route = re.compile(r"\s+[A-Z0-9]{1,4}\b", re.IGNORECASE).match(street, end)
+        if route and re.search(r"\bCounty\s+$", street[:match.start()], re.IGNORECASE):
+            end = route.end()
         unit = UNIT.match(street[end:])
         street = street[:end] + (f" {unit.group(1)}" if unit else "")
         break
@@ -93,9 +121,14 @@ def search_address(row):
     Queens streets keep their hyphenated house number (queens_street)."""
     street = queens_street(row["street_address"]) if is_queens(row) else clean_street(row["street_address"])
     street = re.sub(r"\s+", " ", street.replace(".", " ")).strip()
+    city = search_city(row.get("city"))
+    if re.match(r"\d+-\d+ ", street) and not is_queens(row) and city and row.get("zip_code"):
+        # Zillow finds a full range ("8-10 Sandford Ave, Plainfield, NJ 07060") only
+        # with the town and a short suffix.
+        return f"{short_suffix(street)}, {city}, {row['state']} {row['zip_code']}"
     if row.get("zip_code"):
         return f"{street}, {row['state']} {row['zip_code']}"
-    return ", ".join(part for part in (street, search_city(row.get("city")), row["state"]) if part)
+    return ", ".join(part for part in (street, city, row["state"]) if part)
 
 
 def first_pass_address(row):
