@@ -32,7 +32,8 @@ STREET_END = re.compile(r"\b(?:Street|St|Avenue|Ave|Place|Pl|Road|Rd|Boulevard|B
                         r"Terrace|Parkway|Pkwy|Way|Walk|Plaza|Square|Concourse|Loop|Oval|Path|Row|Crescent|Broadway)"
                         r"\.?(?:\s*(?:#|Apt\.?|Unit)\s*[\w-]+)?$", re.I)
 TIME = r"(\d{1,2}(?::\d{2})?\s*[AaPp]\.?\s*[Mm]\.?)"
-CITY_NAMES = r"Brooklyn|Bronx|New York|Staten Island|[A-Z][a-z]+(?: [A-Z][a-z]+)?"
+# Up to three words: Queens neighborhoods ("South Ozone Park", "Springfield Gardens").
+CITY_NAMES = r"Brooklyn|Bronx|New York|Staten Island|[A-Z][a-z]+(?: [A-Z][a-z]+){0,2}"
 
 
 def flat(text: str) -> str:

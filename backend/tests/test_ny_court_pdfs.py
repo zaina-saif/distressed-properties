@@ -269,3 +269,8 @@ def test_calendar_note_lists_past_auctions_only():
                     "the 2024-04-12 auction is recorded as sold, and the case was put back on the auction "
                     "calendar afterwards.")
     assert calendar_note(record["auctions"][:1], date(2026, 10, 14)) is None
+
+
+def test_three_word_queens_neighborhoods_are_towns():
+    assert split_address("133-44 122nd Street, South Ozone Park, New York 11420", None) == \
+        ("133-44 122nd Street", "South Ozone Park", "11420")

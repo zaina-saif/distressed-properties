@@ -55,7 +55,20 @@ CALENDAR_NOTE = re.compile(r"\s*Court calendar \(WebCivil\):.*$", re.S)
 # Streets OCR misread, corrected by hand and keyed by index number so every rerun keeps them.
 STREET_CORRECTIONS = {
     "804535/2024": "2065 Turnbull Avenue",  # OCR read "Tumbul Avenue" (Bronx calendar)
+    "705527/2014": "133-44 122nd Street",  # broken over a line; both text layers lose "133-44" (Queens notice)
 }
+
+
+def ocr_text(document: dict) -> str | None:
+    """Vision OCR of a saved PDF whose embedded text layer is itself a poor OCR ("1011612026"), cached."""
+    if not document.get("pdf"):
+        return None
+    cached = CACHE / "text" / f"{document['sha256'][:16]}-ocr.json"
+    if cached.exists():
+        return json.loads(cached.read_text())["text"]
+    body = macos_ocr(Path(document["pdf"]), timeout=900)
+    cached.write_text(json.dumps({"text": body, "method": "macos_vision_ocr"}))
+    return body
 
 
 def pdf_text(path: Path) -> tuple[str, str]:
@@ -109,7 +122,7 @@ def read_folder(folder: Path) -> list[dict]:
             cached.write_text(json.dumps(extracted))
         # Kings names each notice file after the property ("644 LORIMER STREET #6.pdf").
         name = re.sub(r"\s*\(\d+\)$", "", path.stem)
-        documents.append({"file": path.name, "sha256": digest, "file_address": name, **extracted})
+        documents.append({"file": path.name, "sha256": digest, "file_address": name, "pdf": str(copy), **extracted})
     return documents
 
 
@@ -126,6 +139,10 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
             continue
         if layout == "notice_of_sale":
             parsed = [parse_notice_of_sale(document["text"], county, document["file_address"])]
+            if parsed[0][1] and document["method"] == "embedded_text" and (ocr := ocr_text(document)):
+                retry = parse_notice_of_sale(ocr, county, document["file_address"])
+                if not retry[1]:
+                    parsed, source = [retry], {**source, "text_method": "macos_vision_ocr_fallback"}
         elif layout == "calendar_summary":
             parsed = parse_calendar_summary(document["text"], county)
         elif layout == "auction_part_list":
