@@ -1,12 +1,12 @@
 "use client";
 
-import { Pencil, Search, X } from "lucide-react";
+import { Pencil, Search, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
 import { SiteFooter, SiteHeader } from "@/components/marketing-chrome";
-import { type AccessChange, type AccessChangeEntry, changeUserAccess, listAccessChanges, listUsers, type ManagedUser, type Role } from "@/lib/account";
+import { type AccessChange, type AccessChangeEntry, changeUserAccess, deleteUser, listAccessChanges, listUsers, type ManagedUser, type Role } from "@/lib/account";
 import { STATES } from "@/lib/states";
 import { getPropertyCoverage } from "@/services/properties";
 import type { PropertyCoverageItem } from "@/types/property";
@@ -28,7 +28,7 @@ const PLANS: { value: GrantedPlan; label: string }[] = [
 ];
 const day = (value: string | null) => value ? new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
 const FIELD_LABELS: Record<AccessChangeEntry["field"], string> = {
-  role: "Role", plan: "Plan", plan_status: "Plan status", coverage_state: "State", coverage_county: "County",
+  role: "Role", plan: "Plan", plan_status: "Plan status", coverage_state: "State", coverage_county: "County", deleted: "Account",
 };
 const VALUE_LABELS: Record<string, string> = {
   user: "User", developer: "Developer (admin)", file_uploader: "File uploader",
@@ -58,9 +58,9 @@ function groupChanges(entries: AccessChangeEntry[]) {
 const levelClass = (user: ManagedUser) => user.role === "developer" ? "is-admin" : user.role === "file_uploader" ? "is-files"
   : user.access_level.startsWith("No access") ? "is-none" : "is-data";
 
-function EditAccess({ user, self, counties, onSaved, onCancel }: {
+function EditAccess({ user, self, counties, onSaved, onDeleted, onCancel }: {
   user: ManagedUser; self: boolean; counties: PropertyCoverageItem[];
-  onSaved: (user: ManagedUser) => void; onCancel: () => void;
+  onSaved: (user: ManagedUser) => void; onDeleted: (user: ManagedUser) => void; onCancel: () => void;
 }) {
   const [role, setRole] = useState<Role>(user.role);
   const [plan, setPlan] = useState<GrantedPlan>(user.plan === "trial" ? "none" : user.plan);
@@ -75,6 +75,24 @@ function EditAccess({ user, self, counties, onSaved, onCancel }: {
   const stateCounties = counties.filter((item) => item.state === state && item.property_count > 0)
     .sort((a, b) => a.county.localeCompare(b.county));
   const missing = planChanged && ((plan === "starter" && !state) || (plan === "free" && (!state || !county)));
+
+  // Your own account and other developers cannot be deleted (change the role first);
+  // a paying Stripe subscriber is refused by the API until the subscription is canceled.
+  const deletable = !self && user.role !== "developer";
+
+  async function remove() {
+    const who = user.name ? `${user.name} (${user.email})` : user.email;
+    if (!window.confirm(`Delete ${who}? Their login, plan, investor profile, saved searches and watchlists are removed and cannot be restored. Files they uploaded are kept.`)) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await deleteUser(user.user_id);
+      onDeleted(user);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not delete the user.");
+      setBusy(false);
+    }
+  }
 
   async function save() {
     const change: AccessChange = {};
@@ -118,7 +136,9 @@ function EditAccess({ user, self, counties, onSaved, onCancel }: {
     <div className="user-edit-actions">
       <button type="button" className="site-button" disabled={busy || missing} onClick={save}>{busy ? "Saving…" : "Save"}</button>
       <button type="button" className="site-button button-ghost" disabled={busy} onClick={onCancel}>Cancel</button>
+      {deletable && <button type="button" className="site-button button-ghost user-delete" disabled={busy} onClick={remove}><Trash2/>Delete user</button>}
     </div>
+    {!deletable && !self && <p className="account-muted user-edit-note">To delete a developer, change their role first.</p>}
   </div>;
 }
 
@@ -164,6 +184,13 @@ export function UserManagementPage() {
     ];
   }, [users]);
 
+  function deleted(user: ManagedUser) {
+    setUsers((current) => current?.filter((item) => item.user_id !== user.user_id) ?? null);
+    setEditing(null);
+    setNotice(`${user.name ?? user.email} was deleted.`);
+    loadChanges();
+  }
+
   function saved(user: ManagedUser) {
     setUsers((current) => current?.map((item) => item.user_id === user.user_id ? user : item) ?? null);
     setEditing(null);
@@ -198,7 +225,7 @@ export function UserManagementPage() {
                   : <button type="button" className="site-button button-outline user-edit-toggle" onClick={() => { setNotice(null); setEditing(user.user_id); }}><Pencil/>Edit</button>}
               </div>
               {editing === user.user_id && <EditAccess user={user} self={user.email === account.email} counties={coverage}
-                onSaved={saved} onCancel={() => setEditing(null)}/>}
+                onSaved={saved} onDeleted={deleted} onCancel={() => setEditing(null)}/>}
             </li>)}</ul>}
           <div className="file-list-head">
             <h2>Change log</h2>
@@ -212,10 +239,13 @@ export function UserManagementPage() {
               const editor = group.first.changed_by_email === account.email ? "You" : group.first.changed_by_email ?? "A developer";
               return <li key={group.key}>
                 <div className="change-log-head">
-                  <span className="user-name">{target?.name ?? group.first.user_email ?? "Deleted user"}</span>
+                  <span className="user-name">{target?.name ?? group.first.user_email
+                    ?? group.fields.find((entry) => entry.field === "deleted")?.old_value ?? "Deleted user"}</span>
                   <span className="account-muted">{moment(group.first.changed_at)} · by {editor}</span>
                 </div>
-                <ul className="change-log-fields">{group.fields.map((entry) => <li key={entry.id}>
+                <ul className="change-log-fields">{group.fields.map((entry) => entry.field === "deleted" ? <li key={entry.id}>
+                  <span className="change-field">Account</span><span className="change-new change-deleted">Deleted</span>
+                </li> : <li key={entry.id}>
                   <span className="change-field">{FIELD_LABELS[entry.field] ?? entry.field}</span>
                   <span className="change-old">{shownValue(entry, entry.old_value)}</span>
                   <span aria-hidden>→</span><span className="sr-only">changed to</span>

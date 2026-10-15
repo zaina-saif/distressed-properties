@@ -1,6 +1,6 @@
 """User management for developers: every account with its role and access, and
-changes to a user's role or plan. main.py mounts the router behind
-require_developer. Every change is written to user_access_changes.
+changes to a user's role or plan, and deleting an account. main.py mounts the
+router behind require_developer. Every change is written to user_access_changes.
 
 Roles: user (sale data as their plan allows), developer (everything, and this
 panel), file_uploader (the private file storage only). A plan set here is a
@@ -12,7 +12,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -163,3 +163,31 @@ def list_changes(user_id: Optional[str] = None, limit: int = 200,
             ORDER BY c.changed_at DESC, c.field LIMIT :limit
         """), {"user_id": user_id, "limit": max(1, min(limit, 1000))}).mappings()
         return [ChangeRow(**row) for row in rows]
+
+
+@router.delete("/users/{user_id}", status_code=204)
+def delete_user(user_id: str, access: Access = Depends(require_developer)) -> Response:
+    """Delete the login and its account. Removing the auth.users row also removes, by
+    foreign key, the user's account row, investor profile and alert history; saved
+    searches and watchlists have no key and are deleted here. Files the user uploaded
+    stay in file storage, and the change log keeps a 'deleted' entry. The API has no
+    Supabase admin key, so the row is deleted in SQL, which Supabase supports."""
+    found = _users(user_id)
+    if not found:
+        raise HTTPException(status_code=404, detail="User not found.")
+    user = found[0]
+    if user_id == access.user_id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account.")
+    if user["role"] == "developer":
+        raise HTTPException(status_code=400, detail="Change this user's role from Developer before deleting the account.")
+    if user["has_subscription"] and user["plan_status"] in ACTIVE:
+        raise HTTPException(status_code=409, detail="This user has a Stripe subscription. Cancel it in Stripe first, "
+                                                    "so they are not billed after the account is gone.")
+    with engine.begin() as connection:
+        for table in ("saved_searches", "watchlists"):
+            connection.execute(text(f"DELETE FROM {table} WHERE user_id::text = :user_id"), {"user_id": user_id})
+        connection.execute(text("DELETE FROM auth.users WHERE id = CAST(:user_id AS uuid)"), {"user_id": user_id})
+        connection.execute(text("""INSERT INTO user_access_changes (user_id, changed_by, field, old_value, new_value)
+            VALUES (CAST(:user_id AS uuid), CAST(:changed_by AS uuid), 'deleted', :email, NULL)"""),
+            {"user_id": user_id, "changed_by": access.user_id, "email": user["email"]})
+    return Response(status_code=204)

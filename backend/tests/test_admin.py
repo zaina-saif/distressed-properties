@@ -49,6 +49,7 @@ def test_user_management_is_developer_only():
             assert client.get("/api/v1/admin/users").status_code == 403
             assert client.patch("/api/v1/admin/users/x", json={"role": "developer"}).status_code == 403
             assert client.get("/api/v1/admin/changes").status_code == 403
+            assert client.delete("/api/v1/admin/users/x").status_code == 403
         finally:
             app.dependency_overrides.clear()
 
@@ -83,5 +84,22 @@ def test_file_uploaders_cannot_take_a_plan():
         client = TestClient(app)
         assert client.post("/api/v1/account/free-plan", json={"state": "NJ", "county": "Monmouth"}).status_code == 403
         assert client.post("/api/v1/billing/checkout", json={"plan": "pro", "interval": "month"}).status_code == 403
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_who_cannot_be_deleted(monkeypatch):
+    me, other = "00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002"
+    rows = {me: row(user_id=me, email="dev@example.com", role="developer"),
+            other: row(user_id=other, email="u@example.com", plan="pro", plan_status="active", has_subscription=True)}
+    monkeypatch.setattr(admin, "_users", lambda user_id=None: [rows[user_id]] if user_id in rows else [])
+    as_user("developer")
+    try:
+        client = TestClient(app)
+        assert client.delete(f"/api/v1/admin/users/{me}").status_code == 400      # yourself
+        assert client.delete(f"/api/v1/admin/users/{other}").status_code == 409   # still billed by Stripe
+        rows[other] = row(user_id=other, email="d2@example.com", role="developer", has_subscription=False)
+        assert client.delete(f"/api/v1/admin/users/{other}").status_code == 400   # another developer
+        assert client.delete("/api/v1/admin/users/00000000-0000-0000-0000-000000000009").status_code == 404
     finally:
         app.dependency_overrides.clear()

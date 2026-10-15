@@ -283,3 +283,6 @@
 .root :global(.change-field) { min-width: 84px; color: var(--muted-foreground); font-size: 12px; }
 .root :global(.change-old) { color: var(--muted-foreground); text-decoration: line-through; }
 .root :global(.change-new) { font-weight: 600; }
+.root :global(.user-edit-actions .user-delete) { margin-left: auto; color: #b91c1c; gap: 6px; }
+.root :global(.user-edit-actions .user-delete svg) { width: 15px; height: 15px; }
+.root :global(.change-deleted) { color: #b91c1c; }

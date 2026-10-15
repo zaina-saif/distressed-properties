@@ -1,4 +1,4 @@
-import { authJson } from "@/lib/api";
+import { API_URL, authFetch, authJson } from "@/lib/api";
 
 export type Plan = "none" | "trial" | "free" | "starter" | "pro";
 export type BillingInterval = "month" | "year";
@@ -72,10 +72,16 @@ export interface AccessChangeEntry {
   user_id: string;
   user_email: string | null;
   changed_by_email: string | null;
-  field: "role" | "plan" | "plan_status" | "coverage_state" | "coverage_county";
+  field: "role" | "plan" | "plan_status" | "coverage_state" | "coverage_county" | "deleted";
   old_value: string | null;
   new_value: string | null;
   changed_at: string;
 }
 
 export const listAccessChanges = () => authJson<AccessChangeEntry[]>("/api/v1/admin/changes");
+export const deleteUser = (userId: string) => authFetch(`${API_URL}/api/v1/admin/users/${userId}`, { method: "DELETE" })
+  .then(async (response) => {
+    if (response.ok) return;
+    const detail = await response.json().then((body) => body?.detail).catch(() => null);
+    throw new Error(typeof detail === "string" ? detail : `Could not delete the user: ${response.status}`);
+  });
