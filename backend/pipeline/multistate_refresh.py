@@ -2,13 +2,17 @@
 
 Stages, in order:
   scrape   Each source's scraper (RealAuction OH/FL, CivilView DE/PA/IL/TX/GA,
-           PA county portals, SC Master-in-Equity, Illinois TJSC). A source
-           that fails is reported; the others still run.
+           PA county portals, SC Master-in-Equity, Illinois TJSC, NY Erie
+           sheriff and NYC tax-lien referee sales). A source that fails is
+           reported; the others still run.
   load     Load whatever snapshots were written. A county whose scrape failed
-           has no new snapshot, so its open sales are left untouched.
+           has no new snapshot, so its open sales are left untouched. NY court
+           referee auctions are loaded by hand (the court sites block scripts)
+           and the NY county pages drop sales without a result, so their passed
+           dates are marked here.
   zillow   Look up Zestimates on Apify for scheduled properties that lack one,
            state by state, never submitting more than --max-zillow-addresses
-           in total.
+           in total. NY listings with a ZIP but no coordinates are geocoded first.
   score    Re-score probability to auction with the saved model.
   report   Counts per state, written to report.json.
 
@@ -26,6 +30,7 @@ import os
 import subprocess
 import sys
 import traceback
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -34,7 +39,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD")
+STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD", "NY")
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -61,7 +66,15 @@ SOURCES = [
     ("Connecticut court sales", ["pipeline.scrape_ct_foreclosure_sales"], ["pipeline.load_ct_foreclosure_sales"]),
     ("County sale lists (KY Jefferson, OK Oklahoma/Tulsa, SD Minnehaha, WI Dane/Milwaukee)", ["pipeline.scrape_county_sale_lists", "--all"],
      ["pipeline.load_county_sale_lists", "--all"]),
+    # Orange County's page answers 403, so only Erie is scraped.
+    ("NY Erie sheriff sales", ["pipeline.scrape_ny_county_pages", "--counties", "Erie"],
+     ["pipeline.load_ny_sales", "--counties", "Erie"]),
+    ("NYC tax-lien referee sales", ["pipeline.scrape_nyc_referee_sales"], ["pipeline.load_nyc_referee_sales"]),
 ]
+# Sources whose loaders never retire a passed date: NY court auctions are loaded by hand
+# (pipeline.load_ny_court_pdfs, pipeline.load_queens_pipeline), and the NY county sheriff
+# pages drop a sale without a result (Orange's page is no longer reachable at all).
+UNRETIRED_SOURCES = ("ny_court_foreclosure_auction", "ny_county_official")
 BACKEND = Path(__file__).resolve().parents[1]
 DEFAULT_RUN_ROOT = BACKEND.parent / ".local" / "multistate-refresh"
 
@@ -78,6 +91,22 @@ def scheduled_counts() -> dict[str, dict[str, int]]:
         """), {"states": list(STATES)}).mappings().all()
     return {row["state"]: {"scheduled": int(row["scheduled"]), "with_zestimate": int(row["with_zestimate"])}
             for row in rows}
+
+
+def retire_passed_listings() -> int:
+    """A listing from UNRETIRED_SOURCES still 'scheduled' after its date has no published
+    result: it becomes sold_or_cancelled_unverified until a load brings the outcome."""
+    with engine.begin() as connection:
+        ids = connection.execute(text("""UPDATE sheriff_sales SET current_status='sold_or_cancelled_unverified',
+            updated_at=NOW() WHERE source_system = ANY(:sources) AND current_status='scheduled'
+            AND current_sale_date::date < CURRENT_DATE RETURNING id, current_sale_date, source_url"""),
+            {"sources": list(UNRETIRED_SOURCES)}).all()
+        for sale_id, sale_date, url in ids:
+            connection.execute(text("""INSERT INTO sheriff_sale_status_history(id,sheriff_sale_id,status,sale_date,
+                observed_at,source_url,raw_status) VALUES(:history_id,:id,'sold_or_cancelled_unverified',
+                :sale_date,NOW(),:url,'Auction date passed; result not published')"""),
+                {"history_id": str(uuid.uuid4()), "id": sale_id, "sale_date": sale_date, "url": url})
+    return len(ids)
 
 
 class Refresh:
@@ -110,6 +139,8 @@ class Refresh:
         self.report["stages"]["load"] = {name: self._run("load", name, args) for name, _, args in SOURCES}
         # Winning bids and buyers for sales the loaders just marked sold (e.g. Ohio).
         self.report["stages"]["sale_results"] = {"ok": self._run("load", "sale results", ["pipeline.sale_results"])}
+        self.report["stages"]["ny_dates_passed"] = retire_passed_listings()
+        print(f"  load NY listings past their date: {self.report['stages']['ny_dates_passed']}", flush=True)
 
     def zillow(self) -> None:
         import pipeline.apify_scheduled_zillow as apify
@@ -127,7 +158,9 @@ class Refresh:
             with self.log_path.open("a", encoding="utf-8") as log:
                 with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
                     stage["zip_lookup"] = fill(list(STATES))
-            print(f"  zip lookup: {stage['zip_lookup']}", flush=True)
+                    # NY court listings arrive with a ZIP but no coordinates.
+                    stage["ny_coordinates"] = fill(["NY"], coordinates=True)
+            print(f"  zip lookup: {stage['zip_lookup']}; NY coordinates: {stage['ny_coordinates']}", flush=True)
         except Exception as exc:  # noqa: BLE001 - Zillow still runs without the ZIPs
             self.report["failures"].append({"stage": "zillow", "item": "zip_lookup", "error": f"{type(exc).__name__}: {exc}"})
         for state in STATES:

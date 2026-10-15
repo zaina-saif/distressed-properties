@@ -40,7 +40,9 @@ Run everything from `backend/` with the venv active. The two refresh orchestrato
 python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
 python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
 
-# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI).
+# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI,
+# NY Erie sheriff and NYC tax-lien sales). NY court auctions are loaded by hand; this run geocodes them, adds Zestimates
+# and marks their passed dates sold_or_cancelled_unverified.
 # Stages: scrape load zillow score report. Default run dir: .local/multistate-refresh/
 python -m pipeline.multistate_refresh --run-dir /tmp/ms-refresh --max-zillow-addresses 600
 
