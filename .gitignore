@@ -24,3 +24,6 @@ tmp/
 # Temporary Figma Make handoff artifacts (the integrated source lives in frontend/).
 figma_export/
 Real Estate Dashboard Interface.zip
+
+# Local Queens pipeline data: SQLite DB, calendar/case PDFs, OCR cache, reports, exports.
+queens_pipeline/data/
