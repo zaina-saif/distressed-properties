@@ -16,6 +16,10 @@ FILES={"Butler":Path("data/sheriff_sales/pa_butler_sheriff_sales.json"),
  "Monroe":Path("data/sheriff_sales/pa_monroe_sheriff_sales.json"),
  "Susquehanna":Path("data/sheriff_sales/pa_susquehanna_sheriff_sales.json")}
 
+# Street, city and ZIP for listings whose published address is misspelled, by (county, sheriff number).
+# Monroe's "30 LUGWIG LANE" is 30 Ludwig Ln on Zillow and the PA street lists.
+ADDRESS_CORRECTIONS={("Monroe","121 CV 2026"):("30 LUDWIG LANE","STROUDSBURG","18360")}
+
 def address_parts(raw):
  value=" ".join(raw.split()); match=re.search(r"\bPA\s+(\d{5})(?:-\d{4})?\b",value,re.I)
  zip_code=match.group(1) if match else None; before=value[:match.start()].strip(" ,") if match else value
@@ -52,6 +56,8 @@ def load(county,path):
    if (lines:=portal_address(raw_payload.get("address_lines"))):
     street,city,zip_code,municipality=lines;municipality=municipality or city
     normalized=f"{street}, {city}, PA {zip_code}" if zip_code else f"{street}, {city}, PA"
+   if (correction:=ADDRESS_CORRECTIONS.get((county,record["sheriff_number"]))):
+    street,city,zip_code=correction;normalized=f"{street}, {city}, PA {zip_code}"
    property_id=c.execute(text("""INSERT INTO properties(id,normalized_address,street_address,city,
     municipality,county,state,zip_code,address_hash,data_quality_score) VALUES(:id,:normalized,:street,
     :city,:municipality,:county,'PA',:zip,:hash,70) ON CONFLICT(address_hash) DO UPDATE SET
