@@ -1,4 +1,5 @@
-from pipeline.apify_scheduled_zillow import clean_street, first_pass_address, queens_street, search_address, searchable
+from pipeline.apify_scheduled_zillow import (clean_street, first_pass_address, queens_retry_address, queens_street,
+                                             search_address, searchable)
 
 
 def test_alias_is_dropped():
@@ -92,6 +93,11 @@ def test_queens_search_leaves_out_the_neighborhood():
     # Brooklyn numbers are not Queens numbers: a range there still uses its first number.
     assert search_address({**row, "county": "Kings", "street_address": "8155-57 Throop Street"}) == \
         "8155 Throop Street, NY 11372"
+    # The retry: Zillow lists many Queens houses without the hyphen, with the town.
+    assert queens_retry_address({**row, "street_address": "33-21 102nd Street", "city": "Corona",
+                                 "zip_code": "11368"}) == "3321 102nd St, Corona, NY 11368"
+    assert queens_retry_address({**row, "street_address": "171 Beach 91st Street", "city": "Rockaway Beach",
+                                 "zip_code": "11693"}) == "171 Beach 91st St, Rockaway Beach, NY 11693"
 
 
 def test_full_range_search_adds_the_town_and_a_short_suffix():

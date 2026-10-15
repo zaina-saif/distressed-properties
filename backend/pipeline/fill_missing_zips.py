@@ -8,6 +8,7 @@ ZIPs and coordinates are never overwritten.
 
     python -m pipeline.fill_missing_zips --dry-run
     python -m pipeline.fill_missing_zips --states OK CT
+    python -m pipeline.fill_missing_zips --states NY --coordinates   # ZIP known, no map location yet
 """
 import argparse
 import json
@@ -53,15 +54,20 @@ def pick_match(street, matches):
     return zip_code, coordinates.get("y"), coordinates.get("x")
 
 
-def missing(states=None):
+def missing(states=None, coordinates=False):
+    """Properties with an open sale and no ZIP; with coordinates, those with a ZIP but no
+    latitude/longitude (an adjourned sale counts as open)."""
     with engine.connect() as connection:
         return connection.execute(text("""
-            SELECT DISTINCT p.id::text AS id, p.street_address, p.city, p.state
+            SELECT DISTINCT p.id::text AS id, p.street_address, p.city, p.state, p.zip_code
             FROM properties p JOIN sheriff_sales ss ON ss.property_id=p.id
-            WHERE strpos(lower(ss.current_status), 'scheduled') > 0
-              AND COALESCE(p.zip_code, '') = '' AND p.street_address ~ '^[1-9]'
+            WHERE (strpos(lower(ss.current_status), 'scheduled') > 0
+                   OR (:coordinates AND ss.current_status = 'adjourned'))
+              AND (CASE WHEN :coordinates THEN COALESCE(p.zip_code, '') <> '' AND p.latitude IS NULL
+                   ELSE COALESCE(p.zip_code, '') = '' END)
+              AND p.street_address ~ '^[1-9]'
               AND (CAST(:states AS TEXT[]) IS NULL OR p.state = ANY(CAST(:states AS TEXT[])))
-            ORDER BY p.state, p.street_address"""), {"states": states}).mappings().all()
+            ORDER BY p.state, p.street_address"""), {"states": states, "coordinates": coordinates}).mappings().all()
 
 
 def geocode(client, row):
@@ -74,8 +80,8 @@ def geocode(client, row):
     return pick_match(params["street"], response.json()["result"]["addressMatches"])
 
 
-def fill(states=None, dry_run=False, pause=0.3):
-    rows = missing(states)
+def fill(states=None, dry_run=False, pause=0.3, coordinates=False):
+    rows = missing(states, coordinates)
     found, filled = [], 0
     with httpx.Client(timeout=30, headers={"User-Agent": "SheriffSaleHunter ZIP lookup"}) as client:
         for row in rows:
@@ -84,12 +90,18 @@ def fill(states=None, dry_run=False, pause=0.3):
             except (httpx.HTTPError, KeyError, ValueError) as exc:
                 print(f"  {row['state']} {row['street_address']}: lookup failed ({type(exc).__name__})", flush=True)
                 result = None
-            if result:
+            # A ZIP already on file must agree, so a same-number house elsewhere is not used.
+            if result and not (coordinates and result[0] != row["zip_code"]):
                 found.append((row, result))
             time.sleep(pause)
     if not dry_run:
         with engine.begin() as connection:
             for row, (zip_code, latitude, longitude) in found:
+                if coordinates:
+                    filled += connection.execute(text("""UPDATE properties SET latitude=:latitude,
+                        longitude=:longitude, updated_at=NOW() WHERE id=CAST(:id AS uuid) AND latitude IS NULL"""),
+                        {"latitude": latitude, "longitude": longitude, "id": row["id"]}).rowcount
+                    continue
                 filled += connection.execute(text("""UPDATE properties SET zip_code=:zip,
                     latitude=COALESCE(latitude, :latitude), longitude=COALESCE(longitude, :longitude), updated_at=NOW()
                     WHERE id=CAST(:id AS uuid) AND COALESCE(zip_code, '')=''"""),
@@ -104,8 +116,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--states", nargs="+")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--coordinates", action="store_true",
+                        help="fill coordinates for properties that have a ZIP but no latitude/longitude")
     args = parser.parse_args()
-    print(json.dumps(fill(args.states, args.dry_run)))
+    print(json.dumps(fill(args.states, args.dry_run, coordinates=args.coordinates)))
 
 
 if __name__ == "__main__":

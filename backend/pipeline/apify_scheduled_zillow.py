@@ -131,6 +131,13 @@ def search_address(row):
     return ", ".join(part for part in (street, city, row["state"]) if part)
 
 
+def queens_retry_address(row):
+    """A Queens house the hyphenated search missed: Zillow lists many under the number without
+    its hyphen and the town ("33-21 102nd Street" -> "3321 102nd St, Corona, NY 11368")."""
+    street = re.sub(r"^(\d+)-(\d+)", r"\1\2", search_address(row).split(",")[0])
+    return ", ".join(part for part in (street, search_city(row.get("city")), f"NY {row.get('zip_code') or ''}".strip()) if part)
+
+
 def first_pass_address(row):
     """The normalized address without commas, plus the ZIP when it lacks one (e.g. a ZIP
     filled in later by fill_missing_zips). Queens addresses use search_address: Zillow files
@@ -182,7 +189,7 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
     manifest = [dict(row) for row in rows if searchable(row)]
     for row in manifest:
         if retry_unmatched:
-            row["input_address"] = search_address(row)
+            row["input_address"] = queens_retry_address(row) if is_queens(row) else search_address(row)
         else:
             # Normalized addresses sometimes split multi-word towns ("West New, York");
             # Zillow's free-text search matches better without the commas.
