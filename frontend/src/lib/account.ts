@@ -65,3 +65,17 @@ export type AccessChange = { role?: Role; plan?: "none" | "free" | "starter" | "
 export const listUsers = () => authJson<ManagedUser[]>("/api/v1/admin/users");
 export const changeUserAccess = (userId: string, change: AccessChange) =>
   authJson<ManagedUser>(`/api/v1/admin/users/${userId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change) });
+
+/** One role or plan field changed from the user management panel. */
+export interface AccessChangeEntry {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  changed_by_email: string | null;
+  field: "role" | "plan" | "plan_status" | "coverage_state" | "coverage_county";
+  old_value: string | null;
+  new_value: string | null;
+  changed_at: string;
+}
+
+export const listAccessChanges = () => authJson<AccessChangeEntry[]>("/api/v1/admin/changes");

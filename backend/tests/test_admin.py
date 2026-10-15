@@ -48,6 +48,7 @@ def test_user_management_is_developer_only():
             client = TestClient(app)
             assert client.get("/api/v1/admin/users").status_code == 403
             assert client.patch("/api/v1/admin/users/x", json={"role": "developer"}).status_code == 403
+            assert client.get("/api/v1/admin/changes").status_code == 403
         finally:
             app.dependency_overrides.clear()
 

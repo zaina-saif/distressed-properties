@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAccount } from "@/components/account-provider";
 import { SiteFooter, SiteHeader } from "@/components/marketing-chrome";
-import { type AccessChange, changeUserAccess, listUsers, type ManagedUser, type Role } from "@/lib/account";
+import { type AccessChange, type AccessChangeEntry, changeUserAccess, listAccessChanges, listUsers, type ManagedUser, type Role } from "@/lib/account";
 import { STATES } from "@/lib/states";
 import { getPropertyCoverage } from "@/services/properties";
 import type { PropertyCoverageItem } from "@/types/property";
@@ -27,6 +27,34 @@ const PLANS: { value: GrantedPlan; label: string }[] = [
   { value: "pro", label: "Pro: full access" },
 ];
 const day = (value: string | null) => value ? new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+const FIELD_LABELS: Record<AccessChangeEntry["field"], string> = {
+  role: "Role", plan: "Plan", plan_status: "Plan status", coverage_state: "State", coverage_county: "County",
+};
+const VALUE_LABELS: Record<string, string> = {
+  user: "User", developer: "Developer (admin)", file_uploader: "File uploader",
+  none: "No access", trial: "Trial", free: "Free", starter: "Starter", pro: "Pro",
+  active: "active", inactive: "inactive", trialing: "trialing", past_due: "past due", canceled: "canceled",
+};
+const shownValue = (entry: AccessChangeEntry, value: string | null) =>
+  value === null ? "none" : entry.field === "role" || entry.field === "plan" || entry.field === "plan_status" ? VALUE_LABELS[value] ?? value : value;
+const moment = (value: string) => new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
+
+/** One save from the panel writes a row per changed field at the same moment: shown as one entry.
+ *  Plan status follows the plan, so it is left out when the plan changed too. */
+function groupChanges(entries: AccessChangeEntry[]) {
+  const groups: { key: string; first: AccessChangeEntry; fields: AccessChangeEntry[] }[] = [];
+  for (const entry of entries) {
+    const key = `${entry.user_id}|${entry.changed_at}`;
+    const group = groups.find((item) => item.key === key);
+    if (group) group.fields.push(entry);
+    else groups.push({ key, first: entry, fields: [entry] });
+  }
+  for (const group of groups) {
+    if (group.fields.some((entry) => entry.field === "plan")) group.fields = group.fields.filter((entry) => entry.field !== "plan_status");
+  }
+  return groups;
+}
+
 const levelClass = (user: ManagedUser) => user.role === "developer" ? "is-admin" : user.role === "file_uploader" ? "is-files"
   : user.access_level.startsWith("No access") ? "is-none" : "is-data";
 
@@ -103,6 +131,8 @@ export function UserManagementPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [coverage, setCoverage] = useState<PropertyCoverageItem[]>([]);
+  const [changes, setChanges] = useState<AccessChangeEntry[] | null>(null);
+  const [changesError, setChangesError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !session) router.replace(`/get-started?mode=login&next=${encodeURIComponent("/admin/users")}`);
@@ -110,11 +140,15 @@ export function UserManagementPage() {
 
   const load = useCallback(() => listUsers().then(setUsers)
     .catch((failure) => setError(failure instanceof Error ? failure.message : "Could not load users.")), []);
+  const loadChanges = useCallback(() => listAccessChanges().then((rows) => { setChanges(rows); setChangesError(null); })
+    .catch((failure) => setChangesError(failure instanceof Error ? failure.message : "Could not load the change log.")), []);
   useEffect(() => {
     if (!account?.is_developer) return;
     load();
+    loadChanges();
     getPropertyCoverage("scheduled").then(setCoverage).catch(() => setCoverage([]));
-  }, [account, load]);
+  }, [account, load, loadChanges]);
+  const changeGroups = useMemo(() => groupChanges(changes ?? []), [changes]);
 
   const shown = useMemo(() => {
     const term = query.trim().toLowerCase();
@@ -134,6 +168,7 @@ export function UserManagementPage() {
     setUsers((current) => current?.map((item) => item.user_id === user.user_id ? user : item) ?? null);
     setEditing(null);
     setNotice(`${user.name ?? user.email}: ${user.access_level}.`);
+    loadChanges();
   }
 
   return <div className={styles.root}>
@@ -165,6 +200,29 @@ export function UserManagementPage() {
               {editing === user.user_id && <EditAccess user={user} self={user.email === account.email} counties={coverage}
                 onSaved={saved} onCancel={() => setEditing(null)}/>}
             </li>)}</ul>}
+          <div className="file-list-head">
+            <h2>Change log</h2>
+            {changes && changeGroups.length > 0 && <span className="account-muted">{changeGroups.length} change{changeGroups.length === 1 ? "" : "s"}</span>}
+          </div>
+          {changesError ? <p className="form-error" role="alert">{changesError}</p>
+            : !changes ? <p className="account-muted">Loading…</p>
+            : !changeGroups.length ? <p className="account-muted">No changes yet. Role and plan changes made here are listed with who made them and when.</p>
+            : <ul className="change-log">{changeGroups.map((group) => {
+              const target = users?.find((item) => item.user_id === group.first.user_id);
+              const editor = group.first.changed_by_email === account.email ? "You" : group.first.changed_by_email ?? "A developer";
+              return <li key={group.key}>
+                <div className="change-log-head">
+                  <span className="user-name">{target?.name ?? group.first.user_email ?? "Deleted user"}</span>
+                  <span className="account-muted">{moment(group.first.changed_at)} · by {editor}</span>
+                </div>
+                <ul className="change-log-fields">{group.fields.map((entry) => <li key={entry.id}>
+                  <span className="change-field">{FIELD_LABELS[entry.field] ?? entry.field}</span>
+                  <span className="change-old">{shownValue(entry, entry.old_value)}</span>
+                  <span aria-hidden>→</span><span className="sr-only">changed to</span>
+                  <span className="change-new">{shownValue(entry, entry.new_value)}</span>
+                </li>)}</ul>
+              </li>;
+            })}</ul>}
         </>}
     </main>
     <SiteFooter/>

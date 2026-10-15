@@ -135,3 +135,31 @@ def change_access(user_id: str, change: AccessChange, access: Access = Depends(r
                      "old": None if current.get(field) is None else str(current[field]),
                      "new": None if value is None else str(value)})
     return _user_row(_users(user_id)[0])
+
+
+class ChangeRow(BaseModel):
+    id: str
+    user_id: str
+    user_email: Optional[str]
+    changed_by_email: Optional[str]
+    field: str
+    old_value: Optional[str]
+    new_value: Optional[str]
+    changed_at: datetime
+
+
+@router.get("/changes", response_model=list[ChangeRow])
+def list_changes(user_id: Optional[str] = None, limit: int = 200,
+                 access: Access = Depends(require_developer)) -> list[ChangeRow]:
+    """The newest role and plan changes made from this panel, for everyone or one user."""
+    with engine.connect() as connection:
+        rows = connection.execute(text("""
+            SELECT c.id::text, c.user_id::text, target.email AS user_email, editor.email AS changed_by_email,
+                   c.field, c.old_value, c.new_value, c.changed_at
+            FROM user_access_changes c
+            LEFT JOIN user_accounts target ON target.user_id = c.user_id
+            LEFT JOIN user_accounts editor ON editor.user_id = c.changed_by
+            WHERE CAST(:user_id AS uuid) IS NULL OR c.user_id = CAST(:user_id AS uuid)
+            ORDER BY c.changed_at DESC, c.field LIMIT :limit
+        """), {"user_id": user_id, "limit": max(1, min(limit, 1000))}).mappings()
+        return [ChangeRow(**row) for row in rows]
