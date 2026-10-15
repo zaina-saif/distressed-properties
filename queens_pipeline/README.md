@@ -21,6 +21,9 @@ python ingest_case_files.py 713725/2021 --cases-dir ...      # one case
 python export_json.py                     # -> data/queens/export/
 
 pytest                                    # QUEENS_CASES_DIR=<folder> also runs the real-file test
+
+# 4. Put every active case with an address on the live site (from backend/, writes to DATABASE_URL)
+cd ../backend && python -m pipeline.load_queens_pipeline --dry-run && python -m pipeline.load_queens_pipeline
 ```
 
 | File | Role |
@@ -49,4 +52,7 @@ Choices the spec left open, or where the real files differed from it:
   (date + purpose) merges two hearings of the same kind on one day. A case's rows are replaced when its
   appearance page is re-read.
 - **OCR** runs on pages with under 200 characters of text, first 25 pages of a file only.
+- **Notice amounts:** "approximate amount of judgment" is the judgment; "approximate amount of lien" is kept
+  apart as `approximate_lien_amount` and never used as the judgment.
+- **Queens house numbers** printed without the hyphen before a numbered street (`15826 78th Avenue`) get it back.
 - No LLM fallback is implemented; every value is a regex match (`method = 'regex'`).

@@ -294,6 +294,9 @@ def split_address(raw: str, county: str) -> dict | None:
     if county == "Queens":
         # A Queens house number whose hyphen OCR read as a space: '57 48 Van Doren Street'.
         text = re.sub(r"^(\d{2,3})\s(\d{2})(?=\s+[A-Za-z0-9])", r"\1-\2", text)
+        # One printed without it: '15826 78th Avenue' is 158-26. Only before a numbered street,
+        # so a Rockaway number ('171 Beach 91st Street') is left alone.
+        text = re.sub(r"^(\d{2,3})(\d{2})(?=\s+\d+(?:st|nd|rd|th)\b)", r"\1-\2", text, flags=re.I)
     match = ADDRESS.match(text)
     if not match:
         return None
@@ -344,7 +347,17 @@ def parse_notice_of_sale(text: str, county: str) -> dict:
                           r"\s*,\s*(?:(?i:Esq)\.?\s*)?[,\-–]?\s*"
                           r"(?i:Referee)\b", body)
     if referees:
-        values["referee_name"] = tidy(referees[-1])
+        # OCR doubles a capital ("JJais") or drops the space before a middle initial ("NedaM.").
+        name = re.sub(r"\b([A-Z])\1(?=[a-z])", r"\1", tidy(referees[-1]))
+        values["referee_name"] = re.sub(r"([a-z])([A-Z]\.)", r"\1 \2", name)
+    # "Approximate amount of judgment is $X" / "the approximate amount of the current (OCR: cunent)
+    # Judgment lien is $X". "Approximate amount of lien $X" names no judgment, so it is kept apart.
+    judgment = re.search(r"amount\s+of\s+(?:the\s+)?(?:cu\w{1,3}nt\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*" + MONEY,
+                         body, re.I)
+    lien = None if judgment else re.search(r"approximate\s+amount\s+of\s+(?:the\s+)?lien\s*(?:is|of|:)?\s*" + MONEY,
+                                           body, re.I)
+    values["approximate_judgment"] = money(judgment[1]) if judgment else None
+    values["approximate_lien_amount"] = money(lien[1]) if lien else None
     sale = re.search(r"(?:will\s+sell|publi\w*\s+a?uction).{0,220}?\bon\s+((?:January|February|March|April|May|June|"
                      r"July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2})", body, re.I)
     values["notice_auction_date"] = iso(re.sub(r",?\s+", " ", sale[1]), "%B %d %Y") if sale else None

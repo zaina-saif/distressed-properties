@@ -39,6 +39,7 @@ COUNTY = "Queens"
 # Lower rank wins.
 SECTION_RANK = {"notice_of_sale": 0, "summons_complaint": 1, "notice_of_pendency": 2, "case_detail": 3}
 CASE_FIELDS = ("property_address", "city", "zip", "borough_block_lot", "referee_name", "unpaid_principal",
+               "approximate_judgment", "approximate_lien_amount",
                "original_mortgagee", "case_status", "filing_date", "initiating_doc", "initiating_doc_date")
 FILL_IF_BLANK = ("cms_index", "justice", "caption")
 

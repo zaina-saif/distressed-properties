@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS cases (
   zip                  TEXT,
   borough_block_lot    TEXT,
   unpaid_principal     REAL,
+  approximate_judgment REAL,
+  approximate_lien_amount REAL,
   original_mortgagee   TEXT,
   initiating_doc       TEXT,
   initiating_doc_date  TEXT,
@@ -123,6 +125,8 @@ CREATE TABLE IF NOT EXISTS field_sources (
   PRIMARY KEY (county, index_number, field)
 );
 """
+# Columns added after the first release, for databases created before them.
+ADDED_COLUMNS = {"cases": {"approximate_judgment": "REAL", "approximate_lien_amount": "REAL"}}
 
 
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:
@@ -131,6 +135,11 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
     connection.executescript(SCHEMA)
+    for table, columns in ADDED_COLUMNS.items():
+        present = {row["name"] for row in connection.execute(f"PRAGMA table_info({table})")}
+        for name, kind in columns.items():
+            if name not in present:
+                connection.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
     return connection
 
 

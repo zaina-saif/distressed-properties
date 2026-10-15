@@ -61,7 +61,16 @@ def test_notice_of_sale_fields():
             "Index Number 713725/2021. MARTHA TAYLOR, ESQ., Referee DRUCKMAN LAW GROUP PLLC")
     assert parse_notice_of_sale(text, "Queens") == {
         "property_address": "37-46 79th Street", "city": "Jackson Heights", "zip": "11372",
-        "borough_block_lot": "4-1289-29", "referee_name": "Martha Taylor", "notice_auction_date": "2026-10-16"}
+        "borough_block_lot": "4-1289-29", "referee_name": "Martha Taylor", "notice_auction_date": "2026-10-16",
+        "approximate_judgment": 961285.38}
+    lien = parse_notice_of_sale("premises known as 3321 102ND STREET, CORONA, NY 11368 Approximate amount of lien "
+                                "$866,961.45 plus interest. JJais A. Forde, Esq. - Referee.", "Queens")
+    assert (lien["property_address"], lien["approximate_lien_amount"], lien["referee_name"]) == (
+        "33-21 102nd Street", 866961.45, "Jais A. Forde")
+    assert "approximate_judgment" not in lien
+    assert parse_notice_of_sale("The approximate amount of the cunent Judgment lien is $1,091,830.08 plus interest. "
+                                "NedaM. Melamed, Esq. -Referee", "Queens") == {
+        "approximate_judgment": 1091830.08, "referee_name": "Neda M. Melamed"}
     assert parse_notice_of_sale("Judgment Index No.: 721003/2022. & Gerald Chiariello, II, Esq. - Referee. Robertson",
                                 "Queens")["referee_name"] == "Gerald Chiariello, II"
 

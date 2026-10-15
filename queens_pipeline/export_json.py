@@ -48,6 +48,8 @@ def case_json(connection: sqlite3.Connection, case: sqlite3.Row) -> dict:
             "address": address(case),
             "borough_block_lot": case["borough_block_lot"],
             "unpaid_principal_balance": case["unpaid_principal"],
+            "approximate_judgment": case["approximate_judgment"],
+            "approximate_lien_amount": case["approximate_lien_amount"],
         },
         "referee_name": case["referee_name"],
         "plaintiff_attorney": case["plaintiff_attorney"],
