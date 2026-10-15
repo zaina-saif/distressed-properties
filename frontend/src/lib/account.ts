@@ -2,10 +2,11 @@ import { authJson } from "@/lib/api";
 
 export type Plan = "none" | "trial" | "free" | "starter" | "pro";
 export type BillingInterval = "month" | "year";
+export type Role = "user" | "developer" | "file_uploader";
 
 export interface Account {
   email: string;
-  role: "user" | "developer";
+  role: Role;
   plan: Plan;
   plan_status: "inactive" | "active" | "trialing" | "past_due" | "canceled";
   billing_interval: BillingInterval | null;
@@ -14,6 +15,7 @@ export interface Account {
   current_period_end: string | null;
   has_access: boolean;
   is_developer: boolean;
+  can_upload_files: boolean;
   has_billing: boolean;
   coverage_change_available_at: string | null;
   paid_plans_available: Plan[];
@@ -40,3 +42,26 @@ export const changeCoverage = (state: string, county?: string) => post("/api/v1/
 export const startCheckout = (plan: "starter" | "pro", interval: BillingInterval, state?: string) =>
   post<{ url: string }>("/api/v1/billing/checkout", { plan, interval, state });
 export const openBillingPortal = () => post<{ url: string }>("/api/v1/billing/portal");
+
+/** An account as the developer's user management panel lists it (/api/v1/admin/users). */
+export interface ManagedUser {
+  user_id: string;
+  email: string;
+  name: string | null;
+  role: Role;
+  plan: Plan;
+  plan_status: Account["plan_status"];
+  coverage_state: string | null;
+  coverage_county: string | null;
+  trial_ends_at: string | null;
+  has_subscription: boolean;
+  access_level: string;
+  created_at: string | null;
+  last_sign_in_at: string | null;
+}
+
+export type AccessChange = { role?: Role; plan?: "none" | "free" | "starter" | "pro"; coverage_state?: string; coverage_county?: string };
+
+export const listUsers = () => authJson<ManagedUser[]>("/api/v1/admin/users");
+export const changeUserAccess = (userId: string, change: AccessChange) =>
+  authJson<ManagedUser>(`/api/v1/admin/users/${userId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(change) });

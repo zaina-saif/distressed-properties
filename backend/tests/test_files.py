@@ -36,7 +36,7 @@ def test_names_lose_their_folders_and_pdfs_are_checked_by_content():
     assert is_pdf(PDF) and not is_pdf(b"<html>")
 
 
-def test_file_routes_are_developer_only():
+def test_file_routes_are_for_developers_and_file_uploaders_only():
     app.dependency_overrides[current_user] = lambda: Access(user_id="u1", email="a@example.com", plan="pro",
                                                             plan_status="active")
     try:

@@ -9,7 +9,9 @@ Each user has a user_accounts row with a role, a plan and the plan's coverage:
   free     one county (coverage_state + coverage_county)
   starter  one state (coverage_state)
   pro      every state
-  developer role: every state and the developer-only endpoints, whatever the plan
+  developer role: every state and the developer-only endpoints, whatever the plan;
+                  manages other users' roles and plans (app/api/admin.py)
+  file_uploader role: the private file storage only, and no sale data whatever the plan
 """
 from __future__ import annotations
 
@@ -53,9 +55,19 @@ class Access:
         return self.role == "developer"
 
     @property
+    def is_file_uploader(self) -> bool:
+        return self.role == "file_uploader"
+
+    @property
+    def can_upload_files(self) -> bool:
+        return self.is_developer or self.is_file_uploader
+
+    @property
     def has_plan(self) -> bool:
         if self.is_developer:
             return True
+        if self.is_file_uploader:
+            return False
         if self.plan == "trial":
             return self.on_trial
         if self.plan == "free":
@@ -182,6 +194,13 @@ def require_access(access: Access = Depends(current_user)) -> Access:
 def require_developer(access: Access = Depends(current_user)) -> Access:
     if not access.is_developer:
         raise HTTPException(status_code=403, detail="Developer access is required.")
+    return access
+
+
+def require_file_access(access: Access = Depends(current_user)) -> Access:
+    """The private file storage: developers and file uploaders."""
+    if not access.can_upload_files:
+        raise HTTPException(status_code=403, detail="File storage is not available on this account.")
     return access
 
 

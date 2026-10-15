@@ -89,6 +89,7 @@ def me(access: Access = Depends(current_user)) -> dict[str, Any]:
         "billing_interval": row["billing_interval"], "coverage_state": row["coverage_state"],
         "coverage_county": row["coverage_county"], "current_period_end": row["current_period_end"],
         "has_access": access.has_plan, "is_developer": access.is_developer,
+        "can_upload_files": access.can_upload_files,
         "has_billing": bool(row["stripe_customer_id"]),
         "coverage_change_available_at": (row["coverage_changed_at"] + timedelta(days=COVERAGE_CHANGE_DAYS))
         if row["coverage_changed_at"] else None,
@@ -103,8 +104,15 @@ def has_paid_plan(row: dict[str, Any]) -> bool:
 
 
 def trial_available(row: dict[str, Any], access: Access) -> bool:
-    """One trial per account, for anyone not already on a paid plan."""
-    return row["trial_started_at"] is None and not access.is_developer and not has_paid_plan(row)
+    """One trial per account, for anyone not already on a paid plan (file uploaders see no sale data)."""
+    return (row["trial_started_at"] is None and not access.is_developer and not access.is_file_uploader
+            and not has_paid_plan(row))
+
+
+def no_plans_for_file_uploaders(access: Access) -> None:
+    """A file uploader sees no sale data whatever the plan, so it cannot take one."""
+    if access.is_file_uploader:
+        raise HTTPException(status_code=403, detail="This account is for file uploads only and cannot take a plan.")
 
 
 @router.post("/account/trial")
@@ -131,6 +139,7 @@ class FreePlan(BaseModel):
 
 @router.post("/account/free-plan")
 def start_free_plan(body: FreePlan, access: Access = Depends(current_user)) -> dict[str, Any]:
+    no_plans_for_file_uploaders(access)
     row = account_row(access.user_id)
     if has_paid_plan(row):
         raise HTTPException(status_code=409, detail="You have a paid plan. Manage it from billing instead.")
@@ -179,6 +188,7 @@ class Checkout(BaseModel):
 
 @router.post("/billing/checkout")
 def create_checkout(body: Checkout, access: Access = Depends(current_user)) -> dict[str, str]:
+    no_plans_for_file_uploaders(access)
     stripe_client()
     price = price_ids().get((body.plan, body.interval))
     if not price:

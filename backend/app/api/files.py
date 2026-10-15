@@ -1,7 +1,8 @@
-"""Private PDF storage for developer accounts: upload PDFs one by one or as zip
-archives, list them, download them and delete them. Each user sees only their
-own files, and only developers can use these routes (main.py mounts the router
-behind require_developer). Files live in the developer_files table.
+"""Private PDF storage: upload PDFs one by one or as zip archives, list them,
+download them and delete them. Only developers and file uploaders can use these
+routes (require_file_access). A file uploader sees only their own files; a
+developer sees everyone's, with the uploader's email. Files live in the
+developer_files table.
 """
 from __future__ import annotations
 
@@ -16,7 +17,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFil
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import Access, require_developer
+from app.auth import Access, require_file_access
 from app.database.session import engine
 
 router = APIRouter(prefix="/api/v1/files", tags=["files"])
@@ -34,6 +35,7 @@ class StoredFile(BaseModel):
     source_zip: str | None
     size_bytes: int
     uploaded_at: datetime
+    uploaded_by: str | None = None
 
 
 class Skipped(BaseModel):
@@ -98,21 +100,30 @@ def pdfs_in_zip(content: bytes, zip_name: str) -> tuple[list[tuple[str, bytes]],
 
 def _row(row) -> StoredFile:
     return StoredFile(id=str(row["id"]), filename=row["filename"], source_zip=row["source_zip"],
-                      size_bytes=row["size_bytes"], uploaded_at=row["uploaded_at"])
+                      size_bytes=row["size_bytes"], uploaded_at=row["uploaded_at"], uploaded_by=row.get("uploaded_by"))
+
+
+# Whose files a user may see: a developer every file, anyone else their own.
+OWNED = "(:developer OR f.user_id = CAST(:user_id AS uuid))"
+
+
+def _scope(access: Access) -> dict:
+    return {"user_id": access.user_id, "developer": access.is_developer}
 
 
 @router.get("", response_model=list[StoredFile])
-def list_files(access: Access = Depends(require_developer)) -> list[StoredFile]:
+def list_files(access: Access = Depends(require_file_access)) -> list[StoredFile]:
     with engine.connect() as connection:
-        rows = connection.execute(text("""SELECT id, filename, source_zip, size_bytes, uploaded_at
-            FROM developer_files WHERE user_id = :user_id ORDER BY uploaded_at DESC, filename"""),
-            {"user_id": access.user_id}).mappings().all()
+        rows = connection.execute(text(f"""SELECT f.id, f.filename, f.source_zip, f.size_bytes, f.uploaded_at,
+                u.email AS uploaded_by
+            FROM developer_files f LEFT JOIN user_accounts u ON u.user_id = f.user_id
+            WHERE {OWNED} ORDER BY f.uploaded_at DESC, f.filename"""), _scope(access)).mappings().all()
     return [_row(row) for row in rows]
 
 
 @router.post("", response_model=UploadResult)
 async def upload_files(files: list[UploadFile] = File(...),
-                       access: Access = Depends(require_developer)) -> UploadResult:
+                       access: Access = Depends(require_file_access)) -> UploadResult:
     candidates: list[tuple[str, bytes, str | None]] = []
     skipped: list[Skipped] = []
     total = 0
@@ -155,11 +166,10 @@ async def upload_files(files: list[UploadFile] = File(...),
 
 
 @router.get("/{file_id}/download")
-def download_file(file_id: str, access: Access = Depends(require_developer)) -> Response:
+def download_file(file_id: str, access: Access = Depends(require_file_access)) -> Response:
     with engine.connect() as connection:
-        row = connection.execute(text("""SELECT filename, content_type, content FROM developer_files
-            WHERE id::text = :id AND user_id = :user_id"""),
-            {"id": file_id, "user_id": access.user_id}).mappings().first()
+        row = connection.execute(text(f"""SELECT filename, content_type, content FROM developer_files f
+            WHERE f.id::text = :id AND {OWNED}"""), {"id": file_id, **_scope(access)}).mappings().first()
     if not row:
         raise HTTPException(status_code=404, detail="File not found.")
     ascii_name = row["filename"].encode("ascii", "replace").decode().replace('"', "'")
@@ -170,10 +180,10 @@ def download_file(file_id: str, access: Access = Depends(require_developer)) -> 
 
 
 @router.delete("/{file_id}", status_code=204)
-def delete_file(file_id: str, access: Access = Depends(require_developer)) -> Response:
+def delete_file(file_id: str, access: Access = Depends(require_file_access)) -> Response:
     with engine.begin() as connection:
-        deleted = connection.execute(text("""DELETE FROM developer_files
-            WHERE id::text = :id AND user_id = :user_id"""), {"id": file_id, "user_id": access.user_id}).rowcount
+        deleted = connection.execute(text(f"""DELETE FROM developer_files f
+            WHERE f.id::text = :id AND {OWNED}"""), {"id": file_id, **_scope(access)}).rowcount
     if not deleted:
         raise HTTPException(status_code=404, detail="File not found.")
     return Response(status_code=204)

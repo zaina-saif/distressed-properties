@@ -80,15 +80,16 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
       {!account ? <p className="account-muted">{loading ? "Loading…" : "We could not load your account. Try again shortly."}</p> : <>
         <dl className="account-facts">
           <div><dt>Email</dt><dd>{account.email}</dd></div>
-          <div><dt>Plan</dt><dd>{account.is_developer ? "Developer (full access)" : account.plan === "none" ? "No plan" : account.plan === "trial" ? "Free trial" : account.plan[0].toUpperCase() + account.plan.slice(1)}
-            {!account.is_developer && account.plan !== "none" && <span className={`plan-status status-${account.plan_status}`}>{account.plan_status.replace("_", " ")}</span>}</dd></div>
-          <div><dt>Coverage</dt><dd>{coverageText}</dd></div>
+          <div><dt>Plan</dt><dd>{account.is_developer ? "Developer (full access)" : account.role === "file_uploader" ? "File uploads only" : account.plan === "none" ? "No plan" : account.plan === "trial" ? "Free trial" : account.plan[0].toUpperCase() + account.plan.slice(1)}
+            {!account.is_developer && account.role !== "file_uploader" && account.plan !== "none" && <span className={`plan-status status-${account.plan_status}`}>{account.plan_status.replace("_", " ")}</span>}</dd></div>
+          {account.role !== "file_uploader" && <div><dt>Coverage</dt><dd>{coverageText}</dd></div>}
           {account.plan === "trial" && account.trial_ends_at && <div><dt>{account.has_access ? "Trial ends" : "Trial ended"}</dt><dd>{day(account.trial_ends_at)}</dd></div>}
           {account.current_period_end && <div><dt>{account.plan_status === "canceled" ? "Ended" : "Renews"}</dt><dd>{day(account.current_period_end)}</dd></div>}
         </dl>
         {account.plan_status === "past_due" && <p className="form-error">Your last payment failed. Update your payment method in billing to keep access.</p>}
         <div className="choose-plan-actions">
           {account.has_access ? <Link href="/dashboard" className="site-button">Open the dashboard<ArrowRight/></Link>
+            : account.role === "file_uploader" ? <Link href="/files" className="site-button">Open file storage<ArrowRight/></Link>
             : <Link href="/choose-plan" className="site-button">Choose a plan<ArrowRight/></Link>}
           {account.has_billing && <button type="button" className="site-button button-outline" disabled={busy}
             onClick={() => run(async () => { window.location.assign((await openBillingPortal()).url); })}>Manage billing</button>}
@@ -101,7 +102,12 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
           <Link href="/profile" className="site-button button-outline">Edit profile<ArrowRight/></Link>
         </section>
         {account.is_developer && <section className="profile-card">
-          <div><h2>File storage</h2><p>Private PDF storage for your account. Upload PDFs or zips of PDFs, then download or delete them.</p></div>
+          <div><h2>Users</h2><p>Every account with its access level. Change a user&apos;s role or plan, or make someone a file uploader.</p></div>
+          <Link href="/admin/users" className="site-button button-outline">Manage users<ArrowRight/></Link>
+        </section>}
+        {account.can_upload_files && <section className="profile-card">
+          <div><h2>File storage</h2><p>{account.is_developer ? "Private PDF storage. Upload PDFs or zips of PDFs, then download or delete them; you also see files uploaded by file uploaders."
+            : "Upload PDFs or zips of PDFs, then download or delete them."}</p></div>
           <Link href="/files" className="site-button button-outline">Open file storage<ArrowRight/></Link>
         </section>}
         {account.has_access && ["free", "starter"].includes(account.plan) && !account.is_developer && <section className="coverage-change">

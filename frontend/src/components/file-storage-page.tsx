@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 
 import styles from "./marketing-home.module.css";
 
-type StoredFile = { id: string; filename: string; source_zip: string | null; size_bytes: number; uploaded_at: string };
+type StoredFile = { id: string; filename: string; source_zip: string | null; size_bytes: number; uploaded_at: string; uploaded_by: string | null };
 type UploadResult = { saved: StoredFile[]; skipped: { filename: string; reason: string }[] };
 
 // The API takes up to 200 MB per request; larger selections go up in several requests.
@@ -75,7 +75,7 @@ export function FileStoragePage() {
 
   const load = useCallback(() => authJson<StoredFile[]>("/api/v1/files").then(setFiles)
     .catch((failure) => setError(failure instanceof Error ? failure.message : "Could not load your files.")), []);
-  useEffect(() => { if (account?.is_developer) load(); }, [account, load]);
+  useEffect(() => { if (account?.can_upload_files) load(); }, [account, load]);
 
   async function upload(selected: File[]) {
     const accepted = selected.filter((file) => /\.(pdf|zip)$/i.test(file.name));
@@ -134,11 +134,13 @@ export function FileStoragePage() {
   return <div className={styles.root}>
     <SiteHeader active="none"/>
     <main className="account-page container">
-      <span className="eyebrow">DEVELOPER</span>
+      <span className="eyebrow">{account?.is_developer ? "DEVELOPER" : "FILE UPLOADS"}</span>
       <h1>File storage</h1>
       {!account ? <p className="account-muted">{loading ? "Loading…" : "We could not load your account. Try again shortly."}</p>
-        : !account.is_developer ? <p className="account-muted">File storage is not available on this account.</p> : <>
-          <p className="file-intro">Private PDF storage only your account can see. Upload PDFs, or a zip of PDFs to add many at once.</p>
+        : !account.can_upload_files ? <p className="account-muted">File storage is not available on this account.</p> : <>
+          <p className="file-intro">{account.is_developer
+            ? "Private PDF storage. You see every file, including those uploaded by file uploaders. Upload PDFs, or a zip of PDFs to add many at once."
+            : "Upload PDFs, or a zip of PDFs to add many at once. Only you and the site's developers can see your files."}</p>
           <div className={dragging ? "file-drop is-dragging" : "file-drop"}
             onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
@@ -157,7 +159,7 @@ export function FileStoragePage() {
             <ul className="file-skipped">{skipped.map((item, index) => <li key={`${item.filename}-${index}`}>{item.filename}: {item.reason}</li>)}</ul>
           </div>}
           <div className="file-list-head">
-            <h2>Your files</h2>
+            <h2>{account.is_developer ? "All files" : "Your files"}</h2>
             {files && files.length > 0 && <span className="account-muted">{files.length} file{files.length === 1 ? "" : "s"} · {size(totalSize)}</span>}
           </div>
           {!files ? <p className="account-muted">Loading…</p> : !files.length ? <p className="account-muted">No files yet.</p>
@@ -165,7 +167,7 @@ export function FileStoragePage() {
               <FileText aria-hidden/>
               <div className="file-meta">
                 <span className="file-name">{file.filename}</span>
-                <span className="account-muted">{size(file.size_bytes)} · {when(file.uploaded_at)}{file.source_zip ? ` · from ${file.source_zip}` : ""}</span>
+                <span className="account-muted">{size(file.size_bytes)} · {when(file.uploaded_at)}{file.source_zip ? ` · from ${file.source_zip}` : ""}{account.is_developer && file.uploaded_by && file.uploaded_by !== account.email ? ` · uploaded by ${file.uploaded_by}` : ""}</span>
               </div>
               <button type="button" className="site-button button-ghost" aria-label={`Download ${file.filename}`} onClick={() => download(file)}><Download/></button>
               <button type="button" className="site-button button-ghost" aria-label={`Delete ${file.filename}`} onClick={() => remove(file)}><Trash2/></button>
