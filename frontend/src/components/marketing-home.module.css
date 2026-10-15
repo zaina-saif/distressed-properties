@@ -229,3 +229,21 @@
 .root :global(.trial-banner) { margin-top: 18px; padding: 14px 16px; border-radius: 6px; background: #ecfdf5; color: #065f46; font-size: 14px; line-height: 1.6; }
 .root :global(.trial-banner .site-button) { margin-top: 10px; }
 @media(max-width:600px) { .root :global(.hero-buttons) { flex-wrap: wrap; } .root :global(.hero-trial-note) { font-size: 12px; } }
+.root :global(.file-intro) { font-size: 14px; color: var(--muted-foreground); margin-bottom: 20px; }
+.root :global(.file-drop) { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 16px; border: 1.5px dashed var(--border); border-radius: 8px; text-align: center; }
+.root :global(.file-drop.is-dragging) { border-color: var(--equity); background: var(--soft-equity); }
+.root :global(.file-drop > svg) { width: 28px; height: 28px; color: var(--muted-foreground); }
+.root :global(.file-drop p) { font-size: 15px; font-weight: 600; }
+.root :global(.file-drop .site-button) { height: 40px; padding: 0 16px; }
+.root :global(.file-skipped) { margin: 6px 0 0; padding-left: 18px; }
+.root :global(.file-list-head) { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 36px; margin-bottom: 10px; }
+.root :global(.file-list-head h2) { font-size: 18px; font-weight: 650; }
+.root :global(.file-list-head .account-muted) { margin-top: 0; }
+.root :global(.file-list) { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.root :global(.file-list li) { display: flex; align-items: center; gap: 10px; padding: 10px 8px 10px 14px; border-top: 1px solid var(--border); }
+.root :global(.file-list li:first-child) { border-top: 0; }
+.root :global(.file-list li > svg) { width: 18px; height: 18px; flex: none; color: var(--muted-foreground); }
+.root :global(.file-meta) { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.root :global(.file-name) { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.root :global(.file-meta .account-muted) { margin-top: 2px; }
+.root :global(.file-list .site-button) { height: 36px; width: 36px; padding: 0; flex: none; }

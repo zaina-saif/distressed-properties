@@ -100,6 +100,10 @@ export function AccountPage({ checkoutSucceeded }: { checkoutSucceeded?: boolean
           <div><h2>Investor profile</h2><p>Tell us your budget, markets and strategy so we can send you investment opportunities that fit. Optional.</p></div>
           <Link href="/profile" className="site-button button-outline">Edit profile<ArrowRight/></Link>
         </section>
+        {account.is_developer && <section className="profile-card">
+          <div><h2>File storage</h2><p>Private PDF storage for your account. Upload PDFs or zips of PDFs, then download or delete them.</p></div>
+          <Link href="/files" className="site-button button-outline">Open file storage<ArrowRight/></Link>
+        </section>}
         {account.has_access && ["free", "starter"].includes(account.plan) && !account.is_developer && <section className="coverage-change">
           <h2>Change your coverage</h2>
           {canChange ? <div className="coverage-pickers">
