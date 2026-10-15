@@ -153,12 +153,17 @@ def first_pass_address(row):
 
 def searchable(row):
     """False for rows Zillow cannot resolve to one house: a placeholder street number
-    ("0 UNKNOWN") or several addresses in one listing ("205 NW 89TH ST & 432 Larkspur Ln")."""
+    ("0 UNKNOWN") or several addresses in one listing ("205 NW 89TH ST & 432 Larkspur Ln",
+    "20-24 and 20-26 Steinway Street")."""
     street = row.get("street_address") or ""
-    return bool(re.match(r"[1-9]", street)) and " & " not in f"{street} {row.get('normalized_address') or ''}"
+    return (bool(re.match(r"[1-9]", street)) and " & " not in f"{street} {row.get('normalized_address') or ''}"
+            and not re.match(r"[\d-]+\s+and\s+\d", street, re.IGNORECASE))
 
 
-def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer=None):
+def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer=None, queens_retry=False):
+    """queens_retry: unmatched Queens properties searched again as queens_retry_address, each
+    only once (a property already searched in that form is not sent again)."""
+    retry_unmatched = retry_unmatched or queens_retry
     if (OUTPUT / "submission.json").exists():
         raise RuntimeError("A submission already exists. Resume it; do not replace its manifest.")
     with engine.connect() as connection:
@@ -187,6 +192,13 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
         """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
                 "retry_unmatched": retry_unmatched, "sold_results": sold_results, "buyer": buyer}).mappings().all()
     manifest = [dict(row) for row in rows if searchable(row)]
+    if queens_retry:
+        manifest = [row for row in manifest if is_queens(row)]
+        with engine.connect() as connection:
+            tried = {(str(property_id), address) for property_id, address in connection.execute(text(
+                """SELECT property_id, submitted_address FROM apify_zillow_results
+                   WHERE property_id = ANY(CAST(:ids AS uuid[]))"""), {"ids": [r["property_id"] for r in manifest]})}
+        manifest = [row for row in manifest if (row["property_id"], queens_retry_address(row)) not in tried]
     for row in manifest:
         if retry_unmatched:
             row["input_address"] = queens_retry_address(row) if is_queens(row) else search_address(row)
@@ -286,12 +298,14 @@ if __name__ == "__main__":
     parser.add_argument("--retry-unmatched", action="store_true",
                         help="prepare: only properties Zillow had no data for or matched to the wrong "
                              "house, searched again by cleaned street and ZIP")
+    parser.add_argument("--queens-retry", action="store_true",
+                        help="prepare: unmatched Queens properties not yet searched without the hyphen and with the town")
     parser.add_argument("--sold-results", action="store_true",
                         help="prepare: sold sales with a parsed result (pipeline.sale_results) instead of a status")
     parser.add_argument("--buyer", choices=["third_party", "plaintiff", "cwpp", "not_stated"],
                         help="prepare with --sold-results: only sales this buyer won (analytics compare third-party bids)")
     args = parser.parse_args()
     if args.action == "prepare":
-        prepare(args.only_missing, args.retry_unmatched, args.sold_results, args.buyer)
+        prepare(args.only_missing, args.retry_unmatched, args.sold_results, args.buyer, args.queens_retry)
     else:
         {"submit": submit, "watch": watch}[args.action]()

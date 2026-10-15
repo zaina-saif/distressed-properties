@@ -12,7 +12,9 @@ Stages, in order:
            dates are marked here.
   zillow   Look up Zestimates on Apify for scheduled properties that lack one,
            state by state, never submitting more than --max-zillow-addresses
-           in total. NY listings with a ZIP but no coordinates are geocoded first.
+           in total, then Queens houses the first pass missed, searched again
+           without the hyphen and with the town (once per property). NY listings
+           with a ZIP but no coordinates are geocoded first.
   score    Re-score probability to auction with the saved model.
   report   Counts per state, written to report.json.
 
@@ -163,31 +165,35 @@ class Refresh:
             print(f"  zip lookup: {stage['zip_lookup']}; NY coordinates: {stage['ny_coordinates']}", flush=True)
         except Exception as exc:  # noqa: BLE001 - Zillow still runs without the ZIPs
             self.report["failures"].append({"stage": "zillow", "item": "zip_lookup", "error": f"{type(exc).__name__}: {exc}"})
-        for state in STATES:
-            apify.OUTPUT = self.run_dir / f"zillow-{state.lower()}"
+        # Each state's first pass, then a second search for Queens houses the first pass missed
+        # (Zillow lists many without the hyphen and with the town; see queens_retry_address).
+        batches = [(state, state, {"only_missing": True}) for state in STATES]
+        batches.append(("NY Queens retry", "NY", {"queens_retry": True}))
+        for name, state, options in batches:
+            apify.OUTPUT = self.run_dir / f"zillow-{name.lower().replace(' ', '-')}"
             apify.TARGET_STATE = state
             try:
                 with self.log_path.open("a", encoding="utf-8") as log:
                     with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
-                        apify.prepare(True)
+                        apify.prepare(**options)
                         addresses = json.loads((apify.OUTPUT / "input.json").read_text())["addresses"]
                         if not addresses:
-                            stage[state] = {"submitted": 0}
+                            stage[name] = {"submitted": 0}
                             continue
                         if len(addresses) > remaining:
-                            stage[state] = {"skipped": f"{len(addresses)} addresses exceeds the remaining cap of {remaining}"}
+                            stage[name] = {"skipped": f"{len(addresses)} addresses exceeds the remaining cap of {remaining}"}
                             continue
                         apify.EXPECTED_COUNT = str(len(addresses))
                         apify.submit()
                         apify.watch()
                         result = persist(apify.OUTPUT)
                 remaining -= len(addresses)
-                stage[state] = {"submitted": len(addresses), "matched": result["matched"], "no_match": result["no_match"]}
+                stage[name] = {"submitted": len(addresses), "matched": result["matched"], "no_match": result["no_match"]}
             except Exception as exc:  # noqa: BLE001 - one state's run must not stop the others
-                self.report["failures"].append({"stage": "zillow", "item": state, "error": f"{type(exc).__name__}: {exc}"})
+                self.report["failures"].append({"stage": "zillow", "item": name, "error": f"{type(exc).__name__}: {exc}"})
                 with self.log_path.open("a", encoding="utf-8") as log:
-                    log.write(f"\n[zillow] {state} failed\n{traceback.format_exc()}\n")
-            print(f"  zillow {state}: {stage.get(state, 'failed')}", flush=True)
+                    log.write(f"\n[zillow] {name} failed\n{traceback.format_exc()}\n")
+            print(f"  zillow {name}: {stage.get(name, 'failed')}", flush=True)
         self.report["stages"]["zillow"] = stage
 
     def score(self) -> None:

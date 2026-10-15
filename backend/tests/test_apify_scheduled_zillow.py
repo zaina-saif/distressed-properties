@@ -85,6 +85,12 @@ def test_queens_streets_keep_the_hyphenated_house_number_and_a_short_suffix():
     assert queens_street("21-10 Court Square") == "21-10 Court Square"
 
 
+def test_listings_with_several_house_numbers_are_not_searched():
+    assert not searchable({"street_address": "20-24 and 20-26 Steinway Street", "normalized_address": ""})
+    assert searchable({"street_address": "20-24 Steinway Street", "normalized_address": ""})
+    assert searchable({"street_address": "12 Andover Road", "normalized_address": ""})
+
+
 def test_queens_search_leaves_out_the_neighborhood():
     row = {"street_address": "37-46 79th Street", "city": "Jackson Heights", "state": "NY", "county": "Queens",
            "zip_code": "11372", "normalized_address": "37-46 79th Street, Jackson Heights, NY 11372"}
