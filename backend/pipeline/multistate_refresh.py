@@ -145,6 +145,16 @@ class Refresh:
         self.report["stages"]["sale_results"] = {"ok": self._run("load", "sale results", ["pipeline.sale_results"])}
         self.report["stages"]["ny_dates_passed"] = retire_passed_listings()
         print(f"  load NY listings past their date: {self.report['stages']['ny_dates_passed']}", flush=True)
+        self.flag_timeshares()
+
+    def flag_timeshares(self) -> None:
+        """Timeshare listings are not valued (pipeline.flag_timeshares); before the Zillow stage."""
+        from pipeline.flag_timeshares import flag
+        try:
+            self.report["stages"]["timeshares"] = flag()
+            print(f"  timeshares marked not valued: {self.report['stages']['timeshares']}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - the refresh goes on
+            self.report["failures"].append({"stage": "load", "item": "flag_timeshares", "error": f"{type(exc).__name__}: {exc}"})
 
     def zillow(self) -> None:
         import pipeline.apify_scheduled_zillow as apify

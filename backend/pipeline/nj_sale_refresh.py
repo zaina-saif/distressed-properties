@@ -160,6 +160,13 @@ class Refresh:
             self.report["stages"]["link"] = {"status": "ok"}
         except Exception as exc:  # noqa: BLE001
             self._fail("link", "create_properties", exc)
+        # Timeshare listings (Atlantic County's Fairway Villas, Skyline Tower) are not valued; before Zillow.
+        try:
+            from pipeline.flag_timeshares import flag
+            self.report["stages"]["timeshares"] = flag()
+            print(f"  timeshares marked not valued: {self.report['stages']['timeshares']}", flush=True)
+        except Exception as exc:  # noqa: BLE001
+            self._fail("link", "flag_timeshares", exc)
 
     def zillow(self) -> None:
         import pipeline.apify_scheduled_zillow as apify

@@ -34,6 +34,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 from pipeline.load_ny_court_pdfs import SOURCE_SYSTEM, WEBCIVIL_URL, apply_appearances, bbl
+from pipeline.flag_timeshares import REASON as TIMESHARE_REASON
 from pipeline.ny_case_summary import build_summary
 from pipeline.sale_listing_loader import Sale, load_sales
 
@@ -76,7 +77,7 @@ EXCLUDED = {
 # Timeshare foreclosures: a fraction of a percent of a hotel unit, used a week or so a year. They are
 # listed without a value: the building's (Zillow, NYC DOF) says nothing about the interest's, so the
 # property is marked valuation_excluded_reason (migration 044) and the valuation stages skip it.
-TIMESHARE = "Timeshare interest: a fraction of a hotel unit with yearly use, not a whole home; not valued"
+TIMESHARE = TIMESHARE_REASON
 TIMESHARES = {
     ("New York", "850062/2024"): "102 West 57th Street, Timeshare Interest",  # 0.009864% of the timeshare unit
     ("New York", "850341/2023"): "102 West 57th Street, Timeshare Interest",
