@@ -44,3 +44,13 @@ def test_past_auctions_count_from_the_appearances():
     auctions = next(stage for stage in summary["stages"] if stage["stage"] == "Auctions scheduled")
     assert auctions["detail"].startswith("2 auction dates so far, 2024-04-12 to 2025-06-06; 1 not held; recorded as sold on 2024-04-12")
     assert summary["next_auction"] is None
+
+
+def test_a_scheduled_date_that_went_by_is_no_longer_the_next_auction():
+    summary = build_summary(case(appearances=[], events=[
+        {"auction_date": "2026-10-20", "time": "14:15", "outcome": None, "event_status": "scheduled", "remarks": None},
+        {"auction_date": "2026-12-01", "time": "14:15", "outcome": None, "event_status": "scheduled", "remarks": None},
+    ]), [], date(2026, 10, 21))
+    assert summary["auction_calendar"][0]["status"] == "passed"
+    assert summary["next_auction"]["date"] == "2026-12-01"
+    assert next(s for s in summary["stages"] if s["stage"] == "Auctions scheduled")["detail"].startswith("1 auction date so far")

@@ -60,8 +60,11 @@ def build_summary(case: dict, sections: list[str], today: date) -> dict[str, Any
     calendar = []
     for event in case.get("events", []):
         room, remarks = _room_and_remarks(event.get("remarks"))
+        status = event["event_status"]
+        if status == "scheduled" and event["auction_date"] < today.isoformat():
+            status = "passed"  # gone by since the calendar was read; no result published yet
         calendar.append({"date": event["auction_date"], "time": _time(event.get("time")), "location": room,
-                         "outcome": event.get("outcome"), "status": event["event_status"], "remarks": remarks})
+                         "outcome": event.get("outcome"), "status": status, "remarks": remarks})
     upcoming = [event for event in calendar if event["status"] == "scheduled" and event["date"] >= today.isoformat()]
     stages: list[dict[str, Any]] = []
     if case.get("filing_date"):

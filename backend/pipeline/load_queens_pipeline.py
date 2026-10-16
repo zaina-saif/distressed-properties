@@ -210,11 +210,16 @@ def apply_details(cases: list[dict]) -> Counter:
                 WHERE id = (SELECT property_id FROM sheriff_sales WHERE id = :id)
                   AND valuation_excluded_reason IS DISTINCT FROM :reason"""),
                 {"id": sale_id, "reason": case["valuation_excluded_reason"]})
-            connection.execute(text("""INSERT INTO ny_court_case_summaries (sheriff_sale_id, county, index_number, summary)
-                VALUES (:id, :county, :index, CAST(:summary AS JSONB))
-                ON CONFLICT (sheriff_sale_id) DO UPDATE SET summary = EXCLUDED.summary, updated_at = NOW()"""),
+            # The inputs let the API rebuild the summary with the day's date (app/api/court_cases.py).
+            inputs = {"case": {k: v for k, v in case.items() if k not in ("defendant", "defendant_attorney", "caption")},
+                      "sections": case["sections"]}
+            connection.execute(text("""INSERT INTO ny_court_case_summaries (sheriff_sale_id, county, index_number, summary, inputs)
+                VALUES (:id, :county, :index, CAST(:summary AS JSONB), CAST(:inputs AS JSONB))
+                ON CONFLICT (sheriff_sale_id) DO UPDATE SET summary = EXCLUDED.summary, inputs = EXCLUDED.inputs,
+                    updated_at = NOW()"""),
                 {"id": sale_id, "county": case["county"], "index": case["index_number"],
-                 "summary": json.dumps(build_summary(case, case["sections"], date.today()))})
+                 "summary": json.dumps(build_summary(case, case["sections"], date.today())),
+                 "inputs": json.dumps(inputs, default=str)})
             counts["summaries"] += 1
             # A notice that states only a lien amount has no judgment: an earlier load that
             # stored the lien amount as the judgment is cleared.

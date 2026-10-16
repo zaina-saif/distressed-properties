@@ -9,7 +9,9 @@ Stages, in order:
            has no new snapshot, so its open sales are left untouched. NY court
            referee auctions are loaded by hand (the court sites block scripts)
            and the NY county pages drop sales without a result, so their passed
-           dates are marked here.
+           dates are marked here. The report shows, per NY court county (Queens,
+           New York), the open listings, the next auction and when the court
+           files were last loaded, since only a new load brings new dates.
   zillow   Look up Zestimates on Apify for scheduled properties that lack one,
            state by state, never submitting more than --max-zillow-addresses
            in total, then Queens houses the first pass missed, searched again
@@ -113,6 +115,24 @@ def retire_passed_listings() -> int:
     return len(ids)
 
 
+def ny_court_counties() -> dict[str, dict[str, Any]]:
+    """Per county of hand-loaded NY court auctions (Queens, New York): open listings, the
+    next auction, and the day the court files were last loaded (pipeline.load_queens_pipeline),
+    so the report shows when a county needs its new calendar and case files."""
+    with engine.connect() as connection:
+        rows = connection.execute(text("""
+            SELECT ss.county,
+                   COUNT(*) FILTER (WHERE ss.current_status IN ('scheduled', 'adjourned')) AS open,
+                   MIN(ss.current_sale_date::date) FILTER (WHERE ss.current_status = 'scheduled'
+                       AND ss.current_sale_date::date >= CURRENT_DATE) AS next_auction,
+                   MAX(cs.updated_at)::date AS files_loaded
+            FROM sheriff_sales ss JOIN ny_court_case_summaries cs ON cs.sheriff_sale_id = ss.id
+            WHERE ss.source_system = 'ny_court_foreclosure_auction'
+            GROUP BY ss.county ORDER BY ss.county""")).mappings().all()
+    return {row["county"]: {"open": row["open"], "next_auction": str(row["next_auction"]) if row["next_auction"] else None,
+                            "files_loaded": str(row["files_loaded"])} for row in rows}
+
+
 class Refresh:
     def __init__(self, run_dir: Path, max_zillow_addresses: int) -> None:
         self.run_dir = run_dir
@@ -146,6 +166,11 @@ class Refresh:
         self.report["stages"]["ny_dates_passed"] = retire_passed_listings()
         print(f"  load NY listings past their date: {self.report['stages']['ny_dates_passed']}", flush=True)
         self.flag_timeshares()
+        try:
+            self.report["stages"]["ny_court_counties"] = ny_court_counties()
+            print(f"  NY court listings: {self.report['stages']['ny_court_counties']}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - a report line only
+            self.report["failures"].append({"stage": "load", "item": "ny_court_counties", "error": f"{type(exc).__name__}: {exc}"})
 
     def flag_timeshares(self) -> None:
         """Timeshare listings are not valued (pipeline.flag_timeshares); before the Zillow stage."""
