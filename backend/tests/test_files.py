@@ -3,7 +3,7 @@ import zipfile
 
 from fastapi.testclient import TestClient
 
-from app.api.files import clean_name, is_pdf, pdfs_in_zip
+from app.api.files import clean_name, is_pdf, pdfs_in_zip, unique_name, zip_stream
 from app.auth import Access, current_user
 from app.main import app
 
@@ -44,5 +44,13 @@ def test_file_routes_are_for_developers_and_file_uploaders_only():
         assert client.get("/api/v1/files").status_code == 403
         assert client.post("/api/v1/files", files={"files": ("a.pdf", PDF, "application/pdf")}).status_code == 403
         assert client.delete("/api/v1/files/x").status_code == 403
+        assert client.get("/api/v1/files/download-all").status_code == 403
     finally:
         app.dependency_overrides.clear()
+
+
+def test_download_all_zips_every_file_and_keeps_both_of_two_same_names():
+    archive = zipfile.ZipFile(io.BytesIO(b"".join(zip_stream([("a.pdf", PDF), ("A.pdf", PDF + b"2"), ("b.pdf", PDF)]))))
+    assert archive.namelist() == ["a.pdf", "A (2).pdf", "b.pdf"]
+    assert archive.read("A (2).pdf") == PDF + b"2" and archive.testzip() is None
+    assert unique_name("notes", {"notes"}) == "notes (2)"

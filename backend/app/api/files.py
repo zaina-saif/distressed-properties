@@ -1,5 +1,5 @@
 """Private PDF storage: upload PDFs one by one or as zip archives, list them,
-download them and delete them. Only developers and file uploaders can use these
+download them (one at a time, or all as one zip) and delete them. Only developers and file uploaders can use these
 routes (require_file_access). A file uploader sees only their own files; a
 developer sees everyone's, with the uploader's email. Files live in the
 developer_files table.
@@ -10,10 +10,12 @@ import hashlib
 import io
 import posixpath
 import zipfile
-from datetime import datetime
+from collections.abc import Iterable, Iterator
+from datetime import date, datetime
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -163,6 +165,65 @@ async def upload_files(files: list[UploadFile] = File(...),
             else:
                 skipped.append(Skipped(filename=name, reason="already uploaded"))
     return UploadResult(saved=saved, skipped=skipped)
+
+
+class _Chunks(io.RawIOBase):
+    """A write-only stream that hands what was written to zip_stream in chunks."""
+
+    def __init__(self) -> None:
+        self.parts: list[bytes] = []
+
+    def writable(self) -> bool:
+        return True
+
+    def write(self, data) -> int:
+        self.parts.append(bytes(data))
+        return len(data)
+
+    def take(self) -> bytes:
+        data, self.parts = b"".join(self.parts), []
+        return data
+
+
+def unique_name(name: str, used: set[str]) -> str:
+    """'notice.pdf', then 'notice (2).pdf', ...: two files with one name both go in the zip."""
+    stem, dot, suffix = name.rpartition(".") if "." in name else (name, "", "")
+    candidate, number = name, 1
+    while candidate.lower() in used:
+        number += 1
+        candidate = f"{stem} ({number}){dot}{suffix}"
+    used.add(candidate.lower())
+    return candidate
+
+
+def zip_stream(files: Iterable[tuple[str, bytes]]) -> Iterator[bytes]:
+    """A zip of the files, produced as it is written, so the whole archive is never in memory.
+    PDFs are already compressed, so they are stored as they are."""
+    sink, used = _Chunks(), set()
+    with zipfile.ZipFile(sink, "w", compression=zipfile.ZIP_STORED, allowZip64=True) as archive:
+        for name, content in files:
+            archive.writestr(unique_name(name, used), content)
+            yield sink.take()
+    yield sink.take()
+
+
+@router.get("/download-all")
+def download_all(access: Access = Depends(require_file_access)) -> StreamingResponse:
+    """Every file the user can see, as one zip (newest first, as listed)."""
+    with engine.connect() as connection:
+        if not connection.execute(text(f"SELECT 1 FROM developer_files f WHERE {OWNED} LIMIT 1"), _scope(access)).first():
+            raise HTTPException(status_code=404, detail="There are no files to download.")
+
+    def rows() -> Iterator[tuple[str, bytes]]:
+        # One row at a time from a server-side cursor.
+        with engine.connect().execution_options(stream_results=True, yield_per=1) as connection:
+            for row in connection.execute(text(f"""SELECT f.filename, f.content FROM developer_files f
+                    WHERE {OWNED} ORDER BY f.uploaded_at DESC, f.filename"""), _scope(access)):
+                yield row[0], bytes(row[1])
+
+    name = f"sheriffsalehunter-files-{date.today().isoformat()}.zip"
+    return StreamingResponse(zip_stream(rows()), media_type="application/zip", headers={
+        "Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"})
 
 
 @router.get("/{file_id}/download")

@@ -68,6 +68,7 @@ export function FileStoragePage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [skipped, setSkipped] = useState<UploadResult["skipped"]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [zipping, setZipping] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) router.replace(`/get-started?mode=login&next=${encodeURIComponent("/files")}`);
@@ -106,6 +107,15 @@ export function FileStoragePage() {
     }
   }
 
+  function save(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+
   async function download(file: StoredFile) {
     setError(null);
     const response = await authFetch(`${API_URL}/api/v1/files/${file.id}/download`);
@@ -113,12 +123,22 @@ export function FileStoragePage() {
       setError(`Could not download ${file.filename}.`);
       return;
     }
-    const url = URL.createObjectURL(await response.blob());
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = file.filename;
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    save(await response.blob(), file.filename);
+  }
+
+  async function downloadAll() {
+    setError(null);
+    setZipping(true);
+    try {
+      const response = await authFetch(`${API_URL}/api/v1/files/download-all`);
+      if (!response.ok) throw new Error();
+      const name = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") ?? "")?.[1] ?? "files.zip";
+      save(await response.blob(), name);
+    } catch {
+      setError("Could not download the files. Try again shortly.");
+    } finally {
+      setZipping(false);
+    }
   }
 
   async function remove(file: StoredFile) {
@@ -160,7 +180,12 @@ export function FileStoragePage() {
           </div>}
           <div className="file-list-head">
             <h2>{account.is_developer ? "All files" : "Your files"}</h2>
-            {files && files.length > 0 && <span className="account-muted">{files.length} file{files.length === 1 ? "" : "s"} · {size(totalSize)}</span>}
+            {files && files.length > 0 && <div className="file-list-actions">
+              <span className="account-muted">{files.length} file{files.length === 1 ? "" : "s"} · {size(totalSize)}</span>
+              <button type="button" className="site-button button-outline" disabled={zipping} onClick={downloadAll}>
+                <Download aria-hidden/>{zipping ? "Preparing zip…" : "Download all"}
+              </button>
+            </div>}
           </div>
           {!files ? <p className="account-muted">Loading…</p> : !files.length ? <p className="account-muted">No files yet.</p>
             : <ul className="file-list">{files.map((file) => <li key={file.id}>
