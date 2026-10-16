@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS developer_file_folders (
 CREATE UNIQUE INDEX IF NOT EXISTS developer_file_folders_name_idx ON developer_file_folders (lower(name));
 
 INSERT INTO developer_file_folders (name)
-VALUES ('Bronx County'), ('Kings County'), ('Manhattan'), ('Nassau County'), ('Queens County'), ('Suffolk County')
+VALUES ('Bronx County'), ('Kings County'), ('Manhattan'), ('Nassau County'), ('Queens County'), ('Suffolk County'), ('Westchester County')
 ON CONFLICT DO NOTHING;
 
 ALTER TABLE developer_files
