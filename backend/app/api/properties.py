@@ -130,7 +130,8 @@ def approve_parcel_candidate(property_id: str,approval: ParcelApproval):
 
 # NJ minimum bid: the portal's "Approx. Upset*" (stored as upset_price), else
 # the judgment amount, else an upset figure quoted in the sale notice. Other
-# states keep the largest parsed upset.
+# states keep the largest parsed upset, else the judgment, else the "approximate
+# amount of lien" a NY referee's notice states instead of a judgment.
 UPSET_SQL = (
     "(CASE WHEN ss.state='NJ' THEN ss.upset_price "
     "ELSE GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price) END)"
@@ -139,10 +140,11 @@ MINIMUM_BID_SQL = (
     "(CASE WHEN ss.state='NJ' THEN COALESCE(ss.upset_price, ss.judgment_amount, "
     "GREATEST(ss.estimated_upset_price, ss.alternate_upset_price)) "
     "ELSE COALESCE(GREATEST(ss.estimated_upset_price, ss.alternate_upset_price, ss.upset_price), "
-    "ss.judgment_amount) END)"
+    "ss.judgment_amount, ss.notice_lien_amount) END)"
 )
 MINIMUM_BID_BASIS_SQL = (
-    "(CASE WHEN ss.state<>'NJ' THEN NULL "
+    "(CASE WHEN ss.state<>'NJ' THEN (CASE WHEN COALESCE(ss.estimated_upset_price, ss.alternate_upset_price, "
+    "ss.upset_price, ss.judgment_amount) IS NULL AND ss.notice_lien_amount IS NOT NULL THEN 'notice_lien' END) "
     "WHEN ss.upset_price IS NOT NULL THEN 'approx_upset' "
     "WHEN ss.judgment_amount IS NOT NULL THEN 'judgment' "
     "WHEN COALESCE(ss.estimated_upset_price, ss.alternate_upset_price) IS NOT NULL THEN 'notice_estimate' END)"

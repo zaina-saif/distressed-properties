@@ -71,7 +71,7 @@ export interface Property {
   /** Where the value used for equity came from: Zillow, or a NYC Department of Finance market value. */
   value_source?: "zillow" | "nyc_dof_market_value" | null;
   minimum_asking_amount?: number | null;
-  minimum_bid_basis?: "approx_upset" | "judgment" | "notice_estimate" | null;
+  minimum_bid_basis?: "approx_upset" | "judgment" | "notice_estimate" | "notice_lien" | null;
   gross_equity?: number | null;
   gross_equity_percent?: number | null;
   expected_equity?: number | null;

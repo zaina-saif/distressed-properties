@@ -96,7 +96,7 @@ def details(case: dict, sale_date: str | None) -> str:
                      "bid is set by the plaintiff at the sale; the judgment is an estimate of it).")
     if case["approximate_lien_amount"]:
         parts.append(f"Notice states an approximate lien amount of ${case['approximate_lien_amount']:,.2f} plus "
-                     "interest and costs; this is not treated as a verified judgment or unpaid principal balance.")
+                     "interest and costs, used as the minimum-bid estimate (the plaintiff sets the opening bid at the sale).")
     if case["unpaid_principal"]:
         parts.append(f"Unpaid principal stated in the complaint: ${case['unpaid_principal']:,.2f} "
                      "(when the case was filed; not the judgment).")
@@ -142,8 +142,10 @@ def apply_details(cases: list[dict]) -> Counter:
             # Keeps a WebCivil calendar note added by apply_appearances.
             connection.execute(text("""UPDATE sheriff_sales SET description_text=:details
                 || COALESCE(' ' || substring(description_text from ' (Court calendar \\(WebCivil\\):.*)$'), ''),
-                plaintiff=COALESCE(plaintiff, :plaintiff), updated_at=NOW() WHERE id=:id"""),
+                plaintiff=COALESCE(plaintiff, :plaintiff), notice_lien_amount=COALESCE(:lien, notice_lien_amount),
+                updated_at=NOW() WHERE id=:id"""),
                 {"details": details(case, sale_date.isoformat() if sale_date else None), "id": sale_id,
+                 "lien": case["approximate_lien_amount"],
                  "plaintiff": (case["plaintiff"] or "").rstrip(" ,") or None})
             counts["details"] += 1
             # A notice that states only a lien amount has no judgment: an earlier load that

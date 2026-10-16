@@ -87,7 +87,7 @@ export function PropertyFocusPanel({
           <Metric label={property.value_source === "nyc_dof_market_value" ? "Est. market value · NYC DOF" : "Est. market value"}
             value={currency(property.zestimate ?? property.market_value)} />
           <Metric
-            label={`Minimum bid${property.minimum_bid_basis === "judgment" ? " · judgment" : property.minimum_bid_basis === "notice_estimate" ? " · notice estimate" : property.minimum_bid_basis === "approx_upset" ? " · approx. upset" : ""}`}
+            label={`Minimum bid${property.minimum_bid_basis === "judgment" ? " · judgment" : property.minimum_bid_basis === "notice_estimate" ? " · notice estimate" : property.minimum_bid_basis === "notice_lien" ? " · notice lien amount" : property.minimum_bid_basis === "approx_upset" ? " · approx. upset" : ""}`}
             value={currency(property.minimum_asking_amount)}
           />
           <Metric label="Gross equity" value={currency(equity)} tone={equity == null ? "text-slate-950" : equity >= 0 ? "text-teal-700" : "text-red-700"} />

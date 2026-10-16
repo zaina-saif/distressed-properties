@@ -256,6 +256,7 @@ export function PropertyDetailModal({
                 {property.minimum_bid_basis === "approx_upset" ? "Upset amount from the sheriff's listing"
                   : property.minimum_bid_basis === "judgment" ? "No upset amount published; judgment amount shown"
                   : property.minimum_bid_basis === "notice_estimate" ? "Upset estimate from the sale notice"
+                  : property.minimum_bid_basis === "notice_lien" ? "No judgment published; the notice's approximate lien amount shown"
                   : property.upset_price != null ? "Upset amount" : "Judgment amount"}
               </p>
               <p className="mt-1 text-xs text-slate-500">Judgment: {currency(property.judgment_amount)}{property.judgment_amount_as_of_date ? ` (as of ${date(property.judgment_amount_as_of_date)}; not current payoff)` : ""}</p>

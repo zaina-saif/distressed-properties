@@ -249,8 +249,8 @@ def details(record: dict) -> str:
         parts.append(f"Approximate judgment: ${record['judgment']:,.2f} plus interest and costs (the minimum bid is "
                      "set by the plaintiff at the sale; the judgment is an estimate of it).")
     if record.get("approximate_lien_amount"):
-        parts.append(f"Notice states an approximate lien amount of ${record['approximate_lien_amount']:,.2f} plus interest and costs; "
-                     "this is not treated as a verified judgment or unpaid principal balance.")
+        parts.append(f"Notice states an approximate lien amount of ${record['approximate_lien_amount']:,.2f} plus interest and costs, "
+                     "used as the minimum-bid estimate (the plaintiff sets the opening bid at the sale).")
     if record.get("block") and record.get("lot"):
         parts.append(f"Block {record['block']}, Lot {record['lot']}.")
     if record.get("plaintiff_attorney"):
@@ -296,9 +296,10 @@ def apply_details(records: list[dict]) -> None:
             # Keeps a WebCivil calendar note added by an earlier run (apply_appearances).
             connection.execute(text("""UPDATE sheriff_sales SET description_text=:details
                 || COALESCE(' ' || substring(description_text from ' (Court calendar \\(WebCivil\\):.*)$'), ''),
-                updated_at=NOW()
+                notice_lien_amount=COALESCE(:lien, notice_lien_amount), updated_at=NOW()
                 WHERE state='NY' AND county=:county AND source_system=:source AND sheriff_number=:index"""),
-                {"details": details(record), "county": county, "source": SOURCE_SYSTEM, "index": index})
+                {"details": details(record), "county": county, "source": SOURCE_SYSTEM, "index": index,
+                 "lien": record.get("approximate_lien_amount")})
 
 
 def supersede_old_kings_index(records: list[dict]) -> int:

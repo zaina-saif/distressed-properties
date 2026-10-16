@@ -118,7 +118,7 @@ function marketValue(p: Property): ReactNode {
 
 const columns: Column[] = [
   { label: "Estimated Market Value", value: marketValue },
-  { label: "Minimum bid amount", value: (p) => currency(p.upset_price ?? p.judgment_amount) },
+  { label: "Minimum bid amount", value: (p) => currency(p.minimum_asking_amount ?? p.upset_price ?? p.judgment_amount) },
   { label: "Gross equity", value: (p) => <span className="font-semibold text-teal-700">{currency(p.gross_equity)}</span> },
   { label: "Gross equity %", value: (p) => percent(p.gross_equity_percent) },
   {
@@ -322,7 +322,7 @@ function MobilePropertyList({
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
               <div><dt className="text-slate-500">Est. market value</dt><dd className="font-semibold text-slate-900">{marketValue(p) || "—"}</dd></div>
-              <div><dt className="text-slate-500">Minimum bid</dt><dd className="font-semibold text-slate-900">{currency(p.upset_price ?? p.judgment_amount) || "—"}</dd></div>
+              <div><dt className="text-slate-500">Minimum bid</dt><dd className="font-semibold text-slate-900">{currency(p.minimum_asking_amount ?? p.upset_price ?? p.judgment_amount) || "—"}</dd></div>
               <div><dt className="text-slate-500">Gross equity</dt><dd className="font-semibold text-teal-700">{currency(p.gross_equity) || "—"}{p.gross_equity_percent != null ? ` (${percent(p.gross_equity_percent)})` : ""}</dd></div>
               <div><dt className="text-slate-500">Probability to auction</dt><dd className="font-semibold text-slate-900">{percent(p.sale_probability) || "—"}{p.sale_probability != null && <button type="button" onClick={() => onProbabilityReasonClick(p)} className={`ml-1.5 ${link}`}>Reason</button>}</dd></div>
             </dl>
