@@ -164,6 +164,8 @@ JUDGMENT_SALE_SQL = (
     "(ss.state = 'NJ' AND COALESCE(ss.docket_number, ss.court_case_number, '') "
     "~* '(DJ|(^|-)DC-?[0-9]|^([A-Z]{3}-)?L-?[0-9]|^L$)')"
 )
+# A NYC Department of Finance market value, used for value and equity when Zillow has no Zestimate.
+NYC_DOF_PROVIDER = "nyc_dof_market_value"
 SPOTLIGHT_GROSS_EQUITY = f"(CASE WHEN {JUDGMENT_SALE_SQL} THEN NULL ELSE azr.zestimate - {MINIMUM_BID_SQL} END)"
 SPOTLIGHT_SCORE = f"(sp.probability * {SPOTLIGHT_GROSS_EQUITY})"
 # The joins the spotlight ranking needs; filters may also use ra (risk).
@@ -895,6 +897,12 @@ def list_properties(
         item["gross_equity"] = None
         item["gross_equity_percent"] = None
         zestimate = item.get("zestimate")
+        item["value_source"] = "zillow" if zestimate is not None else None
+        # No Zestimate: a NYC Department of Finance market value stands in (pipeline.load_nyc_dof_values).
+        # Other providers' values (local AVMs, vendors) are shown but not used for equity.
+        if zestimate is None and item.get("valuation_provider") == NYC_DOF_PROVIDER and item.get("market_value") is not None:
+            zestimate = item["market_value"]
+            item["value_source"] = NYC_DOF_PROVIDER
         opening_bid = item.get("opening_bid")
         try:
             zestimate_value = float(zestimate)

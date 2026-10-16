@@ -84,7 +84,8 @@ export function PropertyFocusPanel({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <Metric label="Est. market value" value={currency(property.zestimate ?? property.market_value)} />
+          <Metric label={property.value_source === "nyc_dof_market_value" ? "Est. market value · NYC DOF" : "Est. market value"}
+            value={currency(property.zestimate ?? property.market_value)} />
           <Metric
             label={`Minimum bid${property.minimum_bid_basis === "judgment" ? " · judgment" : property.minimum_bid_basis === "notice_estimate" ? " · notice estimate" : property.minimum_bid_basis === "approx_upset" ? " · approx. upset" : ""}`}
             value={currency(property.minimum_asking_amount)}

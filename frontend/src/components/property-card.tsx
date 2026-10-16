@@ -59,7 +59,7 @@ export function PropertyCard({
                 {currency(property.market_value)}
               </p>
               <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-slate-500">
-                Estimated value
+                {property.value_source === "nyc_dof_market_value" ? "NYC DOF market value" : "Estimated value"}
               </p>
             </div>
             <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold capitalize text-amber-800">

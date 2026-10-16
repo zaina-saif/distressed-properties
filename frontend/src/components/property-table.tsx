@@ -106,8 +106,18 @@ const addressColumn: Column = {
   ),
 };
 
+/** The Zestimate, or a NYC Department of Finance market value when Zillow has none (the API uses it for equity). */
+function marketValue(p: Property): ReactNode {
+  if (p.value_source === "nyc_dof_market_value") {
+    return <span title="NYC Department of Finance market value (the city's assessment estimate, not an appraisal)">
+      {currency(p.market_value)} <span className="text-[10px] font-semibold text-slate-500">NYC DOF</span>
+    </span>;
+  }
+  return typeof p.apify_data?.zestimate === "number" ? currency(p.apify_data.zestimate) : apifyValue(p.apify_data?.zestimate);
+}
+
 const columns: Column[] = [
-  { label: "Estimated Market Value", value: (p) => apifyValue(p.apify_data?.zestimate) },
+  { label: "Estimated Market Value", value: marketValue },
   { label: "Minimum bid amount", value: (p) => currency(p.upset_price ?? p.judgment_amount) },
   { label: "Gross equity", value: (p) => <span className="font-semibold text-teal-700">{currency(p.gross_equity)}</span> },
   { label: "Gross equity %", value: (p) => percent(p.gross_equity_percent) },
@@ -311,7 +321,7 @@ function MobilePropertyList({
               <span className="rounded-full bg-slate-100 px-2 py-0.5 capitalize text-slate-600">{p.current_status.replaceAll("_", " ")}</span>
             </div>
             <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
-              <div><dt className="text-slate-500">Est. market value</dt><dd className="font-semibold text-slate-900">{typeof p.apify_data?.zestimate === "number" ? currency(p.apify_data.zestimate) : apifyValue(p.apify_data?.zestimate) || "—"}</dd></div>
+              <div><dt className="text-slate-500">Est. market value</dt><dd className="font-semibold text-slate-900">{marketValue(p) || "—"}</dd></div>
               <div><dt className="text-slate-500">Minimum bid</dt><dd className="font-semibold text-slate-900">{currency(p.upset_price ?? p.judgment_amount) || "—"}</dd></div>
               <div><dt className="text-slate-500">Gross equity</dt><dd className="font-semibold text-teal-700">{currency(p.gross_equity) || "—"}{p.gross_equity_percent != null ? ` (${percent(p.gross_equity_percent)})` : ""}</dd></div>
               <div><dt className="text-slate-500">Probability to auction</dt><dd className="font-semibold text-slate-900">{percent(p.sale_probability) || "—"}{p.sale_probability != null && <button type="button" onClick={() => onProbabilityReasonClick(p)} className={`ml-1.5 ${link}`}>Reason</button>}</dd></div>
