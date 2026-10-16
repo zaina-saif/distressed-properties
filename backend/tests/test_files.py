@@ -44,6 +44,7 @@ def test_file_routes_are_for_developers_and_file_uploaders_only():
         assert client.get("/api/v1/files").status_code == 403
         assert client.post("/api/v1/files", files={"files": ("a.pdf", PDF, "application/pdf")}).status_code == 403
         assert client.delete("/api/v1/files/x").status_code == 403
+        assert client.delete("/api/v1/files").status_code == 403
         assert client.get("/api/v1/files/download-all").status_code == 403
     finally:
         app.dependency_overrides.clear()

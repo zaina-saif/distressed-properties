@@ -1,5 +1,5 @@
 """Private PDF storage: upload PDFs one by one or as zip archives, list them,
-download them (one at a time, or all as one zip) and delete them. Only developers and file uploaders can use these
+download them (one at a time, or all as one zip) and delete them (one at a time, or all at once). Only developers and file uploaders can use these
 routes (require_file_access). A file uploader sees only their own files; a
 developer sees everyone's, with the uploader's email. Files live in the
 developer_files table.
@@ -205,6 +205,18 @@ def zip_stream(files: Iterable[tuple[str, bytes]]) -> Iterator[bytes]:
             archive.writestr(unique_name(name, used), content)
             yield sink.take()
     yield sink.take()
+
+
+class DeleteAllResult(BaseModel):
+    deleted: int
+
+
+@router.delete("", response_model=DeleteAllResult)
+def delete_all_files(access: Access = Depends(require_file_access)) -> DeleteAllResult:
+    """Every file the user can see: a file uploader's own files, or, for a developer, everyone's."""
+    with engine.begin() as connection:
+        deleted = connection.execute(text(f"DELETE FROM developer_files f WHERE {OWNED}"), _scope(access)).rowcount
+    return DeleteAllResult(deleted=deleted)
 
 
 @router.get("/download-all")

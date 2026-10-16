@@ -69,6 +69,7 @@ export function FileStoragePage() {
   const [skipped, setSkipped] = useState<UploadResult["skipped"]>([]);
   const [error, setError] = useState<string | null>(null);
   const [zipping, setZipping] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) router.replace(`/get-started?mode=login&next=${encodeURIComponent("/files")}`);
@@ -149,6 +150,26 @@ export function FileStoragePage() {
     setFiles((current) => current?.filter((item) => item.id !== file.id) ?? null);
   }
 
+  async function removeAll() {
+    if (!files?.length || !account) return;
+    const count = `${files.length} file${files.length === 1 ? "" : "s"}`;
+    const whose = account.is_developer && files.some((file) => file.uploaded_by && file.uploaded_by !== account.email)
+      ? ", including files uploaded by other users" : "";
+    if (!window.confirm(`Delete all ${count}${whose}? This cannot be undone.`)) return;
+    setError(null);
+    setNotice(null);
+    setClearing(true);
+    try {
+      const result = await authJson<{ deleted: number }>("/api/v1/files", { method: "DELETE" });
+      setNotice(`${result.deleted} file${result.deleted === 1 ? "" : "s"} deleted.`);
+    } catch {
+      setError("Could not delete the files. Try again shortly.");
+    } finally {
+      setClearing(false);
+      load();
+    }
+  }
+
   const totalSize = files?.reduce((sum, file) => sum + file.size_bytes, 0) ?? 0;
 
   return <div className={styles.root}>
@@ -184,6 +205,9 @@ export function FileStoragePage() {
               <span className="account-muted">{files.length} file{files.length === 1 ? "" : "s"} · {size(totalSize)}</span>
               <button type="button" className="site-button button-outline" disabled={zipping} onClick={downloadAll}>
                 <Download aria-hidden/>{zipping ? "Preparing zip…" : "Download all"}
+              </button>
+              <button type="button" className="site-button button-outline" disabled={clearing || Boolean(progress)} onClick={removeAll}>
+                <Trash2 aria-hidden/>{clearing ? "Deleting…" : "Delete all"}
               </button>
             </div>}
           </div>
