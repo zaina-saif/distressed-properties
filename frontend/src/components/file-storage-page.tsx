@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileText, Trash2, Upload } from "lucide-react";
+import { Download, FileText, Folder as FolderIcon, FolderPlus, Trash2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -11,7 +11,10 @@ import { supabase } from "@/lib/supabase";
 
 import styles from "./marketing-home.module.css";
 
-type StoredFile = { id: string; filename: string; source_zip: string | null; size_bytes: number; uploaded_at: string; uploaded_by: string | null };
+type StoredFile = { id: string; filename: string; source_zip: string | null; size_bytes: number; uploaded_at: string; uploaded_by: string | null; folder_id: string | null };
+type Folder = { id: string; name: string; file_count: number };
+/** "all" for every file, "none" for files in no folder, or a folder id. */
+type View = string;
 type UploadResult = { saved: StoredFile[]; skipped: { filename: string; reason: string }[] };
 
 // The API takes up to 200 MB per request; larger selections go up in several requests.
@@ -38,10 +41,11 @@ function batches(files: File[]): File[][] {
 }
 
 /** POST with upload progress (fetch cannot report it). */
-async function send(files: File[], onProgress: (loaded: number) => void): Promise<UploadResult> {
+async function send(files: File[], folderId: string | null, onProgress: (loaded: number) => void): Promise<UploadResult> {
   const { data } = await supabase().auth.getSession();
   const body = new FormData();
   files.forEach((file) => body.append("files", file));
+  if (folderId) body.append("folder_id", folderId);
   return new Promise((resolve, reject) => {
     const request = new XMLHttpRequest();
     request.open("POST", `${API_URL}/api/v1/files`);
@@ -70,14 +74,29 @@ export function FileStoragePage() {
   const [error, setError] = useState<string | null>(null);
   const [zipping, setZipping] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [view, setView] = useState<View>("all");
 
   useEffect(() => {
     if (!loading && !session) router.replace(`/get-started?mode=login&next=${encodeURIComponent("/files")}`);
   }, [loading, router, session]);
 
-  const load = useCallback(() => authJson<StoredFile[]>("/api/v1/files").then(setFiles)
-    .catch((failure) => setError(failure instanceof Error ? failure.message : "Could not load your files.")), []);
+  const query = view === "all" ? "" : `?folder=${encodeURIComponent(view)}`;
+  const load = useCallback(() => Promise.all([
+    authJson<StoredFile[]>(`/api/v1/files${query}`).then(setFiles),
+    authJson<Folder[]>("/api/v1/files/folders").then(setFolders),
+  ]).catch((failure) => setError(failure instanceof Error ? failure.message : "Could not load your files.")), [query]);
   useEffect(() => { if (account?.can_upload_files) load(); }, [account, load]);
+
+  const folderId = view === "all" || view === "none" ? null : view;
+  const folderName = (id: string | null) => folders.find((folder) => folder.id === id)?.name ?? null;
+  const viewName = view === "all" ? null : view === "none" ? "Not in a folder" : folderName(view);
+
+  function open(next: View) {
+    if (next === view) return;
+    setFiles(null);
+    setView(next);
+  }
 
   async function upload(selected: File[]) {
     const accepted = selected.filter((file) => /\.(pdf|zip)$/i.test(file.name));
@@ -93,12 +112,12 @@ export function FileStoragePage() {
     let saved = 0;
     try {
       for (const group of batches(queue)) {
-        const result = await send(group, (loaded) => setProgress(`Uploading… ${Math.min(100, Math.round(((done + loaded) / total) * 100))}%`));
+        const result = await send(group, folderId, (loaded) => setProgress(`Uploading… ${Math.min(100, Math.round(((done + loaded) / total) * 100))}%`));
         done += group.reduce((sum, file) => sum + file.size, 0);
         saved += result.saved.length;
         setSkipped((current) => [...current, ...result.skipped]);
       }
-      setNotice(`${saved} PDF${saved === 1 ? "" : "s"} uploaded.`);
+      setNotice(`${saved} PDF${saved === 1 ? "" : "s"} uploaded${folderId ? ` to ${folderName(folderId)}` : ""}.`);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "Upload failed.");
     } finally {
@@ -131,7 +150,7 @@ export function FileStoragePage() {
     setError(null);
     setZipping(true);
     try {
-      const response = await authFetch(`${API_URL}/api/v1/files/download-all`);
+      const response = await authFetch(`${API_URL}/api/v1/files/download-all${query}`);
       if (!response.ok) throw new Error();
       const name = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") ?? "")?.[1] ?? "files.zip";
       save(await response.blob(), name);
@@ -152,7 +171,7 @@ export function FileStoragePage() {
 
   async function removeAll() {
     if (!files?.length || !account) return;
-    const count = `${files.length} file${files.length === 1 ? "" : "s"}`;
+    const count = `${files.length} file${files.length === 1 ? "" : "s"}${viewName ? ` in ${viewName}` : ""}`;
     const whose = account.is_developer && files.some((file) => file.uploaded_by && file.uploaded_by !== account.email)
       ? ", including files uploaded by other users" : "";
     if (!window.confirm(`Delete all ${count}${whose}? This cannot be undone.`)) return;
@@ -160,7 +179,7 @@ export function FileStoragePage() {
     setNotice(null);
     setClearing(true);
     try {
-      const result = await authJson<{ deleted: number }>("/api/v1/files", { method: "DELETE" });
+      const result = await authJson<{ deleted: number }>(`/api/v1/files${query}`, { method: "DELETE" });
       setNotice(`${result.deleted} file${result.deleted === 1 ? "" : "s"} deleted.`);
     } catch {
       setError("Could not delete the files. Try again shortly.");
@@ -170,6 +189,47 @@ export function FileStoragePage() {
     }
   }
 
+  async function move(file: StoredFile, target: string) {
+    setError(null);
+    try {
+      await authJson<StoredFile>(`/api/v1/files/${file.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ folder_id: target || null }),
+      });
+    } catch {
+      setError(`Could not move ${file.filename}.`);
+    }
+    load();
+  }
+
+  async function addFolder() {
+    const name = window.prompt("Folder name")?.trim();
+    if (!name) return;
+    setError(null);
+    try {
+      const folder = await authJson<Folder>("/api/v1/files/folders", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }),
+      });
+      setFolders((current) => [...current, folder].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not add the folder.");
+    }
+  }
+
+  async function removeFolder(folder: Folder) {
+    if (!window.confirm(`Remove the folder ${folder.name}?`)) return;
+    setError(null);
+    try {
+      await authFetch(`${API_URL}/api/v1/files/folders/${folder.id}`, { method: "DELETE" }).then(async (response) => {
+        if (!response.ok) throw new Error(await response.json().then((body) => body?.detail).catch(() => null) ?? "Could not remove the folder.");
+      });
+      open("all");
+      setFolders((current) => current.filter((item) => item.id !== folder.id));
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Could not remove the folder.");
+    }
+  }
+
+  const current = folders.find((folder) => folder.id === view) ?? null;
   const totalSize = files?.reduce((sum, file) => sum + file.size_bytes, 0) ?? 0;
 
   return <div className={styles.root}>
@@ -187,7 +247,7 @@ export function FileStoragePage() {
             onDragLeave={() => setDragging(false)}
             onDrop={(event) => { event.preventDefault(); setDragging(false); if (!progress) upload(Array.from(event.dataTransfer.files)); }}>
             <Upload aria-hidden/>
-            <p>{progress ?? "Drag PDFs or zip files here"}</p>
+            <p>{progress ?? (folderId ? `Drag PDFs or zip files here to add them to ${folderName(folderId)}` : "Drag PDFs or zip files here")}</p>
             <input ref={input} type="file" accept=".pdf,.zip,application/pdf,application/zip" multiple hidden
               onChange={(event) => upload(Array.from(event.target.files ?? []))}/>
             <button type="button" className="site-button button-outline" disabled={Boolean(progress)} onClick={() => input.current?.click()}>Choose files</button>
@@ -199,8 +259,23 @@ export function FileStoragePage() {
             <strong>Not uploaded ({skipped.length})</strong>
             <ul className="file-skipped">{skipped.map((item, index) => <li key={`${item.filename}-${index}`}>{item.filename}: {item.reason}</li>)}</ul>
           </div>}
+          <div className="file-folders" role="tablist" aria-label="Folders">
+            <button type="button" role="tab" aria-selected={view === "all"} className={view === "all" ? "is-active" : ""} onClick={() => open("all")}>
+              <FileText aria-hidden/>{account.is_developer ? "All files" : "Your files"}
+            </button>
+            {folders.map((folder) => <button key={folder.id} type="button" role="tab" aria-selected={view === folder.id}
+              className={view === folder.id ? "is-active" : ""} onClick={() => open(folder.id)}>
+              <FolderIcon aria-hidden/>{folder.name}<span>{folder.file_count}</span>
+            </button>)}
+            <button type="button" role="tab" aria-selected={view === "none"} className={view === "none" ? "is-active" : ""} onClick={() => open("none")}>
+              Not in a folder
+            </button>
+            {account.is_developer && <button type="button" className="file-folder-add" onClick={addFolder}><FolderPlus aria-hidden/>New folder</button>}
+          </div>
           <div className="file-list-head">
-            <h2>{account.is_developer ? "All files" : "Your files"}</h2>
+            <h2>{viewName ?? (account.is_developer ? "All files" : "Your files")}</h2>
+            {account.is_developer && current && current.file_count === 0 &&
+              <button type="button" className="site-button button-outline" onClick={() => removeFolder(current)}>Remove folder</button>}
             {files && files.length > 0 && <div className="file-list-actions">
               <span className="account-muted">{files.length} file{files.length === 1 ? "" : "s"} · {size(totalSize)}</span>
               <button type="button" className="site-button button-outline" disabled={zipping} onClick={downloadAll}>
@@ -211,13 +286,18 @@ export function FileStoragePage() {
               </button>
             </div>}
           </div>
-          {!files ? <p className="account-muted">Loading…</p> : !files.length ? <p className="account-muted">No files yet.</p>
+          {!files ? <p className="account-muted">Loading…</p> : !files.length ? <p className="account-muted">{viewName ? "No files in this folder yet." : "No files yet."}</p>
             : <ul className="file-list">{files.map((file) => <li key={file.id}>
               <FileText aria-hidden/>
               <div className="file-meta">
                 <span className="file-name">{file.filename}</span>
                 <span className="account-muted">{size(file.size_bytes)} · {when(file.uploaded_at)}{file.source_zip ? ` · from ${file.source_zip}` : ""}{account.is_developer && file.uploaded_by && file.uploaded_by !== account.email ? ` · uploaded by ${file.uploaded_by}` : ""}</span>
               </div>
+              <select className="file-folder-select" aria-label={`Folder for ${file.filename}`} value={file.folder_id ?? ""}
+                onChange={(event) => move(file, event.target.value)}>
+                <option value="">No folder</option>
+                {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+              </select>
               <button type="button" className="site-button button-ghost" aria-label={`Download ${file.filename}`} onClick={() => download(file)}><Download/></button>
               <button type="button" className="site-button button-ghost" aria-label={`Delete ${file.filename}`} onClick={() => remove(file)}><Trash2/></button>
             </li>)}</ul>}

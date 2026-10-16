@@ -236,7 +236,16 @@
 .root :global(.file-drop p) { font-size: 15px; font-weight: 600; }
 .root :global(.file-drop .site-button) { height: 40px; padding: 0 16px; }
 .root :global(.file-skipped) { margin: 6px 0 0; padding-left: 18px; }
-.root :global(.file-list-head) { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-top: 36px; margin-bottom: 10px; }
+.root :global(.file-folders) { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 36px; }
+.root :global(.file-folders button) { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: var(--foreground); font-size: 13px; font-weight: 600; }
+.root :global(.file-folders button svg) { width: 15px; height: 15px; color: var(--muted-foreground); }
+.root :global(.file-folders button span) { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+.root :global(.file-folders button.is-active) { border-color: var(--equity); background: var(--soft-equity); }
+.root :global(.file-folders button.is-active svg) { color: var(--equity); }
+.root :global(.file-folders .file-folder-add) { border-style: dashed; color: var(--muted-foreground); }
+.root :global(.file-folder-select) { flex: none; max-width: 150px; height: 36px; padding: 0 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: inherit; font-size: 13px; }
+@media(max-width:600px) { .root :global(.file-list li) { flex-wrap: wrap; } .root :global(.file-folder-select) { max-width: none; flex: 1; } }
+.root :global(.file-list-head) { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-top: 20px; margin-bottom: 10px; }
 .root :global(.file-list-head h2) { font-size: 18px; font-weight: 650; }
 .root :global(.file-list-head .account-muted) { margin-top: 0; }
 .root :global(.file-list-actions) { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }

@@ -3,7 +3,10 @@ import zipfile
 
 from fastapi.testclient import TestClient
 
-from app.api.files import clean_name, is_pdf, pdfs_in_zip, unique_name, zip_stream
+import pytest
+from fastapi import HTTPException
+
+from app.api.files import clean_name, folder_filter, is_pdf, pdfs_in_zip, unique_name, zip_stream
 from app.auth import Access, current_user
 from app.main import app
 
@@ -45,7 +48,19 @@ def test_file_routes_are_for_developers_and_file_uploaders_only():
         assert client.post("/api/v1/files", files={"files": ("a.pdf", PDF, "application/pdf")}).status_code == 403
         assert client.delete("/api/v1/files/x").status_code == 403
         assert client.delete("/api/v1/files").status_code == 403
+        assert client.get("/api/v1/files/folders").status_code == 403
+        assert client.patch("/api/v1/files/x", json={"folder_id": None}).status_code == 403
         assert client.get("/api/v1/files/download-all").status_code == 403
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_only_developers_add_or_remove_folders():
+    app.dependency_overrides[current_user] = lambda: Access(user_id="u1", email="a@example.com", role="file_uploader")
+    try:
+        client = TestClient(app)
+        assert client.post("/api/v1/files/folders", json={"name": "Queens"}).status_code == 403
+        assert client.delete("/api/v1/files/folders/x").status_code == 403
     finally:
         app.dependency_overrides.clear()
 
@@ -55,3 +70,12 @@ def test_download_all_zips_every_file_and_keeps_both_of_two_same_names():
     assert archive.namelist() == ["a.pdf", "A (2).pdf", "b.pdf"]
     assert archive.read("A (2).pdf") == PDF + b"2" and archive.testzip() is None
     assert unique_name("notes", {"notes"}) == "notes (2)"
+
+
+def test_folder_filter_takes_a_folder_id_none_or_nothing():
+    assert folder_filter(None) == ("", {})
+    assert folder_filter("none") == (" AND f.folder_id IS NULL", {})
+    folder_id = "8f14e45f-ceea-467a-9575-a1b2c3d4e5f6"
+    assert folder_filter(folder_id) == (" AND f.folder_id = CAST(:folder_id AS uuid)", {"folder_id": folder_id})
+    with pytest.raises(HTTPException):
+        folder_filter("not-a-folder")
