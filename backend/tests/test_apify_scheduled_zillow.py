@@ -83,6 +83,8 @@ def test_queens_streets_keep_the_hyphenated_house_number_and_a_short_suffix():
     assert queens_street("101 - 20 Lefferts Boulevard") == "101-20 Lefferts Blvd"
     assert queens_street("123 Beach 120th Street") == "123 Beach 120th St"
     assert queens_street("21-10 Court Square") == "21-10 Court Square"
+    assert queens_street("1654 George Street") == "1654 George St"
+    assert queens_street("11633 130th Street") == "116-33 130th St"
 
 
 def test_listings_with_several_house_numbers_are_not_searched():

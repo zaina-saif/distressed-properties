@@ -73,6 +73,8 @@ def classify(text: str) -> str:
     head = flat(text[:12000]).upper()
     # Skip the clerk's stamp, which every page starts with.
     head = re.sub(r"^FILED:.{0,140}?RECEIVED NYSCEF:\s*\d{2}/\d{2}/\d{4}", "", head)
+    # A notice of sale without its title starts "Pursuant to a Judgment of Foreclosure and Sale ...".
+    head = re.sub(r"PURSUANT\s*TO\s*(?:A\s*|THE\s*)?JUDGMENT\s*OF\s*FORECLOSURE\s*(?:AND|&)\s*SALE", "", head)
     first = None
     for section, pattern in TITLES:
         match = re.search(pattern, head)
@@ -274,6 +276,10 @@ def _repair_numbers(text: str) -> str:
     return re.sub(r"(\d)\s*-\s*(\d)", r"\1-\2", text)
 
 
+def ordinal_suffix(number: int) -> str:
+    return "th" if 10 <= number % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(number % 10, "th")
+
+
 def ordinal_case(street: str) -> str:
     return re.sub(r"(\d)(St|Nd|Rd|Th)\b", lambda m: m[1] + m[2].lower(), street)
 
@@ -285,7 +291,8 @@ def tidy(value: str) -> str:
 
 ADDRESS = re.compile(
     r"(?P<street>\d{1,6}(?:-\d{1,4})?\s+[^,;]{3,70}?(?:,\s*(?:Unit|Apt\.?|#)\s*[\w-]+)?)\s*,\s*"
-    r"(?P<city>[A-Za-z][A-Za-z .'/]{2,60}?)\s*,?\s*(?:N\W{0,2}Y(?![A-Za-z])\.?|New\s*York)\s*,?\s*(?P<zip>1\d{4})")
+    r"(?P<city>[A-Za-z][A-Za-z .'/]{2,60}?)\s*,?\s*(?:\(City\s+of\s+New\s+York\)\s*)?"
+    r"(?:N\W{0,2}Y(?![A-Za-z])\.?|(?i:New\s*York))\s*,?\s*(?P<zip>1\d{4})")
 
 
 def split_address(raw: str, county: str) -> dict | None:
@@ -296,14 +303,27 @@ def split_address(raw: str, county: str) -> dict | None:
         text = re.sub(r"^(\d{2,3})\s(\d{2})(?=\s+[A-Za-z0-9])", r"\1-\2", text)
         # One printed without it: '15826 78th Avenue' is 158-26. Only before a numbered street,
         # so a Rockaway number ('171 Beach 91st Street') is left alone.
-        text = re.sub(r"^(\d{2,3})(\d{2})(?=\s+\d+(?:st|nd|rd|th)\b)", r"\1-\2", text, flags=re.I)
+        text = re.sub(r"^(\d{2,3})(\d{2})(?=\s+\d+(?:st|nd|rd|th)?\s)", r"\1-\2", text, flags=re.I)
+        # Five digits are always hyphenated in Queens ('12320 Grayson Street' is 123-20); four can
+        # be a plain number ('1654 George Street', '1407 Cross Bay Boulevard').
+        text = re.sub(r"^(\d{3})(\d{2})(?=\s+[A-Za-z])", r"\1-\2", text)
+        # A numbered street printed without its ordinal ('130 STREET'), or with OCR's '170s'/'170*'.
+        text = re.sub(r"(?<=\s)(\d{1,3})(?:s|\*)?(?=\s+(STREET|AVENUE|ROAD|PLACE|DRIVE|LANE|TERRACE|COURT)\b)",
+                      lambda m: m[1] + (str.upper if m[2].isupper() else str)(ordinal_suffix(int(m[1]))),
+                      text, flags=re.I)
     match = ADDRESS.match(text)
     if not match:
         return None
-    street = re.split(r"\s+a/?k/?a\s+", match["street"], maxsplit=1, flags=re.I)[0]
+    names = re.split(r"\s+a/?k/?a\s+", match["street"], maxsplit=1, flags=re.I)
+    street = names[0]
+    if re.fullmatch(r"\d{1,6}(?:-\d{1,4})?", street) and len(names) > 1:
+        # "104-15 a/k/a 104-21 170th Street": the first number shares the a/k/a's street.
+        street = f"{street} {names[1].split(maxsplit=1)[-1]}"
     # A caption printed beside the address: "119-19 198th Street Plaintiff,".
     street = re.sub(r"\s+(?:Plaintiffs?|Defendants?|-?against-?)$", "", street, flags=re.I)
     city = re.split(r"\s+a/?k/?a\s+", match["city"], maxsplit=1, flags=re.I)[0]
+    # "FAR ROCKAWAY NEW YORK NEW YORK 11691": the state printed twice.
+    city = re.sub(r"(?<=\w)\s+New\s*York$", "", city, flags=re.I)
     street = re.sub(r"(\d)(?:ST|ND|RD|TH)(STREET|AVENUE|ROAD|PLACE|DRIVE)\b",
                     lambda m: f"{m[0][:-len(m[2])]} {m[2]}", street)  # "76THSTREET" -> "76TH STREET"
     return {"property_address": tidy(street), "city": tidy(city), "zip": match["zip"]}
@@ -313,6 +333,7 @@ BLOCK_LOT = [
     re.compile(r"\bBlock\s*(?:No\.?)?\s*:?\s*([\dlI]{1,5})\s*[,;]?\s*(?:and\s+)?Lots?\s*(?:No\.?)?\s*:?\s*"
                r"([\dlI]{1,4}(?:\s*(?:,|and|&)\s*[\dlI]{1,4})*)", re.I),
     re.compile(r"tax\s*map\s*identification\s*:?\s*(\d{1,5})\s*-\s*(\d{1,4})", re.I),
+    re.compile(r"\bBL\s*#?\s*:\s*(\d{1,5})\s*-\s*(\d{1,4})\b", re.I),
     re.compile(r"PROPERTY\s*DATA\s+Borough\s+Block\s+Lot.{0,40}?QUEENS\s+(\d{1,5})\s+(\d{1,4})\b", re.I),
 ]
 BOROUGH_CODE = {"Manhattan": 1, "New York": 1, "Bronx": 2, "Kings": 3, "Queens": 4, "Richmond": 5}
@@ -321,6 +342,14 @@ BOROUGH_CODE = {"Manhattan": 1, "New York": 1, "Bronx": 2, "Kings": 3, "Queens":
 def block_lot(text: str, county: str) -> str | None:
     """'4-10497-29' (borough code, block, lot); several lots: '4-12073-429/430'."""
     body = flat(text)
+    # A sale of several parcels lists each one ("Block: 10226 Lot: 72" ... "Block: 10226 Lot: 76").
+    parcels = {(int(block), int(lot)) for m in BLOCK_LOT[0].finditer(body)
+               for block in [_repair_numbers(m[1])] for lot in map(_repair_numbers, re.split(r"\s*(?:,|and|&)\s*", m[2]))
+               if block.isdigit() and lot.isdigit()}
+    if len({block for block, _ in parcels}) == 1 and len(parcels) > 1:
+        code = BOROUGH_CODE.get(county)
+        block = next(iter(parcels))[0]
+        return f"{f'{code}-' if code else ''}{block}-{'/'.join(str(lot) for _, lot in sorted(parcels))}"
     for pattern in BLOCK_LOT:
         if match := pattern.search(body):
             block = _repair_numbers(match[1])
@@ -352,9 +381,9 @@ def parse_notice_of_sale(text: str, county: str) -> dict:
         values["referee_name"] = re.sub(r"([a-z])([A-Z]\.)", r"\1 \2", name)
     # "Approximate amount of judgment is $X" / "the approximate amount of the current (OCR: cunent)
     # Judgment lien is $X". "Approximate amount of lien $X" names no judgment, so it is kept apart.
-    judgment = re.search(r"amount\s+of\s+(?:the\s+)?(?:cu\w{1,3}nt\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*" + MONEY,
+    judgment = re.search(r"amount\s*of\s+(?:the\s+)?(?:cu\w{1,3}nt\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*" + MONEY,
                          body, re.I)
-    lien = None if judgment else re.search(r"approximate\s+amount\s+of\s+(?:the\s+)?lien\s*(?:is|of|:)?\s*" + MONEY,
+    lien = None if judgment else re.search(r"approximate\s*amount\s*of\s+(?:the\s+)?lien\s*(?:is|of|:)?\s*" + MONEY,
                                            body, re.I)
     values["approximate_judgment"] = money(judgment[1]) if judgment else None
     values["approximate_lien_amount"] = money(lien[1]) if lien else None

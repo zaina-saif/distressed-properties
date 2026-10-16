@@ -41,8 +41,11 @@ STREET_SUFFIX = re.compile(
 NEXT_SUFFIX = re.compile(r"\s+" + STREET_SUFFIX.pattern, re.IGNORECASE)
 UNIT = re.compile(r"^\s*,?\s*((?:Unit|Apt\.?|Apartment|Suite|Ste\.?|#)\s*[\w-]+)", re.IGNORECASE)
 # Queens house numbers are "<cross street>-<house>" ("37-46 79th Street"); some sources
-# drop the hyphen ("9745 86TH ST"), and the house part is then the last two digits.
-QUEENS_NUMBER = re.compile(r"^(\d{2,3})\s*-?\s*(\d{2})\b")
+# drop the hyphen ("9745 86TH ST"), and the house part is then the last two digits. Four
+# unhyphenated digits are a plain number unless a numbered street follows: Ridgewood's
+# "1654 George Street" is 1654.
+QUEENS_NUMBER = re.compile(r"^(\d{2,3})\s*-\s*(\d{2})\b|^(\d{3})(\d{2})\b|^(\d{2})(\d{2})(?=\s+\d+(?:st|nd|rd|th)\b)",
+                           re.IGNORECASE)
 SHORT_SUFFIX = {"street": "St", "avenue": "Ave", "road": "Rd", "place": "Pl", "boulevard": "Blvd",
                 "drive": "Dr", "lane": "Ln", "court": "Ct", "parkway": "Pkwy", "terrace": "Ter"}
 
@@ -70,7 +73,8 @@ def is_queens(row):
 def queens_street(street):
     """A Queens street as Zillow lists it: hyphenated house number and short suffix
     ("37-46 79th Street" -> "37-46 79th St", "9745 86TH ST" -> "97-45 86TH ST")."""
-    return short_suffix(QUEENS_NUMBER.sub(r"\1-\2", clean_street(street, keep_hyphen=True), count=1))
+    return short_suffix(QUEENS_NUMBER.sub(lambda m: "-".join(part for part in m.groups() if part),
+                                          clean_street(street, keep_hyphen=True), count=1))
 
 
 def short_suffix(street):

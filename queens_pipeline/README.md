@@ -54,5 +54,8 @@ Choices the spec left open, or where the real files differed from it:
 - **OCR** runs on pages with under 200 characters of text, first 25 pages of a file only.
 - **Notice amounts:** "approximate amount of judgment" is the judgment; "approximate amount of lien" is kept
   apart as `approximate_lien_amount` and never used as the judgment.
-- **Queens house numbers** printed without the hyphen before a numbered street (`15826 78th Avenue`) get it back.
+- **Queens house numbers** printed without the hyphen before a numbered street (`15826 78th Avenue`), or with five
+  digits (`12320 Grayson Street`), get it back; four digits before a named street stay as printed (`1654 George Street`).
+  Addresses a filing prints wrongly or leaves out are corrected in `load_queens_pipeline.ADDRESS_CORRECTIONS`, checked
+  against the lot's address in NYC PLUTO; `EXCLUDED` lists cases not put on the site (a multi-parcel, multi-borough sale).
 - No LLM fallback is implemented; every value is a regex match (`method = 'regex'`).

@@ -33,6 +33,8 @@ def test_documents_are_split_by_stamp_and_classified_by_title():
     assert classify("JUDGMENT OF FORECLOSURE AND SALE ... the summons and complaint were served") == "judgment_of_foreclosure"
     assert classify("SUMMONSANDNOTICE U.S.BankNationalAssociation") == "summons_complaint"
     assert classify("MEMORANDUM SUPREME COURT - QUEENS COUNTY") == "other"
+    assert classify("SUPREME COURT - COUNTY OF QUEENS. Pursuant to a Judgment of Foreclosure and Sale dated June 9, 2026 "
+                    "and entered on June 11, 2026, I, the undersigned Referee will sell at public auction") == "notice_of_sale"
 
 
 def test_addresses_survive_ocr_and_layout_noise():
@@ -45,6 +47,16 @@ def test_addresses_survive_ocr_and_layout_noise():
     assert split_address("192-17 Jamaica Avenue a/k/a 192-19 Jamaica Ave, Jamaica a/k/a Hollis, NY 11423.", "Queens") == {
         "property_address": "192-17 Jamaica Avenue", "city": "Jamaica", "zip": "11423"}
     assert split_address("119-19 198th Street Plaintiff, Saint Albans, NY 11412", "Queens")["property_address"] == "119-19 198th Street"
+    assert split_address("11633 130 STREET, JAMAICA, NY 11420; and the", "Queens")["property_address"] == "116-33 130th Street"
+    assert split_address("12320 Grayson Street, Jamaica, NY 11413. All", "Queens")["property_address"] == "123-20 Grayson Street"
+    assert split_address("1654 George Street, Ridgewood, NY 11385", "Queens")["property_address"] == "1654 George Street"
+    assert split_address("2364 Motts Ave., Far Rockaway, (City of New York) NY 11691. (BL#: 15670-3)", "Queens") == {
+        "property_address": "2364 Motts Ave", "city": "Far Rockaway", "zip": "11691"}
+    assert split_address("1361 DICKENS ST, FAR ROCKAWAY NEW YORK NEW YORK 11691 BLOCK", "Queens") == {
+        "property_address": "1361 Dickens St", "city": "Far Rockaway", "zip": "11691"}
+    assert split_address("57 48 VAN DOREN STREET, CORONA, NY 11368 Approximate", "Queens")["property_address"] == "57-48 Van Doren Street"
+    assert split_address("104-15 a/k/a 104-21 170s STREET,JAMAICA, NY11433 (As to", "Queens") == {
+        "property_address": "104-15 170th Street", "city": "Jamaica", "zip": "11433"}
 
 
 def test_block_and_lot_in_every_wording():
@@ -52,6 +64,8 @@ def test_block_and_lot_in_every_wording():
     assert block_lot("and the following tax map identification: 10334-5. ALL THAT", "Queens") == "4-10334-5"
     assert block_lot("The tax map designation is Block 12073 Lots 429 and 430.", "Queens") == "4-12073-429/430"
     assert block_lot("New York, BLOCK: 10448, LOT: 16. Approximate", "Queens") == "4-10448-16"
+    assert block_lot("NY 11691. (BL#: 15670-3) Approximate", "Queens") == "4-15670-3"
+    assert block_lot("BEGINNING. Block: 10226 Lot: 72 Said premises ... BEGINNING.Block: 10226 Lot: 76 Said", "Queens") == "4-10226-72/76"
 
 
 def test_notice_of_sale_fields():

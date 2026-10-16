@@ -35,6 +35,21 @@ PARSER_VERSION = "queens_pipeline_v1"
 ZIP_CORRECTIONS = {
     "710760/2021": "11417",  # the notice prints 11471; 83-02 133rd Avenue, Ozone Park is 11417
 }
+# Addresses the filings print wrongly or not at all, checked against the lot's address in NYC PLUTO
+# (64uk-42ks) and keyed by index number: (street, city, ZIP).
+ADDRESS_CORRECTIONS = {
+    "703782/2019": ("41-47 70th Street", "Woodside", "11377"),  # the notice names only Block 1310 Lot 9
+    "708268/2023": ("13-61 Dickens Street", "Far Rockaway", "11691"),  # printed "1361 Dickens St"
+    "711182/2017": ("23-64 Mott Avenue", "Far Rockaway", "11691"),  # printed "2364 Motts Ave."
+    "700059/2022": ("33-36 Bay Court", "Far Rockaway", "11691"),  # printed "3336 Baycourt Avenue"
+    "720461/2023": ("14-07 Cross Bay Boulevard", "Broad Channel", "11693"),  # printed "1407 Cross Bay Boulevard"
+}
+# Cases not listed, with the reason.
+EXCLUDED = {
+    # One sale of three parcels (Ridgewood, Jamaica and 2415 Dean Street, Brooklyn) for one lien amount:
+    # a single listing could show neither the right address nor a meaningful equity figure.
+    "710387/2023": "three parcels in Queens and Brooklyn sold together",
+}
 EVENT_STATUS = {
     "scheduled": ("scheduled", "Referee auction on the court calendar"),
     "not_held": ("adjourned", "Not Held (court calendar)"),
@@ -47,12 +62,17 @@ def read_cases(connection: sqlite3.Connection, county: str) -> list[dict]:
     cases = []
     for case in connection.execute("SELECT * FROM cases WHERE county = ? AND lifecycle = 'active' ORDER BY index_number",
                                    (county,)):
+        if case["index_number"] in EXCLUDED:
+            continue
+        case = dict(case)
+        if fixed := ADDRESS_CORRECTIONS.get(case["index_number"]):
+            case["property_address"], case["city"], case["zip"] = fixed
         key = (county, case["index_number"])
         events = connection.execute("""SELECT auction_date, part, outcome, event_status FROM auction_events
             WHERE county = ? AND index_number = ? ORDER BY auction_date""", key).fetchall()
         auctions = connection.execute("""SELECT appearance_date, outcome FROM appearances WHERE county = ?
             AND index_number = ? AND purpose LIKE 'Auction%' ORDER BY appearance_date""", key).fetchall()
-        cases.append({**dict(case), "events": [dict(event) for event in events],
+        cases.append({**case, "events": [dict(event) for event in events],
                       "auctions": [{"date": row["appearance_date"], "outcome": row["outcome"]} for row in auctions]})
     return cases
 
