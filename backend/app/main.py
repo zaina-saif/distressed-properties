@@ -8,6 +8,7 @@ from app.api.admin import router as admin_router
 from app.api.alerts import router as alerts_router
 from app.api.analytics import router as analytics_router
 from app.api.contact import router as contact_router
+from app.api.court_cases import router as court_cases_router
 from app.api.files import router as files_router
 from app.api.investor_profile import router as investor_profile_router
 from app.api.properties import router as properties_router
@@ -64,6 +65,7 @@ app.include_router(files_router, dependencies=[Depends(require_file_access)])
 if os.getenv("ENABLE_WAREHOUSE_API", "1") != "0":
     app.include_router(warehouse_valuations_router, dependencies=[Depends(require_developer)])
 app.include_router(sale_page_router)
+app.include_router(court_cases_router)
 
 
 @app.get("/health")

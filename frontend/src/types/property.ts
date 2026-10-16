@@ -9,6 +9,8 @@ export interface Property {
   plaintiff?: string | null;
   defendant?: string | null;
   foreclosure_source_url?: string | null;
+  /** A NY court case summary exists (shown in place of a sale page). */
+  has_case_summary?: boolean;
   apify_data?: Record<string, unknown> | null;
 
   normalized_address: string;

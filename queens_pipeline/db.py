@@ -126,7 +126,9 @@ CREATE TABLE IF NOT EXISTS field_sources (
 );
 """
 # Columns added after the first release, for databases created before them.
-ADDED_COLUMNS = {"cases": {"approximate_judgment": "REAL", "approximate_lien_amount": "REAL"}}
+ADDED_COLUMNS = {"cases": {"approximate_judgment": "REAL", "approximate_lien_amount": "REAL", "judgment_date": "TEXT"},
+                 # Court Calendar Details exports: the auction time and the clerk's remarks ("CANCELED VIA EMAIL ...").
+                 "auction_events": {"time": "TEXT", "remarks": "TEXT"}}
 
 
 def connect(path: Path = DB_PATH) -> sqlite3.Connection:

@@ -322,6 +322,7 @@ def split_address(raw: str, county: str) -> dict | None:
     # A caption printed beside the address: "119-19 198th Street Plaintiff,".
     street = re.sub(r"\s+(?:Plaintiffs?|Defendants?|-?against-?)$", "", street, flags=re.I)
     city = re.split(r"\s+a/?k/?a\s+", match["city"], maxsplit=1, flags=re.I)[0]
+    city = re.sub(r"^NewYork$", "New York", city, flags=re.I)
     # "FAR ROCKAWAY NEW YORK NEW YORK 11691": the state printed twice.
     city = re.sub(r"(?<=\w)\s+New\s*York$", "", city, flags=re.I)
     street = re.sub(r"(\d)(?:ST|ND|RD|TH)(STREET|AVENUE|ROAD|PLACE|DRIVE)\b",
@@ -365,7 +366,8 @@ def block_lot(text: str, county: str) -> str | None:
 def parse_notice_of_sale(text: str, county: str) -> dict:
     body = flat(text)
     values: dict = {}
-    premises = re.search(r"premises\s*known\s*as\s*:?\s*(.{10,200})", body, re.I)
+    # "premises known as", "premises commonly known as", "prem. k/a".
+    premises = re.search(r"prem(?:ises|\.)\s*(?:commonly\s+)?(?:known\s*as|k/a)\s*:?\s*(.{10,200})", body, re.I)
     if premises and (address := split_address(premises[1], county)):
         values.update(address)
     values["borough_block_lot"] = block_lot(body, county)
@@ -377,7 +379,9 @@ def parse_notice_of_sale(text: str, county: str) -> dict:
                           r"(?i:Referee)\b", body)
     if referees:
         # OCR doubles a capital ("JJais") or drops the space before a middle initial ("NedaM.").
-        name = re.sub(r"\b([A-Z])\1(?=[a-z])", r"\1", tidy(referees[-1]))
+        # A sentence's last word can lead the match: "... Terms of Sale. GEORGIA PAPAZIS, Referee".
+        name = re.sub(r"^(?:[A-Z][a-z]{2,}\.\s+)+", "", referees[-1])
+        name = re.sub(r"\b([A-Z])\1(?=[a-z])", r"\1", tidy(name))
         values["referee_name"] = re.sub(r"([a-z])([A-Z]\.)", r"\1 \2", name)
     # "Approximate amount of judgment is $X" / "the approximate amount of the current (OCR: cunent)
     # Judgment lien is $X". "Approximate amount of lien $X" names no judgment, so it is kept apart.
@@ -389,6 +393,13 @@ def parse_notice_of_sale(text: str, county: str) -> dict:
     values["approximate_lien_amount"] = money(lien[1]) if lien else None
     sale = re.search(r"(?:will\s+sell|publi\w*\s+a?uction).{0,220}?\bon\s+((?:January|February|March|April|May|June|"
                      r"July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2})", body, re.I)
+    # "Judgment of Foreclosure and Sale dated January 6, 2026 and entered on January 7, 2026": the entry date
+    # when given (the judgment's effective date), else the date it was signed.
+    month = r"((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+20\d{2})"
+    if judged := re.search(r"judgment\s*of\s*foreclosure\s*(?:and|&)\s*sale[^.]{0,120}?(?:entered|filed)\s+(?:on\s+)?" + month,
+                           body, re.I) or re.search(r"judgment\s*of\s*foreclosure\s*(?:and|&)\s*sale[^.]{0,80}?dated\s+" + month,
+                                                    body, re.I):
+        values["judgment_date"] = iso(re.sub(r",?\s+", " ", judged[1]), "%B %d %Y")
     values["notice_auction_date"] = iso(re.sub(r",?\s+", " ", sale[1]), "%B %d %Y") if sale else None
     return {key: value for key, value in values.items() if value}
 

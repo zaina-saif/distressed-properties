@@ -105,7 +105,7 @@ export function PropertyFocusPanel({
           {property.square_feet != null && <span className="flex items-center gap-1"><Ruler className="h-4 w-4" />{property.square_feet.toLocaleString()} sqft</span>}
           <span className="flex items-center gap-1"><Gavel className="h-4 w-4" />{property.sheriff_number}</span>
           {property.court_case_number && (
-            <button type="button" onClick={onSalePageClick} className="font-medium text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">
+            <button type="button" onClick={onSalePageClick} className="font-medium text-teal-700 underline hover:text-teal-900" title={property.has_case_summary ? "View the court case summary" : "View the sheriff sale page"}>
               Case {property.court_case_number}
             </button>
           )}

@@ -15,6 +15,12 @@ The export lists one entry per scheduled court date, grouped under date lines:
 Field lines come in varying order and long values wrap onto the next line
 ("Plaintiff Attorney: Robertson, Anschutz, Schneid," / "Crane & Partners, PLLC").
 Every page starts with the report title and the last one ends with "Page N of M".
+
+The "Court Calendar Details" export (a court's whole part, printed from the browser, as
+New York County's) differs: "Court Part Selected:" and "Date Selected:" head it, date
+lines have no comma ("Tuesday October 20, 2026"), entries add "Time:", "Remarks:"
+(continued on the next line: "CANCELED VIA EMAIL 9/18/26"), "Calendar Number:" and
+"Year Filed:", and every page carries the browser's header and the page's URL.
 """
 from __future__ import annotations
 
@@ -25,9 +31,10 @@ from pathlib import Path
 
 import pdfplumber
 
-TITLE = "WebCivil Supreme - Justice/Part Calendar Details"
-PAGE_FOOTER = re.compile(r"^Page \d+ of \d+$")
-DATE_LINE = re.compile(r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday), "
+TITLES = {"WebCivil Supreme - Justice/Part Calendar Details", "WebCivil Supreme - Court Calendar Details"}
+# "Page 2 of 3"; a browser print's header ("10/16/26, 2:33 PM WebCivil Supreme") and footer (the URL, "1/9").
+PAGE_FOOTER = re.compile(r"^Page \d+ of \d+$|^\d{1,2}/\d{1,2}/\d{2}, \d{1,2}:\d{2} [AP]M WebCivil Supreme$|^https?://\S+.* \d+/\d+$")
+DATE_LINE = re.compile(r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),? "
                        r"([A-Z][a-z]+ \d{1,2}, \d{4})$")
 # Older cases have shorter index numbers ("5393/2008").
 ENTRY = re.compile(r"^(\d{3,6}/\d{4}) - (.*)$")
@@ -39,6 +46,10 @@ LABELS = {
     "Court Date Purpose": "purpose",
     "Plaintiff Attorney": "plaintiff_attorney",
     "Defendant Attorney": "defendant_attorney",
+    "Time": "time",
+    "Remarks": "remarks",
+    "Calendar Number": "calendar_number",
+    "Year Filed": "year_filed",
 }
 LABEL_LINE = re.compile(r"^(" + "|".join(map(re.escape, LABELS)) + r"):\s*(.*)$")
 COURT_LINE = re.compile(r"^(.+? Court) / Part:\s*(.*)$")
@@ -61,6 +72,10 @@ class CalendarRow:
     outcome: str | None = None
     plaintiff_attorney: str | None = None
     defendant_attorney: str | None = None
+    time: str | None = None
+    remarks: str | None = None
+    calendar_number: str | None = None
+    year_filed: str | None = None
     raw_lines: list[str] = field(default_factory=list)
 
     @property
@@ -84,7 +99,7 @@ def pdf_lines(path: Path) -> list[str]:
         for page in pdf.pages:
             for line in (page.extract_text() or "").splitlines():
                 line = " ".join(line.split())
-                if line and line != TITLE and not PAGE_FOOTER.match(line):
+                if line and line not in TITLES and not PAGE_FOOTER.match(line):
                     lines.append(line)
     return lines
 
@@ -112,7 +127,10 @@ def parse_lines(lines: list[str]) -> Calendar:
             if match := re.match(r"^Date Range:\s*(\d{1,2}/\d{1,2}/\d{4})", line):
                 header["date_range_start"] = _iso_date(match[1], "%m/%d/%Y")
                 continue
-            if match := re.match(r"^Part Selected:\s*(.+)$", line):
+            if match := re.match(r"^Date Selected:\s*(\d{1,2}/\d{1,2}/\d{4})", line):
+                header["date_range_start"] = _iso_date(match[1], "%m/%d/%Y")
+                continue
+            if match := re.match(r"^(?:Court )?Part Selected:\s*(.+)$", line):
                 header["part_selected"] = match[1]
                 continue
         if match := DATE_LINE.match(line):

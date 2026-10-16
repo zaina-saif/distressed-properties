@@ -136,18 +136,20 @@ def ingest(connection: sqlite3.Connection, calendar: Calendar, source_file: str,
             if existing is None:
                 connection.execute(
                     """INSERT INTO auction_events (county, index_number, auction_date, court, part, court_date_type,
-                           fully_virtual, purpose, outcome, event_status, first_seen_snapshot, last_seen_snapshot)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                           fully_virtual, purpose, outcome, event_status, first_seen_snapshot, last_seen_snapshot,
+                           time, remarks)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                     (county, *key, row.court, row.part, row.court_date_type, row.fully_virtual, row.purpose,
-                     row.outcome, status, snapshot, snapshot))
+                     row.outcome, status, snapshot, snapshot, row.time, row.remarks))
                 connection.execute("""UPDATE cases SET times_scheduled = times_scheduled + 1
                                       WHERE county = ? AND index_number = ?""", (county, row.index_number))
                 change(row.index_number, "new_auction_date", row.auction_date)
                 continue
             connection.execute(
-                """UPDATE auction_events SET last_seen_snapshot = ?, outcome = ?, event_status = ?
+                """UPDATE auction_events SET last_seen_snapshot = ?, outcome = ?, event_status = ?,
+                       time = COALESCE(?, time), remarks = COALESCE(?, remarks)
                    WHERE county = ? AND index_number = ? AND auction_date = ?""",
-                (snapshot, row.outcome, status, county, *key))
+                (snapshot, row.outcome, status, row.time, row.remarks, county, *key))
             if existing["outcome"] != row.outcome:
                 change(row.index_number, "outcome_changed",
                        f"{row.auction_date}: {existing['outcome'] or 'none'} -> {row.outcome or 'none'}")

@@ -3,6 +3,7 @@
     python ingest_case_files.py                      # every case file in data/queens/cases/
     python ingest_case_files.py 713725/2021          # one case
     python ingest_case_files.py --cases-dir ~/Documents/.../QueensSupremeCourt
+    python ingest_case_files.py --county "New York" --cases-dir <folder>   # another county's cases
 
 Files belong to a case by name: the index number with "/" written as "-" (spaces and a
 ":" around it are tolerated, as in "705527- 2014 summons.pdf"), then a space, "_" or ".".
@@ -35,12 +36,12 @@ from ingest_calendar import REPORTS, write_drilldown_todo
 from pdf_text import page_texts, sha256_file
 
 CASES_DIR = DATA / "queens" / "cases"
-COUNTY = "Queens"
+COUNTY = "Queens"  # set by --county
 # Lower rank wins.
 SECTION_RANK = {"notice_of_sale": 0, "summons_complaint": 1, "notice_of_pendency": 2, "case_detail": 3}
 CASE_FIELDS = ("property_address", "city", "zip", "borough_block_lot", "referee_name", "unpaid_principal",
                "approximate_judgment", "approximate_lien_amount",
-               "original_mortgagee", "case_status", "filing_date", "initiating_doc", "initiating_doc_date")
+               "original_mortgagee", "case_status", "filing_date", "initiating_doc", "initiating_doc_date", "judgment_date")
 FILL_IF_BLANK = ("cms_index", "justice", "caption")
 
 
@@ -227,8 +228,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("index_number", nargs="?", help="only this case, e.g. 713725/2021")
     parser.add_argument("--cases-dir", type=Path, default=CASES_DIR)
+    parser.add_argument("--county", default="Queens", help='the county of the cases, as its calendar names it ("New York")')
     parser.add_argument("--no-ocr", action="store_true", help="use only the embedded text layer")
     args = parser.parse_args()
+    global COUNTY
+    COUNTY = args.county
     connection = connect()
     groups, ignored = group_files(args.cases_dir.expanduser(), args.index_number)
     results: list[CaseResult] = []

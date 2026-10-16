@@ -350,6 +350,52 @@ export async function getSalePage(sheriffSaleId: string): Promise<SalePage> {
   return response.json() as Promise<SalePage>;
 }
 
+export interface CourtCaseEvent {
+  date: string;
+  time: string | null;
+  location: string | null;
+  outcome: string | null;
+  status: "scheduled" | "not_held" | "passed" | "dropped";
+  remarks: string | null;
+}
+
+export interface CourtCaseSummary {
+  county: string;
+  index_number: string;
+  court: string;
+  address: string;
+  block_lot: string | null;
+  plaintiff: string | null;
+  plaintiff_attorney: string | null;
+  referee: string | null;
+  justice: string | null;
+  filing_date: string | null;
+  initiating_document: string | null;
+  original_lender: string | null;
+  unpaid_principal: number | null;
+  approximate_judgment: number | null;
+  approximate_lien_amount: number | null;
+  judgment_date: string | null;
+  next_auction: CourtCaseEvent | null;
+  years_in_foreclosure: number | null;
+  stages: Array<{ stage: string; date: string; detail: string }>;
+  auction_calendar: CourtCaseEvent[];
+  appearances: Array<{ date: string; part: string | null; justice: string | null; purpose: string | null; outcome: string | null; kind: string }>;
+  sources: string[];
+  built_on: string;
+  updated_at: string;
+}
+
+/** A NY referee foreclosure case: summons, Notice of Sale, appearances and auction calendar in one view. */
+export async function getCourtCase(sheriffSaleId: string): Promise<CourtCaseSummary> {
+  const response = await authFetch(`${API_URL}/api/v1/court-cases/${encodeURIComponent(sheriffSaleId)}`, { cache: "no-store" });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "The case summary could not be loaded.");
+  }
+  return response.json() as Promise<CourtCaseSummary>;
+}
+
 export interface LandingSummary {
   state: string;
   upcoming_sales: number;

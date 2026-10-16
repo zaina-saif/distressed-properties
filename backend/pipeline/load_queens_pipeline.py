@@ -1,4 +1,4 @@
-"""Load the local Queens court pipeline (queens_pipeline/) into the live listings.
+"""Load the local NY court pipeline (queens_pipeline/: Queens, New York County, ...) into the live listings.
 
 queens_pipeline/ reads the WebCivil auction calendar and the case files the operator
 saved by hand into its own SQLite database. This puts every active case that has an
@@ -7,17 +7,24 @@ as pipeline.load_ny_court_pdfs, so a case loaded by either one is updated, not d
 
     python -m pipeline.load_queens_pipeline --dry-run
     python -m pipeline.load_queens_pipeline
+    python -m pipeline.load_queens_pipeline --county "New York"
 
 Each calendar date becomes a status-history row: "Not Held" as adjourned, a date still
 on the calendar as scheduled, one that went by or left the calendar as
 sold_or_cancelled_unverified. The case's WebCivil appearance history adds its earlier
 auction dates and outcomes (load_ny_court_pdfs.apply_appearances). Cases without an
 address (no Notice of Sale or summons saved yet) cannot be listed and are counted.
+
+Each listed case also gets a case summary (ny_court_case_summaries, migration 043): what
+the summons and complaint, the Notice of Sale, the appearances and the auction calendar
+say, with the case's stages in order. The dashboard shows it in place of a sale page.
+Defendants' names are left out, as everywhere else.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 from collections import Counter
 from datetime import date
@@ -27,28 +34,49 @@ from sqlalchemy import text
 
 from app.database.session import engine
 from pipeline.load_ny_court_pdfs import SOURCE_SYSTEM, WEBCIVIL_URL, apply_appearances, bbl
+from pipeline.ny_case_summary import build_summary
 from pipeline.sale_listing_loader import Sale, load_sales
 
 DB_PATH = Path(__file__).resolve().parents[2] / "queens_pipeline" / "data" / "sheriffsale.db"
 PARSER_VERSION = "queens_pipeline_v1"
-# ZIPs printed wrongly in the source, corrected by hand and keyed by index number.
+# ZIPs printed wrongly in the source, corrected by hand and keyed by (county, index number).
 ZIP_CORRECTIONS = {
-    "710760/2021": "11417",  # the notice prints 11471; 83-02 133rd Avenue, Ozone Park is 11417
+    ("Queens", "710760/2021"): "11417",  # the notice prints 11471; 83-02 133rd Avenue, Ozone Park is 11417
 }
 # Addresses the filings print wrongly or not at all, checked against the lot's address in NYC PLUTO
-# (64uk-42ks) and keyed by index number: (street, city, ZIP).
+# (64uk-42ks) where it has one (condominium units have none): (street, city, ZIP).
 ADDRESS_CORRECTIONS = {
-    "703782/2019": ("41-47 70th Street", "Woodside", "11377"),  # the notice names only Block 1310 Lot 9
-    "708268/2023": ("13-61 Dickens Street", "Far Rockaway", "11691"),  # printed "1361 Dickens St"
-    "711182/2017": ("23-64 Mott Avenue", "Far Rockaway", "11691"),  # printed "2364 Motts Ave."
-    "700059/2022": ("33-36 Bay Court", "Far Rockaway", "11691"),  # printed "3336 Baycourt Avenue"
-    "720461/2023": ("14-07 Cross Bay Boulevard", "Broad Channel", "11693"),  # printed "1407 Cross Bay Boulevard"
+    ("Queens", "703782/2019"): ("41-47 70th Street", "Woodside", "11377"),  # the notice names only Block 1310 Lot 9
+    ("Queens", "708268/2023"): ("13-61 Dickens Street", "Far Rockaway", "11691"),  # printed "1361 Dickens St"
+    ("Queens", "711182/2017"): ("23-64 Mott Avenue", "Far Rockaway", "11691"),  # printed "2364 Motts Ave."
+    ("Queens", "700059/2022"): ("33-36 Bay Court", "Far Rockaway", "11691"),  # printed "3336 Baycourt Avenue"
+    ("Queens", "720461/2023"): ("14-07 Cross Bay Boulevard", "Broad Channel", "11693"),  # printed "1407 Cross Bay Boulevard"
+    # "300 WEST14THSTREET,UNIT304A/K/A 77 EIGHTHAVENUE, NEW NY YORK, 10014" in the OCR'd notice.
+    ("New York", "159971/2014"): ("300 West 14th Street, Unit 304", "New York", "10014"),
+    # The notice describes the two units; the complaint names the building.
+    ("New York", "850089/2023"): ("525 East 80th Street, Units 7B and 7C", "New York", "10075"),
+    ("New York", "850221/2025"): ("435 East 117th Street, Apt 3", "New York", "10035"),  # no notice yet; the complaint
+    ("New York", "850279/2021"): ("1696 Lexington Avenue", "New York", "10029"),  # PLUTO lists the lot as 1694
+    ("New York", "850304/2024"): ("123 Baxter Street, Unit Garage", "New York", "10013"),  # the notice gives no ZIP
+    # The notice's text layer is unreadable; the complaint and the notice's description name 41 West 36th Street
+    # (Block 838 Lot 20 in PLUTO).
+    ("New York", "850385/2024"): ("41 West 36th Street", "New York", "10018"),
+    ("New York", "850475/2023"): ("20 West Street, Unit 22J", "New York", "10004"),  # printed "Unit 22 J"
+}
+# Block and lot the filings leave out, from PLUTO: (county, index number) -> "borough-block-lot".
+BLOCK_LOT_CORRECTIONS = {
+    ("New York", "850385/2024"): "1-838-20",
 }
 # Cases not listed, with the reason.
 EXCLUDED = {
     # One sale of three parcels (Ridgewood, Jamaica and 2415 Dean Street, Brooklyn) for one lien amount:
     # a single listing could show neither the right address nor a meaningful equity figure.
-    "710387/2023": "three parcels in Queens and Brooklyn sold together",
+    ("Queens", "710387/2023"): "three parcels in Queens and Brooklyn sold together",
+    # Timeshare foreclosures: a fraction of a percent of a hotel unit, used a week or so a year. The
+    # building's value (Zillow, NYC DOF) says nothing about the interest's, so equity would be wrong.
+    ("New York", "850062/2024"): "timeshare interest at 102 West 57th Street",
+    ("New York", "850341/2023"): "timeshare interest at 102 West 57th Street",
+    ("New York", "850292/2023"): "timeshare interest at 1335 Avenue of the Americas",
 }
 EVENT_STATUS = {
     "scheduled": ("scheduled", "Referee auction on the court calendar"),
@@ -62,18 +90,24 @@ def read_cases(connection: sqlite3.Connection, county: str) -> list[dict]:
     cases = []
     for case in connection.execute("SELECT * FROM cases WHERE county = ? AND lifecycle = 'active' ORDER BY index_number",
                                    (county,)):
-        if case["index_number"] in EXCLUDED:
+        key = (county, case["index_number"])
+        if key in EXCLUDED:
             continue
         case = dict(case)
-        if fixed := ADDRESS_CORRECTIONS.get(case["index_number"]):
+        if fixed := ADDRESS_CORRECTIONS.get(key):
             case["property_address"], case["city"], case["zip"] = fixed
-        key = (county, case["index_number"])
-        events = connection.execute("""SELECT auction_date, part, outcome, event_status FROM auction_events
+        case["zip"] = ZIP_CORRECTIONS.get(key, case["zip"])
+        case["borough_block_lot"] = BLOCK_LOT_CORRECTIONS.get(key, case["borough_block_lot"])
+        events = connection.execute("""SELECT * FROM auction_events
             WHERE county = ? AND index_number = ? ORDER BY auction_date""", key).fetchall()
-        auctions = connection.execute("""SELECT appearance_date, outcome FROM appearances WHERE county = ?
-            AND index_number = ? AND purpose LIKE 'Auction%' ORDER BY appearance_date""", key).fetchall()
-        cases.append({**case, "events": [dict(event) for event in events],
-                      "auctions": [{"date": row["appearance_date"], "outcome": row["outcome"]} for row in auctions]})
+        appearances = connection.execute("""SELECT appearance_date, part, justice, purpose, outcome FROM appearances
+            WHERE county = ? AND index_number = ? ORDER BY appearance_date""", key).fetchall()
+        sections = {section for (names,) in connection.execute(
+            "SELECT sections FROM case_files WHERE county = ? AND index_number = ?", key) for section in names.split(",")}
+        cases.append({**case, "events": [dict(event) for event in events], "sections": sorted(sections),
+                      "appearances": [dict(row) for row in appearances],
+                      "auctions": [{"date": row["appearance_date"], "outcome": row["outcome"]}
+                                   for row in appearances if (row["purpose"] or "").startswith("Auction")]})
     return cases
 
 
@@ -88,7 +122,14 @@ def block_and_lots(case: dict) -> tuple[str | None, list[str]]:
 def details(case: dict, sale_date: str | None) -> str:
     parts = ["Court-ordered referee foreclosure auction."]
     if sale_date:
-        parts.append(f"Auction: {sale_date}, {case['county']} County Supreme Court, Foreclosure Auction Part.")
+        event = next((event for event in case["events"] if event["auction_date"] == sale_date), {})
+        summary_event = next((e for e in build_summary(case, [], date.today())["auction_calendar"]
+                              if e["date"] == sale_date), {})
+        when = " ".join(filter(None, [sale_date, summary_event.get("time") and f"at {summary_event['time']}"]))
+        place = summary_event.get("location") or "Foreclosure Auction Part"
+        parts.append(f"Auction: {when}, {case['county']} County Supreme Court, {place}.")
+        if event.get("event_status") == "not_held" and summary_event.get("remarks"):
+            parts.append(f"Court calendar: {summary_event['remarks']}.")
     if case["referee_name"]:
         parts.append(f"Referee: {case['referee_name']}.")
     if case["approximate_judgment"]:
@@ -115,8 +156,10 @@ def to_sales(case: dict) -> list[Sale]:
     block, lots = block_and_lots(case)
     common = dict(
         case=case["index_number"], street=case["property_address"], city=case["city"],
-        zip_code=ZIP_CORRECTIONS.get(case["index_number"], case["zip"]),
-        raw={**{k: v for k, v in case.items() if k != "defendant"}, "parser_version": PARSER_VERSION},
+        zip_code=case["zip"],
+        raw={**{k: v for k, v in case.items()
+                if k not in ("defendant", "defendant_attorney", "caption", "appearances", "sections")},
+             "parser_version": PARSER_VERSION},
         parcel=f"Block {block} Lot{'s' if len(lots) > 1 else ''} {' and '.join(lots)}" if block else None,
         # The calendar cuts long plaintiff names short, so apply_details fills it only where it is missing.
         judgment=case["approximate_judgment"], plaintiff=None,
@@ -124,6 +167,10 @@ def to_sales(case: dict) -> list[Sale]:
     sales = []
     for event in case["events"]:
         status, raw_status = EVENT_STATUS[event["event_status"]]
+        if event.get("remarks") and event["event_status"] == "not_held":
+            # "CANCELED VIA EMAIL 9/18/26, SUB REF NEEDED": the clerk's reason, after the courtroom.
+            reason = re.sub(r"^\d+ CENTRE STREET ROOM \d+\s*", "", event["remarks"], flags=re.I).strip()
+            raw_status = f"{raw_status}: {reason}" if reason else raw_status
         sales.append(Sale(**common, sale_date=date.fromisoformat(event["auction_date"]), status=status,
                           raw_status=raw_status))
     return sales
@@ -148,6 +195,12 @@ def apply_details(cases: list[dict]) -> Counter:
                  "lien": case["approximate_lien_amount"],
                  "plaintiff": (case["plaintiff"] or "").rstrip(" ,") or None})
             counts["details"] += 1
+            connection.execute(text("""INSERT INTO ny_court_case_summaries (sheriff_sale_id, county, index_number, summary)
+                VALUES (:id, :county, :index, CAST(:summary AS JSONB))
+                ON CONFLICT (sheriff_sale_id) DO UPDATE SET summary = EXCLUDED.summary, updated_at = NOW()"""),
+                {"id": sale_id, "county": case["county"], "index": case["index_number"],
+                 "summary": json.dumps(build_summary(case, case["sections"], date.today()))})
+            counts["summaries"] += 1
             # A notice that states only a lien amount has no judgment: an earlier load that
             # stored the lien amount as the judgment is cleared.
             lien = case["approximate_lien_amount"]
@@ -178,7 +231,7 @@ def main() -> None:
     if args.dry_run:
         for case in listed:
             print(json.dumps({"index": case["index_number"], "address": f"{case['property_address']}, {case['city']} "
-                              f"{ZIP_CORRECTIONS.get(case['index_number'], case['zip'])}",
+                              f"{case['zip']}",
                               "dates": [(s.sale_date.isoformat(), s.status) for s in to_sales(case)],
                               "judgment": case["approximate_judgment"], "bbl": to_sales(case)[0].property_number}))
         return

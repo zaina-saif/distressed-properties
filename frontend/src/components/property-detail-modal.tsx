@@ -297,7 +297,7 @@ export function PropertyDetailModal({
                 <Fact label={saleTypeNote(property) ? "Minimum bid" : "Upset price"} value={currency(property.upset_price)} />
                 <Fact label={property.sale_type === "Sheriff sale" ? "Sheriff number" : "Auction ID"} value={property.sheriff_number} />
                 <Fact label="Court case" value={property.court_case_number
-                  ? <button type="button" onClick={() => onSalePageClick(property)} className="text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">{property.court_case_number}</button>
+                  ? <button type="button" onClick={() => onSalePageClick(property)} className="text-teal-700 underline hover:text-teal-900" title={property.has_case_summary ? "View the court case summary" : "View the sheriff sale page"}>{property.court_case_number}</button>
                   : "Unavailable"} />
                 <Fact label="Parcel / tax ID" value={property.bbl ?? "Unavailable"} />
                 <Fact label="Plaintiff" value={property.plaintiff ?? "Unavailable"} />
@@ -305,7 +305,11 @@ export function PropertyDetailModal({
                 {property.notice_lien_amount != null && <Fact label="Approx. lien amount (notice)" value={currency(property.notice_lien_amount)} />}
               </dl>
               {property.notice_details && <p className="mt-3 rounded-lg bg-slate-50 p-3 text-xs leading-5 text-slate-700">{property.notice_details}</p>}
-              {property.state === "NJ" ? (
+              {property.has_case_summary ? (
+                <button type="button" onClick={() => onSalePageClick(property)} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
+                  View court case summary <ExternalLink className="h-3.5 w-3.5" />
+                </button>
+              ) : property.state === "NJ" ? (
                 <button type="button" onClick={() => onSalePageClick(property)} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-700 hover:underline">
                   View sheriff sale page <ExternalLink className="h-3.5 w-3.5" />
                 </button>

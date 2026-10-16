@@ -147,3 +147,17 @@ def test_appearance_table_of_713725():
     motion = next(row for row in rows if row["appearance_date"] == "2025-04-02")
     assert (motion["outcome"], motion["justice"], motion["part"]) == (
         "Fully Submitted - No Opposition", "Mayersohn, Hon. Lee A.", "PART 22 MOTIONS")
+
+
+def test_manhattan_notice_wordings():
+    from case_parsers import parse_notice_of_sale
+    values = parse_notice_of_sale(
+        "Pursuant to a Judgment of Foreclosure and Sale dated January 6, 2026 and entered on January 7, 2026, I will sell "
+        "on October 20, 2026 the premises commonly known as 1696 Lexington Avenue, New York, New York 10029, described "
+        "as follows: BLOCK: 1634 LOT: 16 on the Tax Map. Subject to the Terms of Sale. GEORGIA PAPAZIS, Esq., Referee",
+        "New York")
+    assert values["property_address"] == "1696 Lexington Avenue" and values["zip"] == "10029"
+    assert values["borough_block_lot"] == "1-1634-16"
+    assert values["referee_name"] == "Georgia Papazis"
+    assert values["judgment_date"] == "2026-01-07"
+    assert split_address("126 West 121st Street, NewYork, NY 10027", "New York")["city"] == "New York"

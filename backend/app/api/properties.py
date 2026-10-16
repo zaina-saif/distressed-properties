@@ -547,6 +547,7 @@ def list_properties(
             CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property')
                 THEN ss.description_text ELSE NULL END AS notice_details,
             ss.source_url AS foreclosure_source_url,
+            EXISTS (SELECT 1 FROM ny_court_case_summaries ccs WHERE ccs.sheriff_sale_id = ss.id) AS has_case_summary,
             CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice')
                 AND ss.current_sale_date<CURRENT_DATE
                 AND ss.current_status='scheduled_unverified'

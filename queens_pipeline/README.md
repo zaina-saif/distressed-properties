@@ -22,8 +22,14 @@ python export_json.py                     # -> data/queens/export/
 
 pytest                                    # QUEENS_CASES_DIR=<folder> also runs the real-file test
 
+# Other counties: the same steps with the county's calendar and --county (WebCivil's "Court Calendar Details"
+#   export, e.g. New York County's Foreclosure Auction Part, is read too)
+python ingest_calendar.py data/new_york/calendars/CourtCalendar_NewYork_2026-10-16.pdf
+python ingest_case_files.py --county "New York" --cases-dir data/new_york/cases
+
 # 4. Put every active case with an address on the live site (from backend/, writes to DATABASE_URL)
 cd ../backend && python -m pipeline.load_queens_pipeline --dry-run && python -m pipeline.load_queens_pipeline
+python -m pipeline.load_queens_pipeline --county "New York"   # also writes each case's summary for the dashboard
 ```
 
 | File | Role |

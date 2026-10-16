@@ -29,6 +29,7 @@ import { PropertyLienSummaryModal } from "@/components/property-lien-summary-mod
 import { PropertyComplaintsModal } from "@/components/property-complaints-modal";
 import { PropertyStatusHistoryModal } from "@/components/property-status-history-modal";
 import { SaleProbabilityReasonModal } from "@/components/sale-probability-reason-modal";
+import { CourtCaseSummaryModal } from "@/components/court-case-summary-modal";
 import { SheriffSalePageModal } from "@/components/sheriff-sale-page-modal";
 import { PropertyMap } from "@/components/property-map";
 import { PropertyTable } from "@/components/property-table";
@@ -526,7 +527,9 @@ export default function PropertyDashboard({
       </>}
 
       {selectedProperty && <PropertyDetailModal key={selectedProperty.property_id} property={selectedProperty} onClose={() => setSelectedProperty(null)} onSalePageClick={setSalePageProperty} />}
-      {salePageProperty && <SheriffSalePageModal key={salePageProperty.sheriff_sale_id} property={salePageProperty} onClose={() => setSalePageProperty(null)} />}
+      {salePageProperty && (salePageProperty.has_case_summary
+        ? <CourtCaseSummaryModal key={salePageProperty.sheriff_sale_id} property={salePageProperty} onClose={() => setSalePageProperty(null)} />
+        : <SheriffSalePageModal key={salePageProperty.sheriff_sale_id} property={salePageProperty} onClose={() => setSalePageProperty(null)} />)}
       {selectedLienSummaryProperty && <PropertyLienSummaryModal key={selectedLienSummaryProperty.property_id} property={selectedLienSummaryProperty} onClose={() => setSelectedLienSummaryProperty(null)} />}
       {selectedComplaintsProperty && <PropertyComplaintsModal key={selectedComplaintsProperty.property_id} property={selectedComplaintsProperty} onClose={() => setSelectedComplaintsProperty(null)} />}
       {selectedHistoryProperty && <PropertyStatusHistoryModal key={selectedHistoryProperty.property_id} property={selectedHistoryProperty} onClose={() => setSelectedHistoryProperty(null)} />}

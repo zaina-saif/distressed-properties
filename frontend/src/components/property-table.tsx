@@ -165,7 +165,7 @@ function tableColumns(showOpeningBid: boolean, onLienSummaryClick: (property: Pr
     ...equityColumns,
     ...columns.slice(4).map((column) => column.label === "Court case"
       ? { ...column, value: (p: Property) => p.court_case_number
-          ? <button type="button" onClick={(event) => { event.stopPropagation(); onSalePageClick(p); }} className="font-semibold text-teal-700 underline hover:text-teal-900" title="View the sheriff sale page">{p.court_case_number}</button>
+          ? <button type="button" onClick={(event) => { event.stopPropagation(); onSalePageClick(p); }} className="font-semibold text-teal-700 underline hover:text-teal-900" title={p.has_case_summary ? "View the court case summary" : "View the sheriff sale page"}>{p.court_case_number}</button>
           : "" }
       : column.label === "Probability to auction"
       ? { ...column, value: (p: Property) => <span className="inline-flex items-center gap-1.5 whitespace-nowrap">{percent(p.sale_probability)}{p.sale_probability != null && <button type="button" onClick={(event) => { event.stopPropagation(); onProbabilityReasonClick(p); }} className="text-xs font-medium text-teal-700 underline hover:text-teal-900">Reason</button>}</span> }
@@ -330,7 +330,7 @@ function MobilePropertyList({
             {saleTypeNote(p) && <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1.5 text-xs text-amber-900">Texas tax sale: the former owner can buy it back after the sale. See More details.</p>}
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-2">
               <button type="button" onClick={() => onPropertyClick(p)} className={link}>More details</button>
-              {p.court_case_number && <button type="button" onClick={() => onSalePageClick(p)} className={link}>Sale page</button>}
+              {p.court_case_number && <button type="button" onClick={() => onSalePageClick(p)} className={link}>{p.has_case_summary ? "Case summary" : "Sale page"}</button>}
               <button type="button" onClick={() => onLienSummaryClick(p)} className={link}>Liens summary</button>
               <button type="button" onClick={() => onStatusHistoryClick(p)} className={link}>Status history</button>
               <button type="button" onClick={() => onAdditionalDetailsClick(p)} className={link}>Complaints</button>
