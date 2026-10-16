@@ -68,14 +68,13 @@ def market_value(client: httpx.Client, borough: str, block: str, lot: str) -> di
     raise RuntimeError(f"NYC Open Data kept refusing {borough}-{block}-{lot}")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--counties", nargs="+", choices=sorted(BOROUGH), help="NYC counties (default: all five)")
-    args = parser.parse_args()
-    found = []
+def fill(counties: list[str] | None = None, dry_run: bool = False) -> dict[str, int]:
+    """Look up and store the values; per-listing lines go to stdout (the refresh sends them to its log).
+    A listing whose current DOF value is unchanged (same lots and value) is not written again."""
+    found, unchanged = [], 0
     with httpx.Client(timeout=30, headers={"User-Agent": "SheriffSaleHunter valuation lookup"}) as client:
-        for listing in listings(args.counties):
+        rows = listings(counties)
+        for listing in rows:
             borough, block, lot_numbers = lots(listing)
             values = [market_value(client, borough, block, lot) for lot in lot_numbers]
             if not all(values):
@@ -85,22 +84,38 @@ def main() -> None:
             found.append((listing, total, values))
             print(f"  {listing['street_address']}: ${total:,.0f} ({len(values)} lot{'s' if len(values) > 1 else ''}, "
                   f"FY{values[0]['year']}, class {values[0]['bldg_class']})", flush=True)
-    if not args.dry_run:
+    saved = 0
+    if not dry_run:
         with engine.begin() as connection:
             for listing, total, values in found:
+                parids = ",".join(value["parid"] for value in values)
+                current = connection.execute(text("""SELECT estimated_value, provider_property_id FROM property_valuations
+                    WHERE property_id = CAST(:id AS uuid) AND provider = :provider AND is_current"""),
+                    {"id": listing["property_id"], "provider": NYC_DOF_PROVIDER}).first()
+                if current and float(current[0]) == total and current[1] == parids:
+                    unchanged += 1
+                    continue
                 connection.execute(text("""UPDATE property_valuations SET is_current = FALSE
                     WHERE property_id = CAST(:id AS uuid) AND provider = :provider AND is_current"""),
                     {"id": listing["property_id"], "provider": NYC_DOF_PROVIDER})
                 connection.execute(text("""INSERT INTO property_valuations (property_id, provider, estimated_value,
                     provider_property_id, provider_response, effective_date, is_current)
                     VALUES (CAST(:id AS uuid), :provider, :value, :parids, CAST(:response AS JSONB), :effective, TRUE)"""), {
-                        "id": listing["property_id"], "provider": NYC_DOF_PROVIDER, "value": total,
-                        "parids": ",".join(value["parid"] for value in values),
+                        "id": listing["property_id"], "provider": NYC_DOF_PROVIDER, "value": total, "parids": parids,
                         "response": json.dumps({"source": SOURCE_PAGE, "method": "NYC DOF market value (curmkttot), "
                                                 "summed over the listing's tax lots", "lots": values}),
                         # The fiscal year's values are as of the January 5 taxable status date before it.
                         "effective": date(int(values[0]["year"]) - 1, 1, 5)})
-    print(json.dumps({"valued": len(found), "saved": 0 if args.dry_run else len(found)}))
+                saved += 1
+    return {"without_zestimate": len(rows), "valued": len(found), "saved": saved, "unchanged": unchanged}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--counties", nargs="+", choices=sorted(BOROUGH), help="NYC counties (default: all five)")
+    args = parser.parse_args()
+    print(json.dumps(fill(args.counties, args.dry_run)))
 
 
 if __name__ == "__main__":

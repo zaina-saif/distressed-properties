@@ -14,7 +14,9 @@ Stages, in order:
            state by state, never submitting more than --max-zillow-addresses
            in total, then Queens houses the first pass missed, searched again
            without the hyphen and with the town (once per property). NY listings
-           with a ZIP but no coordinates are geocoded first.
+           with a ZIP but no coordinates are geocoded first; NYC listings still
+           without a Zestimate then get the city's DOF market value
+           (pipeline.load_nyc_dof_values).
   score    Re-score probability to auction with the saved model.
   report   Counts per state, written to report.json.
 
@@ -151,6 +153,7 @@ class Refresh:
         if not os.environ.get("APIFY_API_TOKEN"):
             self.report["failures"].append({"stage": "zillow", "item": "token", "error": "APIFY_API_TOKEN is not set"})
             print("  ! zillow: APIFY_API_TOKEN is not set", flush=True)
+            self.nyc_values()
             return
         remaining = self.max_zillow_addresses
         stage: dict[str, Any] = {}
@@ -195,6 +198,21 @@ class Refresh:
                     log.write(f"\n[zillow] {name} failed\n{traceback.format_exc()}\n")
             print(f"  zillow {name}: {stage.get(name, 'failed')}", flush=True)
         self.report["stages"]["zillow"] = stage
+        self.nyc_values()
+
+    def nyc_values(self) -> None:
+        """NYC listings Zillow has no Zestimate for: the DOF market value (free NYC Open Data)."""
+        from pipeline.load_nyc_dof_values import fill
+        try:
+            with self.log_path.open("a", encoding="utf-8") as log:
+                log.write("\n===== zillow: NYC DOF market values\n")
+                with contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+                    result = fill()
+            self.report["stages"]["nyc_dof_values"] = result
+            print(f"  NYC DOF values: {result}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - the values are optional; the refresh goes on
+            self.report["failures"].append({"stage": "zillow", "item": "nyc_dof_values", "error": f"{type(exc).__name__}: {exc}"})
+            print(f"  ! NYC DOF values: {type(exc).__name__}", flush=True)
 
     def score(self) -> None:
         import joblib

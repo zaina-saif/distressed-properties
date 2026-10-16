@@ -42,8 +42,8 @@ python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow
 
 # Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI,
 # NY Erie sheriff and NYC tax-lien sales). NY court auctions are loaded by hand; this run geocodes them, adds Zestimates
-# (a missed Queens house is searched once more without the hyphen and with the town) and marks their passed dates
-# sold_or_cancelled_unverified.
+# (a missed Queens house is searched once more without the hyphen and with the town), gives NYC listings still without
+# one the city's DOF market value (pipeline.load_nyc_dof_values) and marks their passed dates sold_or_cancelled_unverified.
 # Stages: scrape load zillow score report. Default run dir: .local/multistate-refresh/
 python -m pipeline.multistate_refresh --run-dir /tmp/ms-refresh --max-zillow-addresses 600
 
