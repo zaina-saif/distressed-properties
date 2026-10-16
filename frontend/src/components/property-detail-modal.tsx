@@ -242,7 +242,8 @@ export function PropertyDetailModal({
           <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Estimated value</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{currency(property.market_value)}</p>
+              <p className="mt-2 text-2xl font-bold text-slate-950">{property.valuation_excluded_reason ? "Not valued" : currency(property.market_value)}</p>
+              {property.valuation_excluded_reason && <p className="mt-1 text-xs text-slate-600">{property.valuation_excluded_reason}</p>}
             </div>
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Gross equity</p>

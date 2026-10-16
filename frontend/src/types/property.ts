@@ -11,6 +11,8 @@ export interface Property {
   foreclosure_source_url?: string | null;
   /** A NY court case summary exists (shown in place of a sale page). */
   has_case_summary?: boolean;
+  /** Why no market value applies (a timeshare interest); set instead of a value. */
+  valuation_excluded_reason?: string | null;
   apify_data?: Record<string, unknown> | null;
 
   normalized_address: string;

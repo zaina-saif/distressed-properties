@@ -41,6 +41,7 @@ def listings(counties: list[str] | None = None) -> list[dict]:
             FROM sheriff_sales ss JOIN properties p ON p.id = ss.property_id
             WHERE ss.state = 'NY' AND ss.county = ANY(:counties)
               AND ss.current_status IN ('scheduled', 'adjourned', 'scheduled_unverified')
+              AND p.valuation_excluded_reason IS NULL
               AND ss.property_number ~ '^[1-5]-[0-9]{5}-[0-9]{4}$'
               AND NOT EXISTS (SELECT 1 FROM apify_zillow_results z WHERE z.property_id = p.id AND z.is_current
                               AND z.zestimate IS NOT NULL AND z.match_status <> 'invalid')

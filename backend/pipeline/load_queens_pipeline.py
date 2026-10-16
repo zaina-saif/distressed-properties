@@ -72,11 +72,15 @@ EXCLUDED = {
     # One sale of three parcels (Ridgewood, Jamaica and 2415 Dean Street, Brooklyn) for one lien amount:
     # a single listing could show neither the right address nor a meaningful equity figure.
     ("Queens", "710387/2023"): "three parcels in Queens and Brooklyn sold together",
-    # Timeshare foreclosures: a fraction of a percent of a hotel unit, used a week or so a year. The
-    # building's value (Zillow, NYC DOF) says nothing about the interest's, so equity would be wrong.
-    ("New York", "850062/2024"): "timeshare interest at 102 West 57th Street",
-    ("New York", "850341/2023"): "timeshare interest at 102 West 57th Street",
-    ("New York", "850292/2023"): "timeshare interest at 1335 Avenue of the Americas",
+}
+# Timeshare foreclosures: a fraction of a percent of a hotel unit, used a week or so a year. They are
+# listed without a value: the building's (Zillow, NYC DOF) says nothing about the interest's, so the
+# property is marked valuation_excluded_reason (migration 044) and the valuation stages skip it.
+TIMESHARE = "Timeshare interest: a fraction of a hotel unit with yearly use, not a whole home; not valued"
+TIMESHARES = {
+    ("New York", "850062/2024"): "102 West 57th Street, Timeshare Interest",  # 0.009864% of the timeshare unit
+    ("New York", "850341/2023"): "102 West 57th Street, Timeshare Interest",
+    ("New York", "850292/2023"): "1335 Avenue of the Americas, Timeshare Interest",  # 0.0381%, The NYH Condominium
 }
 EVENT_STATUS = {
     "scheduled": ("scheduled", "Referee auction on the court calendar"),
@@ -98,6 +102,9 @@ def read_cases(connection: sqlite3.Connection, county: str) -> list[dict]:
             case["property_address"], case["city"], case["zip"] = fixed
         case["zip"] = ZIP_CORRECTIONS.get(key, case["zip"])
         case["borough_block_lot"] = BLOCK_LOT_CORRECTIONS.get(key, case["borough_block_lot"])
+        case["valuation_excluded_reason"] = TIMESHARE if key in TIMESHARES else None
+        if key in TIMESHARES:
+            case["property_address"] = TIMESHARES[key]
         events = connection.execute("""SELECT * FROM auction_events
             WHERE county = ? AND index_number = ? ORDER BY auction_date""", key).fetchall()
         appearances = connection.execute("""SELECT appearance_date, part, justice, purpose, outcome FROM appearances
@@ -121,6 +128,9 @@ def block_and_lots(case: dict) -> tuple[str | None, list[str]]:
 
 def details(case: dict, sale_date: str | None) -> str:
     parts = ["Court-ordered referee foreclosure auction."]
+    if case.get("valuation_excluded_reason"):
+        parts.append("This sale is of a timeshare interest (a small fraction of a hotel unit with yearly use), "
+                     "not a whole home; no market value or equity is shown.")
     if sale_date:
         event = next((event for event in case["events"] if event["auction_date"] == sale_date), {})
         summary_event = next((e for e in build_summary(case, [], date.today())["auction_calendar"]
@@ -195,6 +205,10 @@ def apply_details(cases: list[dict]) -> Counter:
                  "lien": case["approximate_lien_amount"],
                  "plaintiff": (case["plaintiff"] or "").rstrip(" ,") or None})
             counts["details"] += 1
+            connection.execute(text("""UPDATE properties SET valuation_excluded_reason = :reason
+                WHERE id = (SELECT property_id FROM sheriff_sales WHERE id = :id)
+                  AND valuation_excluded_reason IS DISTINCT FROM :reason"""),
+                {"id": sale_id, "reason": case["valuation_excluded_reason"]})
             connection.execute(text("""INSERT INTO ny_court_case_summaries (sheriff_sale_id, county, index_number, summary)
                 VALUES (:id, :county, :index, CAST(:summary AS JSONB))
                 ON CONFLICT (sheriff_sale_id) DO UPDATE SET summary = EXCLUDED.summary, updated_at = NOW()"""),

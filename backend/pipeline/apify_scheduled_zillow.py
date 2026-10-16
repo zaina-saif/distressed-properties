@@ -177,6 +177,7 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
                    ss.current_status, ss.current_sale_date
             FROM sheriff_sales ss JOIN properties p ON p.id=ss.property_id
             WHERE (:state IS NULL OR p.state=:state)
+              AND p.valuation_excluded_reason IS NULL
               AND (CASE WHEN :sold_results THEN ss.sold_buyer IS NOT NULL ELSE strpos(LOWER(CASE
                 WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index',
                     'fl_hillsborough_published_foreclosure_notice')

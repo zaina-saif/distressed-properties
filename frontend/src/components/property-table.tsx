@@ -108,6 +108,9 @@ const addressColumn: Column = {
 
 /** The Zestimate, or a NYC Department of Finance market value when Zillow has none (the API uses it for equity). */
 function marketValue(p: Property): ReactNode {
+  if (p.valuation_excluded_reason) {
+    return <span className="text-xs text-slate-500" title={p.valuation_excluded_reason}>Not valued (timeshare)</span>;
+  }
   if (p.value_source === "nyc_dof_market_value") {
     return <span title="NYC Department of Finance market value (the city's assessment estimate, not an appraisal)">
       {currency(p.market_value)} <span className="text-[10px] font-semibold text-slate-500">NYC DOF</span>
