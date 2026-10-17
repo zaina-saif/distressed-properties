@@ -27,7 +27,8 @@ BOROUGHS = {  # county -> city used in addresses
 INDEX = re.compile(r"(?<!\d)(\d{3,6})\s*/\s*((?:19|20)\d{2})(?:E\b)?")
 MONEY = re.compile(r"\$\s*([\d,]+(?:\.\d{2})?)")
 MONTHS = "January|February|March|April|May|June|July|August|September|October|November|December"
-DATE = rf"(?:(?:{MONTHS}|[a-z]{{3,8}})\s+\d{{1,2}},?\s+20\d{{2}}|\d{{1,2}}/\d{{1,2}}/20\d{{2}})"
+DATE = (rf"(?:(?:{MONTHS}|[a-z]{{3,8}})\s+\d{{1,2}},?\s+20\d{{2}}|\d{{1,2}}/\d{{1,2}}/20\d{{2}}"
+        rf"|(?:the\s+)?\d{{1,2}}(?:st|nd|rd|th)\s+day\s+of\s+(?:{MONTHS}),?\s+20\d{{2}})")
 STREET_END = re.compile(r"\b(?:Street|St|Avenue|Ave|Place|Pl|Road|Rd|Boulevard|Blvd|Court|Ct|Lane|Ln|Drive|Dr|"
                         r"Terrace|Parkway|Pkwy|Way|Walk|Plaza|Square|Concourse|Loop|Oval|Path|Row|Crescent|Broadway)"
                         r"\.?(?:\s*(?:#|Apt\.?|Unit)\s*[\w-]+)?$", re.I)
@@ -42,6 +43,10 @@ def flat(text: str) -> str:
 
 def to_date(value: str) -> date | None:
     value = value.replace(",", "")
+    # "the 22nd day of October 2026" -> "October 22 2026"
+    ordinal = re.match(r"(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)\s+day\s+of\s+([A-Za-z]+)\s+(20\d{2})", value, re.I)
+    if ordinal:
+        value = f"{ordinal.group(2)} {ordinal.group(1)} {ordinal.group(3)}"
     # OCR clips the page edge ("tober 15, 2026"): complete a unique month ending.
     month = re.match(r"([A-Za-z]{3,9})\s", value)
     if month and month.group(1).lower() not in MONTHS.lower().split("|"):
@@ -83,7 +88,7 @@ def kind(text: str) -> str:
 
 def split_address(raw: str, default_city: str | None) -> tuple[str | None, str | None, str | None]:
     """'1312 Myrtle Avenue, Brooklyn, NY 11221' -> street, city, ZIP (OCR may garble "NY" to "N. .")."""
-    value = flat(raw).strip(" ,.;")
+    value = re.sub(r"\s*\(City of New York\)", "", flat(raw), flags=re.I).strip(" ,.;")
     match = re.match(rf"(.+?),\s*({CITY_NAMES})\b,?\s*(?:New York|N[\s.]*Y?\.?)\.?,?\s*(\d{{5}})?", value, re.I)
     if match:
         street, city, zip_code = match.group(1), match.group(2).title(), match.group(3)
@@ -107,11 +112,15 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
     found = {index_number(*m) for m in INDEX.findall(" ".join(re.findall(r"INDEX\s*(?:NO\.?|#|NUMBER)\s*:?\s*[\d/ ]+", body, re.I)))}
     if len(found) != 1:
         problems.append("index_number_missing_or_ambiguous")
-    sale = re.search(rf"(?:will\s+sell|publi\w*\s+a?uction).{{0,220}}?\bon\s+({DATE})(?:\s*,?\s*at\s+{TIME})?", body, re.I)
+    sale = re.search(rf"(?:will\s+sell|publi\w*\s+a?uction).{{0,220}}?(?:\b|(?<=\d{{5}}))[o0]n\s+({DATE})(?:\s*,?\s*at\s+{TIME})?", body, re.I)
     sale_date = to_date(sale.group(1)) if sale else None
     if not sale_date:
         problems.append("auction_date_missing")
-    premises = re.search(r"premises\s+(?:known\s+as|located\s+at)\s*:?\s*(\d.{4,160}?(?:\d{5}|(?=;)|(?=\.\s)))", body, re.I)
+    premises = re.search(r"premises\s+(?:known\s+as|located\s+at|designated\s+as\s.{0,200}?\bknown\s+as)\s*:?\s*(\d.{4,160}?(?:\d{5}|(?=;)|(?=\.\s)))", body, re.I)
+    if not premises:
+        heading = re.search(rf"premises\s*:\s*(\d[\w .'#/-]{{3,60}}?),?\s+(Brooklyn|Bronx|Staten Island|Manhattan),?\s+(?:New York|N\.?Y\.?),?\s*(\d{{5}})\b", body, re.I)
+        if heading:
+            premises = re.match(r"(.*)", f"{heading.group(1)}, {heading.group(2)}, NY {heading.group(3)}")
     street = city = zip_code = None
     address_source = "notice"
     if premises:
@@ -124,9 +133,12 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
                                 if premises and re.search(r"\b(1\d{4})\b", premises.group(1)) else None)
     if not street or not re.match(r"\d", street):
         problems.append("premises_address_missing")
+    # One notice for several properties sold separately cannot be one listing.
+    if re.search(r"(?:two|three|four|five|\d)\s+separate\s+sales|following\s+properties", body, re.I):
+        problems.append("several_properties")
     postponed = re.search(rf"original\s+sale\s+was\s+scheduled\s+for\s+({DATE})", body, re.I)
     block_lot = re.search(r"Block\s*:?\s*(\d{1,5})\W{0,5}(?:and\s+)?Lots?\s*:?\s*(\d{1,4})", body, re.I)
-    judgment = re.search(r"amount\s+of\s+(?:the\s+)?(?:current\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
+    judgment = re.search(r"(?:amount|amt\.?)\s+of\s+(?:the\s+)?(?:current\s+)?judgment(?:\s+lien)?\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
     lien = re.search(r"amount\s+of\s+(?:the\s+)?lien\s*(?:is|of|:)?\s*\$\s*([\d,]+(?:\.\d{2})?)", body, re.I)
     # The referee signs at the end: "Mark Longo, Esq., Referee" / "Leonard C. Spector, Referee".
     referees = list(re.finditer(r"([A-Z][A-Za-z.'\-]*(?:\s+[A-Z][A-Za-z.'\-]*){1,3}),\s*(?:(?i:Esq)\.?\s*,?\s*[-–]?\s*)?(?i:Referee)\b\.?", body))

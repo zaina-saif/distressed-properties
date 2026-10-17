@@ -274,3 +274,37 @@ def test_calendar_note_lists_past_auctions_only():
 def test_three_word_queens_neighborhoods_are_towns():
     assert split_address("133-44 122nd Street, South Ozone Park, New York 11420", None) == \
         ("133-44 122nd Street", "South Ozone Park", "11420")
+
+
+def test_kings_notice_wordings_new_in_october_2026():
+    from pipeline.parse_ny_court_pdfs import parse_notice_of_sale
+    ordinal = ("REFEREE'S NOTICE OF SALE IN FORECLOSURE SUPREME COURT - COUNTY OF KINGS Pursuant to a Judgment, I, the "
+               "undersigned Referee will sell at public auction in room 224, 360 Adams Street, Brooklyn, NY 11201 on the "
+               "22nd day of October, 2026 at 2:30 PM. Premises known as 32 Example Avenue, Brooklyn, (City of New York) "
+               "NY 11236. Index No. 504913/2020. Jane Example, Esq., Referee.")
+    record, problems = parse_notice_of_sale(ordinal, "Kings")
+    assert not problems and record["sale_date"] == "2026-10-22"
+    assert (record["street"], record["zip_code"]) == ("32 Example Avenue", "11236")
+    run_together = ("NOTICE OF SALE SUPREME COURT COUNTY OF KINGS. I, the undersigned Referee will sell at public auction "
+                    "at Room 224, 360 Adams Street, Brooklyn, New York 112010n October 22, 2026 at 2:30 PM, premises known "
+                    "as 1646 46TH STREET, BROOKLYN, NY 11204. Index # 509221/2025. JOHN EXAMPLE, Esq., Referee")
+    record, problems = parse_notice_of_sale(run_together, "Kings")
+    assert not problems and record["sale_date"] == "2026-10-22" and record["street"] == "1646 46th Street"
+    heading = ("SUPREME COURT OF THE STATE OF NEW YORK COUNTY OF KINGS Index No. 507482/2025 NOTICE OF SALE Premises: "
+               "216 Example Ave Brooklyn, New York 11238 Block 1965, Lot 39 PLEASE TAKE NOTICE THAT I will sell at public "
+               "auction at the Kings County Courthouse, Room 224, on October 22, 2026 at 2:30 p.m., prem. k/a 216 Exampl "
+               "Ave, Brooklyn. Approx. amt of judgment is $1,005,399.80, plus costs. Jane Example, Esq., Referee")
+    record, problems = parse_notice_of_sale(heading, "Kings")
+    assert not problems and (record["street"], record["zip_code"]) == ("216 Example Ave", "11238")
+    assert record["judgment"] == 1005399.80
+    designated = ordinal.replace("Premises known as 32 Example Avenue", "the liened premises designated as Block 1437, "
+                                 "Lot 38 in the City of New York, and known as 32 Example Avenue")
+    assert parse_notice_of_sale(designated, "Kings")[0]["street"] == "32 Example Avenue"
+    several = heading.replace("prem. k/a", "the following properties in three separate sales: (1) prem. k/a")
+    assert "several_properties" in parse_notice_of_sale(several, "Kings")[1]
+
+
+def test_a_text_layer_without_spaces_is_spotted():
+    from pipeline.load_ny_court_pdfs import spaceless
+    assert spaceless("SUPREMECOURTOFTHESTATEOFNEWYORK" * 20)
+    assert not spaceless("SUPREME COURT OF THE STATE OF NEW YORK " * 20)

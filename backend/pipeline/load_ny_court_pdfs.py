@@ -63,6 +63,12 @@ PLAINTIFF_CORRECTIONS = {
 }
 
 
+def spaceless(text: str) -> bool:
+    """Embedded text whose words run together: under one space per 25 characters."""
+    body = text or ""
+    return len(body) > 400 and body.count(" ") < len(body) / 25
+
+
 def ocr_text(document: dict) -> str | None:
     """Vision OCR of a saved PDF whose embedded text layer is itself a poor OCR ("1011612026"), cached."""
     if not document.get("pdf"):
@@ -135,6 +141,10 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
     records, failures, reported = [], [], []
     for document in documents:
         source = {"file": document["file"], "sha256": document["sha256"], "text_method": document["method"]}
+        # A text layer that lost its spaces ("NOTICEOFSALE") is read again with OCR.
+        if document["method"] == "embedded_text" and spaceless(document["text"]) and (ocr := ocr_text(document)):
+            document = {**document, "text": ocr, "method": "macos_vision_ocr_fallback"}
+            source["text_method"] = document["method"]
         layout, county = kind(document["text"]), county_of(document["text"])
         if layout.startswith("webcivil_"):
             continue  # case pages, read by parse_appearances
