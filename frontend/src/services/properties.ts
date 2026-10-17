@@ -40,13 +40,15 @@ export interface SearchFilterValues {
   saleTo?: string;
   /** 0 to 1 */
   minProbability?: number;
+  /** Tax sales are left out unless "tax" (only them) or "all" (both) is chosen. */
+  saleKind?: "tax" | "all";
 }
 
 const SEARCH_PARAMS: [keyof SearchFilterValues, string][] = [
   ["minPrice", "min_price"], ["maxPrice", "max_price"], ["minValue", "min_value"], ["maxValue", "max_value"],
   ["minEquity", "min_equity"], ["minBeds", "min_beds"], ["minBaths", "min_baths"], ["minSqft", "min_sqft"],
   ["maxSqft", "max_sqft"], ["minYear", "min_year"], ["maxYear", "max_year"], ["saleFrom", "sale_from"],
-  ["saleTo", "sale_to"], ["minProbability", "min_probability"],
+  ["saleTo", "sale_to"], ["minProbability", "min_probability"], ["saleKind", "sale_kind"],
 ];
 
 /** Add the Filters panel's values to a request's query string. */

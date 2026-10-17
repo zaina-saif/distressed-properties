@@ -46,7 +46,17 @@ def test_search_filters_build_range_and_property_conditions():
     assert parameters["filter_min_sale_date"] == date(2026, 10, 15)
     assert "sp.probability >= :filter_min_probability" in joined
     assert "sp.probability" not in " ".join(filters.conditions(include_probability=False)[0])
-    assert SearchFilters().conditions() == ([], {})
+    assert SearchFilters(sale_kind="all").conditions() == ([], {})
+
+
+def test_tax_sales_are_shown_only_when_asked_for():
+    from app.api.properties import TAX_SALE_SQL, SearchFilters
+
+    assert SearchFilters().conditions()[0] == [f"NOT {TAX_SALE_SQL}"]
+    assert SearchFilters(sale_kind="tax").conditions()[0] == [TAX_SALE_SQL]
+    access = Access(user_id="u", email="u@example.com", role="developer")
+    opened, _ = _property_filters(access, state=[], county=[], sale_id=["s1"], filters=SearchFilters())
+    assert not any(TAX_SALE_SQL in condition for condition in opened)  # a sale opened by id always shows
 
 
 def test_property_filters_include_search_filters():

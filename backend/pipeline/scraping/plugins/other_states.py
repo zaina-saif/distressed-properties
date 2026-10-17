@@ -71,3 +71,11 @@ register(CommandScraper(
     scrape=lambda selected, ctx: ["pipeline.scrape_ct_foreclosure_sales"],
     load=lambda selected, ctx: ["pipeline.load_ct_foreclosure_sales"],
 ))
+
+# Texas trustee-sale notices from the Harris County Clerk (scanned PDFs read with macOS OCR,
+# so this runs on the operator's Mac, not in the scheduled refresh).
+register(CommandScraper(
+    name="tx-harris-trustee-notices", state="TX", counties=["Harris"],
+    scrape=lambda selected, ctx: ["pipeline.scrape_harris_trustee_notices"],
+    load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales"],
+))

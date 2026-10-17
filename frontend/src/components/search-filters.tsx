@@ -12,6 +12,7 @@ export const HOME_TYPES: [string, string][] = [
 const BEDS = [1, 2, 3, 4, 5];
 const BATHS = [1, 2, 3, 4];
 const PROBABILITIES = [0.25, 0.5, 0.75];
+const SALE_KINDS: [SearchFilterValues["saleKind"], string][] = [[undefined, "Foreclosures"], ["tax", "Tax sales"], ["all", "Both"]];
 
 const money = (value: number) => value >= 1_000_000 ? `$${+(value / 1_000_000).toFixed(2)}M`
   : value >= 1_000 ? `$${+(value / 1_000).toFixed(1)}K` : `$${value}`;
@@ -33,6 +34,7 @@ export function filterChips(filters: SearchFilterValues): { label: string; keys:
   if (has(filters.minSqft) || has(filters.maxSqft)) chips.push({ label: `${range(filters.minSqft, filters.maxSqft, (v: number) => v.toLocaleString())} sq ft`, keys: ["minSqft", "maxSqft"] });
   if (has(filters.minYear) || has(filters.maxYear)) chips.push({ label: `Built ${range(filters.minYear, filters.maxYear, String)}`, keys: ["minYear", "maxYear"] });
   if (has(filters.saleFrom) || has(filters.saleTo)) chips.push({ label: `Sale ${range(filters.saleFrom, filters.saleTo, day)}`, keys: ["saleFrom", "saleTo"] });
+  if (filters.saleKind) chips.push({ label: filters.saleKind === "tax" ? "Tax sales only" : "Foreclosures and tax sales", keys: ["saleKind"] });
   if (has(filters.minProbability)) chips.push({ label: `${Math.round(filters.minProbability! * 100)}%+ to auction`, keys: ["minProbability"] });
   return chips;
 }
@@ -102,6 +104,12 @@ export function SearchFiltersButton({ value, onApply, analytics = false }: { val
         <button type="button" onClick={() => setOpen(false)} className="rounded p-1 text-slate-400 hover:bg-slate-100" aria-label="Close filters"><X className="h-4 w-4" /></button>
       </div>
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">
+        <Section title="Sale type" hint="tax sales are hidden unless chosen">
+          <div className="flex gap-1 rounded-lg bg-slate-100 p-1" role="group" aria-label="Sale type">
+            {SALE_KINDS.map(([kind, label]) => <button key={label} type="button" onClick={() => set({ saleKind: kind })} aria-pressed={draft.saleKind === kind}
+              className={`flex-1 rounded-md px-2 py-1.5 text-xs font-semibold ${draft.saleKind === kind ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>{label}</button>)}
+          </div>
+        </Section>
         <Section title="Minimum bid" hint="upset price or judgment">
           <div className="flex gap-2"><NumberField label="Minimum bid from" prefix="$" placeholder="No min" value={draft.minPrice} onChange={(v) => set({ minPrice: v })} /><NumberField label="Minimum bid to" prefix="$" placeholder="No max" value={draft.maxPrice} onChange={(v) => set({ maxPrice: v })} /></div>
         </Section>

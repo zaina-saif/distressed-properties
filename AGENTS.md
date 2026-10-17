@@ -134,6 +134,17 @@ NYC listings Zillow has no Zestimate for get the city's market value: `python -m
 
 Listings use `source_system='ny_court_foreclosure_auction'`, keyed by index number (reruns update, never duplicate); the BBL goes in `property_number`, and the referee, auction details and judgment in `description_text` (shown as the notice details). The approximate judgment is the minimum-bid proxy, or, when a notice states only an "approximate amount of lien", that amount (`notice_lien_amount`, shown as basis `notice_lien`): the plaintiff sets the real opening bid at the sale. Winning bidders pay a 10% deposit. Adjournments are frequent: a postponement notice records the earlier date as `adjourned`, and a past auction date with no published result becomes `sold_or_cancelled_unverified`. Records that fail validation go to `<run-dir>/ny_court_parse_failures.json` (default `.local/ny-court-pdfs/runs/`) and are never loaded; OCR text is cached by file hash in `.local/ny-court-pdfs/`.
 
+### Texas trustee sales (Harris County)
+
+Most Texas mortgage foreclosures are non-judicial **trustee sales** on the first Tuesday of the month; the Notice of Trustee's Sale is filed with the county clerk at least 21 days before. The Harris County Clerk lists the notices by sale month (`FRCL_R.aspx`, an ASP.NET form without a CAPTCHA) and serves each as a scanned PDF, so the collector OCRs them with macOS Vision and runs on the operator's Mac (not in the scheduled refresh), monthly once the next sale's notices are in:
+
+```bash
+python -m pipeline.scrape_harris_trustee_notices [--limit 40] [--no-ocr]   # every upcoming sale month
+python -m pipeline.load_tx_trustee_sales [--dry-run]
+```
+
+PDFs and OCR text (with borrowers' names) stay in `.local/harris-trustee-notices/`; the snapshot `data/sheriff_sales/tx_harris_trustee_notices.json` keeps only parsed property, sale and lender fields (`pipeline/parse_tx_trustee_notice.py`: address labeled or inferred, legal description with lot/block/subdivision, original loan amount, lender, association-lien flag). Listings use `source_system='tx_county_clerk_trustee_sale'`, keyed by the clerk's document number (`FRCL-YYYY-N`), status `scheduled_unverified` (read as `date_passed_unverified` after the sale day; the clerk publishes no results), sale type "Trustee sale (non-judicial foreclosure)", and the notice facts in `description_text`. The original loan amount is not a judgment or an opening bid, so no equity is shown. Notices with only a legal description are not loaded; they are saved to `.local/harris-trustee-notices/without_address.json` for matching to HCAD parcel records.
+
 ## Environment and config locations
 
 Never commit secrets or print their values; the `.example` files list every setting with comments.
