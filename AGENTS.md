@@ -77,8 +77,8 @@ The sale-probability model the `score` stage uses is `backend/models/<MODEL_VERS
 
 | Workflow | Schedule (UTC) | Runs |
 |---|---|---|
-| `nj-sale-refresh.yml` | 11:00 on the 1st and 15th | `pipeline.nj_sale_refresh` (Zillow cap 400) |
-| `multistate-sale-refresh.yml` | Mondays 10:00 | `pipeline.multistate_refresh` (Zillow cap 600) |
+| `nj-sale-refresh.yml` | 11:00 on the 1st and 15th | `pipeline.nj_sale_refresh` (Zillow paused: skipped unless a manual run sets `skip_zillow` false; cap 400) |
+| `multistate-sale-refresh.yml` | Mondays 10:00 | `pipeline.multistate_refresh` (Zillow paused, as for NJ; cap 600) |
 | `opportunity-alerts.yml` | daily 14:00 | `send_opportunity_alerts` daily, plus weekly on Mondays; then `send_trial_reminders` |
 
 Their secrets are GitHub repository secrets: `DATABASE_URL`, `APIFY_API_TOKEN`, `RESEND_API_KEY`, `ALERTS_SIGNING_SECRET`, `ALERTS_POSTAL_ADDRESS`.

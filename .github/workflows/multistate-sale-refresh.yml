@@ -7,9 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       skip_zillow:
+        # Zillow is paused (Apify credit): scheduled runs skip it; a manual run can
+        # set this to false. To resume, flip the default and the check below.
         description: "Skip the paid Apify Zillow stage"
         type: boolean
-        default: false
+        default: true
       max_zillow_addresses:
         description: "Never submit more than this many addresses to Apify in one run"
         type: number
@@ -48,7 +50,7 @@ jobs:
           APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}
         run: |
           args=(--run-dir "$RUNNER_TEMP/multistate-refresh" --max-zillow-addresses "${{ inputs.max_zillow_addresses || 600 }}")
-          if [ "${{ inputs.skip_zillow }}" = "true" ]; then args+=(--skip-zillow); fi
+          if [ "${{ inputs.skip_zillow }}" != "false" ]; then args+=(--skip-zillow); fi
           python -m pipeline.multistate_refresh "${args[@]}"
 
       # The run log holds addresses and party names, so it stays on the runner;
