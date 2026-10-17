@@ -40,7 +40,7 @@ Run everything from `backend/` with the venv active. The two refresh orchestrato
 python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
 python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
 
-# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI,
+# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI, TX Bexar trustee notices,
 # NY Erie sheriff and NYC tax-lien sales). NY court auctions (Queens, Manhattan) are loaded by hand; this run reports per county when
 # their files were last loaded and the next auction, geocodes them, adds Zestimates
 # (a missed Queens house is searched once more without the hyphen and with the town), gives NYC listings still without
@@ -134,7 +134,7 @@ NYC listings Zillow has no Zestimate for get the city's market value: `python -m
 
 Listings use `source_system='ny_court_foreclosure_auction'`, keyed by index number (reruns update, never duplicate); the BBL goes in `property_number`, and the referee, auction details and judgment in `description_text` (shown as the notice details). The approximate judgment is the minimum-bid proxy, or, when a notice states only an "approximate amount of lien", that amount (`notice_lien_amount`, shown as basis `notice_lien`): the plaintiff sets the real opening bid at the sale. Winning bidders pay a 10% deposit. Adjournments are frequent: a postponement notice records the earlier date as `adjourned`, and a past auction date with no published result becomes `sold_or_cancelled_unverified`. Records that fail validation go to `<run-dir>/ny_court_parse_failures.json` (default `.local/ny-court-pdfs/runs/`) and are never loaded; OCR text is cached by file hash in `.local/ny-court-pdfs/`.
 
-### Texas trustee sales (Harris County)
+### Texas trustee sales (Harris and Bexar counties)
 
 Most Texas mortgage foreclosures are non-judicial **trustee sales** on the first Tuesday of the month; the Notice of Trustee's Sale is filed with the county clerk at least 21 days before. The Harris County Clerk lists the notices by sale month (`FRCL_R.aspx`, an ASP.NET form without a CAPTCHA) and serves each as a scanned PDF, so the collector OCRs them with macOS Vision and runs on the operator's Mac (not in the scheduled refresh), monthly once the next sale's notices are in:
 
@@ -142,9 +142,13 @@ Most Texas mortgage foreclosures are non-judicial **trustee sales** on the first
 python -m pipeline.scrape_harris_trustee_notices [--limit 40] [--no-ocr]   # every upcoming sale month
 python -m pipeline.match_hcad_legal --build     # yearly: HCAD PDATA parcel index (owner fields left out) in .local/hcad/<year>/
 python -m pipeline.load_tx_trustee_sales [--dry-run]
+
+# Bexar: the County Clerk's foreclosure map (ArcGIS, no OCR); part of the Monday multistate refresh
+python -m pipeline.scrape_bexar_trustee_notices
+python -m pipeline.load_tx_trustee_sales --input data/sheriff_sales/tx_bexar_trustee_notices.json
 ```
 
-PDFs and OCR text (with borrowers' names) stay in `.local/harris-trustee-notices/`; the snapshot `data/sheriff_sales/tx_harris_trustee_notices.json` keeps only parsed property, sale and lender fields (`pipeline/parse_tx_trustee_notice.py`: address labeled or inferred, legal description with lot/block/subdivision, original loan amount, lender, association-lien flag). Listings use `source_system='tx_county_clerk_trustee_sale'`, keyed by the clerk's document number (`FRCL-YYYY-N`), status `scheduled_unverified` (read as `date_passed_unverified` after the sale day; the clerk publishes no results), sale type "Trustee sale (non-judicial foreclosure)", and the notice facts in `description_text`. The original loan amount is not a judgment or an opening bid, so no equity is shown. Notices with only a legal description take the site address of the one Harris Central Appraisal District parcel whose lot, block, subdivision and section match (`pipeline/match_hcad_legal.py`; OCR slips allowed only in long words, never a guess between two parcels); the HCAD account goes in `property_number` and the notice details say where the address came from. Metes-and-bounds tracts, condo units and unmatched notices are not loaded and are saved to `.local/harris-trustee-notices/without_address.json`. Trustee listings are `scheduled_unverified`, so the sale-probability model does not score them.
+PDFs and OCR text (with borrowers' names) stay in `.local/harris-trustee-notices/`; the snapshot `data/sheriff_sales/tx_harris_trustee_notices.json` keeps only parsed property, sale and lender fields (`pipeline/parse_tx_trustee_notice.py`: address labeled or inferred, legal description with lot/block/subdivision, original loan amount, lender, association-lien flag). Listings use `source_system='tx_county_clerk_trustee_sale'`, keyed by the clerk's document number (`FRCL-YYYY-N`), status `scheduled_unverified` (read as `date_passed_unverified` after the sale day; the clerk publishes no results), sale type "Trustee sale (non-judicial foreclosure)", and the notice facts in `description_text`. The original loan amount is not a judgment or an opening bid, so no equity is shown. Notices with only a legal description take the site address of the one Harris Central Appraisal District parcel whose lot, block, subdivision and section match (`pipeline/match_hcad_legal.py`; OCR slips allowed only in long words, never a guess between two parcels); the HCAD account goes in `property_number` and the notice details say where the address came from. Metes-and-bounds tracts, condo units and unmatched notices are not loaded and are saved to `.local/harris-trustee-notices/without_address.json`. Bexar's map (`maps.bexar.org/arcgis/rest/services/CC/ForeclosuresProd/MapServer`, layer 0 Mortgage) gives each notice's document number, sale month, address and coordinates but no lender; its tax layer is left out. Dallas (since Feb 2026) and Tarrant post notices only on `*.tx.publicsearch.us`, whose robots.txt disallows all automated access, so they are not collected. Trustee listings are `scheduled_unverified`, so the sale-probability model does not score them.
 
 ## Environment and config locations
 

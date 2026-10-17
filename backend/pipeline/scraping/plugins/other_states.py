@@ -79,3 +79,11 @@ register(CommandScraper(
     scrape=lambda selected, ctx: ["pipeline.scrape_harris_trustee_notices"],
     load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales"],
 ))
+
+# Texas trustee-sale notices from the Bexar County Clerk's foreclosure map (ArcGIS service).
+register(CommandScraper(
+    name="tx-bexar-trustee-notices", state="TX", counties=["Bexar"],
+    scrape=lambda selected, ctx: ["pipeline.scrape_bexar_trustee_notices"],
+    load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
+                                "data/sheriff_sales/tx_bexar_trustee_notices.json"],
+))

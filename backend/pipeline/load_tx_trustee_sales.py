@@ -1,4 +1,4 @@
-"""Load Texas trustee-sale notices (scrape_harris_trustee_notices) as sale listings.
+"""Load Texas trustee-sale notices (scrape_harris_trustee_notices, scrape_bexar_trustee_notices) as sale listings.
 
 A notice says a sale is planned, not that it will happen: many are cancelled on the
 morning of the sale, and the clerk publishes no results. Listings are therefore
@@ -12,6 +12,7 @@ when its index has been built). The rest are written to
 
     python -m pipeline.load_tx_trustee_sales                 # data/sheriff_sales/tx_harris_trustee_notices.json
     python -m pipeline.load_tx_trustee_sales --dry-run
+    python -m pipeline.load_tx_trustee_sales --input data/sheriff_sales/tx_bexar_trustee_notices.json
 """
 import argparse
 import json
@@ -57,7 +58,11 @@ def notice_details(notice: dict, county: str) -> str:
     elif notice.get("address_source") == "inferred":
         lines.append("The street address was read from the notice without a label; check it against the legal"
                      " description.")
-    lines.append(f"Search {notice['doc_id']} at the {county} County Clerk's foreclosure search to read the notice.")
+    if notice.get("address_source") == "clerk_map":
+        lines.append(f"Listed on the {county} County Clerk's foreclosure map; search document {notice['doc_id']} in the"
+                     " Clerk's public records to read the notice.")
+    else:
+        lines.append(f"Search {notice['doc_id']} at the {county} County Clerk's foreclosure search to read the notice.")
     return "\n".join(lines)
 
 
@@ -66,7 +71,8 @@ def sale(notice: dict) -> Sale:
     return Sale(case=notice["doc_id"], street=notice.get("street") or "", city=notice.get("city"),
                 zip_code=notice.get("zip_code"), sale_date=date.fromisoformat(notice["sale_date"]),
                 status="scheduled_unverified", raw=raw, raw_status="notice of trustee's sale filed",
-                plaintiff=notice.get("lender"), property_number=notice.get("hcad_account"))
+                plaintiff=notice.get("lender"), property_number=notice.get("hcad_account"),
+                latitude=notice.get("latitude"), longitude=notice.get("longitude"))
 
 
 def sales_from(snapshot: dict, hcad_index: dict | None = None) -> tuple[list[Sale], list[dict]]:
@@ -92,7 +98,8 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     snapshot = json.loads(args.input.read_text())
     state, county = snapshot["state"], snapshot["county"]
-    index_path = match_hcad_legal.latest_index()
+    # The HCAD parcel index covers Harris County only.
+    index_path = match_hcad_legal.latest_index() if county == "Harris" else None
     hcad_index = match_hcad_legal.load_index(index_path) if index_path else None
     sales, without_address = sales_from(snapshot, hcad_index)
     report = {"notices": len(snapshot["notices"]), "with_address": len(sales), "without_address": len(without_address),
@@ -100,7 +107,8 @@ def main(argv=None) -> int:
               "hcad_index": str(index_path) if index_path else None,
               "association_liens": sum(n.get("notice_kind") == "association_assessment_lien" for n in snapshot["notices"])}
     CACHE.mkdir(parents=True, exist_ok=True)
-    (CACHE / "without_address.json").write_text(json.dumps(without_address, indent=2))
+    name = "without_address.json" if county == "Harris" else f"without_address_{county.lower()}.json"
+    (CACHE / name).write_text(json.dumps(without_address, indent=2))
     if args.dry_run:
         print(json.dumps(report | {"sample": [vars(sale) | {"raw": None} for sale in sales[:3]]}, indent=2, default=str))
         return 0
