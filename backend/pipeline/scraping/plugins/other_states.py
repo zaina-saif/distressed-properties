@@ -104,3 +104,10 @@ register(CommandScraper(
     load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
                                 "data/sheriff_sales/tx_fort_bend_trustee_notices.json"],
 ))
+
+# California county tax-defaulted property sales on Bid4Assets (every CA sale on its calendar).
+register(CommandScraper(
+    name="ca-bid4assets-tax-sales", state="CA", counties=["*"], county_level=False,
+    scrape=lambda selected, ctx: ["pipeline.scrape_ca_tax_sales"],
+    load=lambda selected, ctx: ["pipeline.load_ca_tax_sales"],
+))

@@ -45,7 +45,7 @@ from sqlalchemy import text
 
 from app.database.session import engine
 
-STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD", "NY")
+STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD", "NY", "CA")
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -76,6 +76,7 @@ SOURCES = [
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),
     ("TX Collin trustee-sale notices", ["pipeline.scrape_collin_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_collin_trustee_notices.json"]),
+    ("California county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales"], ["pipeline.load_ca_tax_sales"]),
     # Orange County's page answers 403, so only Erie is scraped.
     ("NY Erie sheriff sales", ["pipeline.scrape_ny_county_pages", "--counties", "Erie"],
      ["pipeline.load_ny_sales", "--counties", "Erie"]),

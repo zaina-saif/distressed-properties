@@ -105,8 +105,8 @@ export const STATE_GUIDES: StateGuide[] = [
     after: "The court must approve the sale; closing usually follows within 30 days.",
   },
   {
-    code: "TX", name: "Texas", who: "Sheriff or constable",
-    bid: "Property-tax sales in many counties run online on RealAuction; Dallas, Guadalupe, McLennan and Rockwall sheriff and constable sales are on CivilView.",
+    code: "TX", name: "Texas", who: "Sheriff or constable (tax sales); a substitute trustee (mortgage foreclosures)",
+    bid: "Most mortgage foreclosures are trustee sales on the first Tuesday of the month at the place the county designates, from notices filed with the county clerk (Harris, Bexar, Collin and Fort Bend are listed here). Property-tax sales in many counties run online on RealAuction; Dallas, Guadalupe, McLennan and Rockwall sheriff and constable sales are on CivilView.",
     deposit: CHECK_DEPOSIT,
     after: CHECK_AFTER,
     extra: ["Property-tax sales carry a right of redemption: the former owner can buy the property back within 2 years for a homestead or agricultural land, and 180 days for other property. The minimum bid covers the taxes, costs and fees owed."],
@@ -136,6 +136,14 @@ export const STATE_GUIDES: StateGuide[] = [
     deposit: CHECK_DEPOSIT,
     after: "The buyer receives a certificate of sale; the former owner can redeem afterwards, most commonly within 180 days and up to one year.",
     extra: ["In Minnehaha County the sheriff signs the deed on or after the 181st day if the property was not redeemed."],
+  },
+  {
+    code: "CA", name: "California", who: "County treasurer-tax collector",
+    bid: "Listed here are the counties' tax-defaulted property sales, held online on Bid4Assets once or twice a year; each parcel's auction page has the opening and closing times. Mortgage foreclosures in California are private trustee sales and are not listed.",
+    deposit: "Bid4Assets requires a deposit (set by each county, often a few thousand dollars plus a processing fee) before the sale; the sale page gives the deadline.",
+    after: "The full price, plus documentary transfer tax and fees, is due within a few days of the close; the county then records a tax deed to the buyer.",
+    extra: ["The owner can redeem only until the close of business on the last business day before the sale; there is no redemption after it.",
+            "A tax deed clears most private liens, but some interests survive (for example easements, certain special assessments, and federal tax liens the IRS can redeem). Research the parcel and get a title search before bidding."],
   },
 ];
 

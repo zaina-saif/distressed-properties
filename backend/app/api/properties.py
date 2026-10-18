@@ -208,7 +208,7 @@ FILTER_MINIMUM_BID_SQL = f"CASE WHEN ss.state='IL' THEN ss.upset_price ELSE {MIN
 # Property-tax and tax-lien sales, which the dashboard shows only when asked for (sale_kind):
 # Texas sheriff/constable tax sales, NYC tax-lien referee sales, and NYC tax-lien trusts'
 # foreclosures listed with the court auctions.
-TAX_SALE_SQL = ("(ss.source_system IN ('tx_realauction_tax_sale','nyc_nyctl_referee_sales') "
+TAX_SALE_SQL = ("(ss.source_system IN ('tx_realauction_tax_sale','nyc_nyctl_referee_sales','ca_bid4assets_tax_sale') "
                 "OR (ss.state='NY' AND ss.plaintiff ILIKE 'NYCTL%'))")
 
 
@@ -442,7 +442,7 @@ def list_properties(
         "lakefront": "CASE WHEN p.normalized_address ~* '\\m(LAKEFRONT|LAKE[[:space:]]+FRONT|LAKESHORE|LAKE[[:space:]]+SHORE|LAKESIDE)\\M' THEN 1 ELSE 0 END",
         "court-case": "court_case_number", "status": "ss.current_status",
         "bbl": "ss.property_number",
-        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction') THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' WHEN ss.source_system='tx_county_clerk_trustee_sale' THEN 'Trustee sale (non-judicial foreclosure)' WHEN " + JUDGMENT_SALE_SQL + " THEN 'Judgment execution sale' ELSE 'Sheriff sale' END",
+        "sale-type": "CASE WHEN ss.source_system='nyc_nyctl_referee_sales' THEN 'Referee tax-lien auction' WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction') THEN 'Court foreclosure auction' WHEN ss.source_system='fl_hillsborough_published_foreclosure_notice' THEN 'Foreclosure auction (published notice)' WHEN ss.source_system='fl_columbia_clerk_foreclosure' THEN 'Foreclosure auction' WHEN ss.source_system='fl_palm_beach_sheriff_execution' THEN 'Sheriff execution sale' WHEN ss.source_system='fl_fdot_surplus_property' THEN 'FDOT surplus property' WHEN ss.source_system='fl_swfwmd_land_for_sale' THEN 'Government land for sale' WHEN ss.source_system='fl_us_treasury_real_property' THEN 'Federal seized-property auction' WHEN ss.source_system='tx_county_clerk_trustee_sale' THEN 'Trustee sale (non-judicial foreclosure)' WHEN ss.source_system='ca_bid4assets_tax_sale' THEN 'Tax-defaulted property sale' WHEN " + JUDGMENT_SALE_SQL + " THEN 'Judgment execution sale' ELSE 'Sheriff sale' END",
         "sale-date": "ss.current_sale_date", "plaintiff": "ss.plaintiff", "defendant": "ss.defendant",
         "estimated-market-value": "market_value", "value-range-low": "market_value_low",
         "value-range-high": "market_value_high", "valuation-provider": "valuation_provider",
@@ -555,6 +555,8 @@ def list_properties(
                 THEN 'Tax foreclosure sale (sheriff/constable)'
                 WHEN ss.source_system='tx_county_clerk_trustee_sale'
                 THEN 'Trustee sale (non-judicial foreclosure)'
+                WHEN ss.source_system='ca_bid4assets_tax_sale'
+                THEN 'Tax-defaulted property sale'
                 WHEN {JUDGMENT_SALE_SQL}
                 THEN 'Judgment execution sale'
                 ELSE 'Sheriff sale' END AS sale_type,
@@ -562,7 +564,7 @@ def list_properties(
                 AS court_case_number,
             ss.plaintiff,
             ss.defendant,
-            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property','tx_county_clerk_trustee_sale')
+            CASE WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index','nyc_queens_nyscef_foreclosure','ny_nyscef_foreclosure','ny_court_foreclosure_auction','fl_hillsborough_published_foreclosure_notice','fl_fdot_surplus_property','fl_swfwmd_land_for_sale','fl_us_treasury_real_property','tx_county_clerk_trustee_sale','ca_bid4assets_tax_sale')
                 THEN ss.description_text ELSE NULL END AS notice_details,
             ss.source_url AS foreclosure_source_url,
             EXISTS (SELECT 1 FROM ny_court_case_summaries ccs WHERE ccs.sheriff_sale_id = ss.id) AS has_case_summary,

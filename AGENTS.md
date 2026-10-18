@@ -40,7 +40,7 @@ Run everything from `backend/` with the venv active. The two refresh orchestrato
 python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
 python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
 
-# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI, TX Bexar and Collin trustee notices,
+# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI, TX Bexar and Collin trustee notices, California county tax sales on Bid4Assets,
 # NY Erie sheriff and NYC tax-lien sales). NY court auctions (Queens, Manhattan) are loaded by hand; this run reports per county when
 # their files were last loaded and the next auction, geocodes them, adds Zestimates
 # (a missed Queens house is searched once more without the hyphen and with the town), gives NYC listings still without
@@ -136,6 +136,10 @@ Every listing `load_queens_pipeline` loads also gets a case summary (`ny_court_c
 NYC listings Zillow has no Zestimate for get the city's market value: `python -m pipeline.load_nyc_dof_values [--counties Queens] [--dry-run]` (NYC Open Data `8y4t-faws`, summed over the listing's lots, stored as provider `nyc_dof_market_value`; the API uses it for value and equity only while there is no Zestimate, and the dashboard labels it NYC DOF).
 
 Listings use `source_system='ny_court_foreclosure_auction'`, keyed by index number (reruns update, never duplicate); the BBL goes in `property_number`, and the referee, auction details and judgment in `description_text` (shown as the notice details). The approximate judgment is the minimum-bid proxy, or, when a notice states only an "approximate amount of lien", that amount (`notice_lien_amount`, shown as basis `notice_lien`): the plaintiff sets the real opening bid at the sale. Winning bidders pay a 10% deposit. Adjournments are frequent: a postponement notice records the earlier date as `adjourned`, and a past auction date with no published result becomes `sold_or_cancelled_unverified`. Records that fail validation go to `<run-dir>/ny_court_parse_failures.json` (default `.local/ny-court-pdfs/runs/`) and are never loaded; OCR text is cached by file hash in `.local/ny-court-pdfs/`.
+
+### California county tax sales
+
+California counties' treasurer-tax collectors auction tax-defaulted property (five years unpaid) once or twice a year, most of them online on Bid4Assets. `pipeline.scrape_ca_tax_sales` finds every California storefront on Bid4Assets' County Tax Sales calendar (timeshare-only sales left out), reads each sale's parcels from the storefront's `/api/storefront/auctions/index` (APN, minimum bid, open and close times) and each open parcel's auction page for its address (cached in `.local/ca-tax-sales/`); `pipeline.load_ca_tax_sales` loads them per county as `source_system='ca_bid4assets_tax_sale'`, status `scheduled`, the minimum bid as the opening bid, APN in `map_number`, auction id in `property_number`, sale type "Tax-defaulted property sale" (the "Tax sales" filter). Parcels without a street address (mostly vacant land) are not loaded. Both run in the Monday multistate refresh; a county's storefront is picked up once Bid4Assets links it on the calendar. California mortgage foreclosures are private trustee sales with no public county list and are not collected.
 
 ### Texas trustee sales (Harris, Bexar, Collin and Fort Bend counties)
 
