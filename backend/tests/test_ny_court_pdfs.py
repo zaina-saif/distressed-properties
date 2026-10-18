@@ -335,6 +335,37 @@ def test_summons_premises_skips_caption_words():
     assert summons_premises(text) == ("2595 Merrick Avenue", "Merrick", "11566")
 
 
+def test_summons_premises_in_other_wordings():
+    from pipeline.parse_ny_court_pdfs import summons_premises
+    assert summons_premises("SUMMONS Plaintiff, Premises Address: -against- 117 Martens Avenue Valley Stream, NY11580"
+                            " DONOVAN") == ("117 Martens Avenue", "Valley Stream", "11580")
+    assert summons_premises("place of trial Premises: 50 Clinton Street, Hempstead, New York Venue is based upon"
+                            ) == ("50 Clinton Street", "Hempstead", None)
+    assert summons_premises("Lot(s) 364-365 Upon information and belief, said premises are also known as and by street"
+                            " number: 1765 Carroll Avenue, Merrick, NY 11566. FILED") == ("1765 Carroll Avenue", "Merrick", "11566")
+    assert summons_premises("Lot(s)231 Uponinformationandbelief,saidpremisesarealsoknownasandbystreetnumber:5 AlbertCourt,"
+                            "ValleyStream,NY11580. FILED") == ("5 Albert Court", "Valley Stream", "11580")
+
+
+def test_nassau_addresses_split_into_street_town_and_zip():
+    from pipeline.parse_ny_court_pdfs import split_address
+    assert split_address("846 Bradley Street, West Hempstead, (Town of Hempstead) NY 11552", None) == (
+        "846 Bradley Street", "West Hempstead", "11552")
+    assert split_address("267 CREST AVE , FLORAL PARK , NY 11001", None) == ("267 Crest Ave", "Floral Park", "11001")
+    assert split_address("342 LATTINGTOWN ROAD, LOCUST V ALLEY , NY 11560", None) == (
+        "342 Lattingtown Road", "Locust Valley", "11560")
+    assert split_address("11 Fruitledge Road, Glen Head", None) == ("11 Fruitledge Road", "Glen Head", None)
+    assert split_address("11 Fruitledge Road, Glen Head A/K/A Brookville, NY11545", None) == (
+        "11 Fruitledge Road", "Glen Head", "11545")
+    assert split_address("230 West Pine Street, Long Beach, (City of Long Beach) NY 11561", None) == (
+        "230 West Pine Street", "Long Beach", "11561")
+
+
+def test_a_run_together_nassau_caption_is_recognised():
+    from pipeline.load_ny_court_pdfs import county_of
+    assert county_of("NOTICEOFSALE SUPREMECOURT.NASSAUCOUNTY.FNADZ,LLC,PItf.vs.SMYDZCORP.") == "Nassau"
+
+
 def test_calendar_records_need_a_summons_address_and_no_notice():
     from pipeline.load_ny_court_pdfs import calendar_records
     summons = {"file": "618077-2024 Summons.pdf", "sha256": "ab", "method": "embedded_text",

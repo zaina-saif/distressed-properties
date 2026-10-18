@@ -89,10 +89,16 @@ def kind(text: str) -> str:
 
 def split_address(raw: str, default_city: str | None) -> tuple[str | None, str | None, str | None]:
     """'1312 Myrtle Avenue, Brooklyn, NY 11221' -> street, city, ZIP (OCR may garble "NY" to "N. .")."""
-    value = re.sub(r"\s*\(City of New York\)", "", flat(raw), flags=re.I).strip(" ,.;")
-    match = re.match(rf"(.+?),\s*({CITY_NAMES})\b,?\s*(?:New York|N[\s.]*Y?\.?)\.?,?\s*(\d{{5}})?", value, re.I)
+    # "(City of New York)", "(Town of Hempstead)", "(City of Long Beach)"; " , " spacing; OCR's "LOCUST V ALLEY".
+    value = re.sub(r"\s*\((?:City|Town|Village)\s+of\s+[^)]*\)", "", flat(raw), flags=re.I)
+    value = re.sub(r"\bV\s+(ALLEY)\b", r"V\1", re.sub(r"\s+,", ",", value), flags=re.I).strip(" ,.;")
+    # "Glen Head A/K/A Brookville, NY11545": the first town name.
+    value = re.sub(r"(,\s*[A-Za-z .']+?)\s+a/?k/?a\s+[A-Za-z .']+?(?=,)", r"\1", value, flags=re.I)
+    match = (re.match(rf"(.+?),\s*({CITY_NAMES})\b,?\s*(?:New York|N[\s.]*Y?\.?)\.?,?\s*(\d{{5}})?", value, re.I)
+             # "11 Fruitledge Road, Glen Head": a town with no state after it
+             or re.fullmatch(rf"(\d.+?),\s*({CITY_NAMES})()", value, re.I))
     if match:
-        street, city, zip_code = match.group(1), match.group(2).title(), match.group(3)
+        street, city, zip_code = match.group(1), match.group(2).title(), match.group(3) or None
         if street.isupper():
             street = ordinal_case(street.title())
     else:
@@ -171,17 +177,34 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
     return record, problems
 
 
-SUMMONS_PREMISES = re.compile(r"Mortgaged\s+Premises\s*:\s*(\d[\w .,'#/&-]{3,110}?),?\s+(?:NY|N\.Y\.|New\s+York)\.?,?\s+(\d{5})\b",
-                              re.I)
+# "Mortgaged Premises: ...", "Premises Address: -against- 117 Martens Avenue Valley Stream, NY11580"
+# or "Premises: 50 Clinton Street, Hempstead, New York" (no ZIP).
+SUMMONS_PREMISES = re.compile(r"(?:Mortgaged\s+Premises|Premises\s+Address|Premises)\s*:\s*(?:-?against-?\s+)?"
+                              r"(\d[\w .,'#/&-]{3,110}?),?\s+(?:NY|N\.Y\.|New\s+York)\.?,?\s*(\d{5})?\b", re.I)
+# Tax-lien foreclosures (Levy & Levy): "said premises are also known as and by street number:
+# 1765 Carroll Avenue, Merrick, NY 11566", often in text with the spaces lost ("5 AlbertCourt,ValleyStream,NY11580").
+SUMMONS_ALSO_KNOWN = re.compile(r"also\s*known\s*as\s*and\s*by\s*street\s*number\s*:\s*(\d[\w .'#/&-]{2,80}?)\s*,\s*"
+                                r"([A-Za-z][A-Za-z .']{1,30}?)\s*,\s*(?:NY|N\.Y\.|New\s*York)\.?\s*(\d{5})\b", re.I)
 STREET_WORD = re.compile(r"\b(?:Street|St|Avenue|Ave|Place|Pl|Road|Rd|Boulevard|Blvd|Court|Ct|Lane|Ln|Drive|Dr|Terrace|"
                          r"Parkway|Pkwy|Way|Walk|Plaza|Square|Loop|Oval|Path|Row|Crescent|Broadway|Circle|Cir|Highway|"
                          r"Hwy|Turnpike|Tpke)\b\.?", re.I)
 
 
+def _spaced(value: str) -> str:
+    """'5 AlbertCourt' -> '5 Albert Court', 'ValleyStream' -> 'Valley Stream': only for words run together."""
+    words = re.sub(r"^\d+\S*\s*", "", value)
+    return re.sub(r"(?<=[a-z])(?=[A-Z])", " ", value) if words and " " not in words else value
+
+
 def summons_premises(text: str) -> tuple[str, str, str] | None:
     """The mortgaged premises a Summons names ("Mortgaged Premises: 20 PARSONS DRIVE HEMPSTEAD,
     NY 11550"): street, city and ZIP, and nothing about the parties."""
-    match = SUMMONS_PREMISES.search(flat(text))
+    body = flat(text)
+    known = SUMMONS_ALSO_KNOWN.search(body)
+    match = SUMMONS_PREMISES.search(body)
+    if known and not match:
+        street, city, zip_code = (_spaced(part.strip()) for part in known.groups())
+        return ordinal_case(street.title()) if street.isupper() else street, city.title(), zip_code
     if not match:
         return None
     place, zip_code = " ".join(match.group(1).split()).strip(" ,"), match.group(2)

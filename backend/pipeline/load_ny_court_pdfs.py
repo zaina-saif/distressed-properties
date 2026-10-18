@@ -100,7 +100,8 @@ def county_of(document_text: str) -> str | None:
                             (r"County:\s*Bronx|Bronx \(Supreme\)|TWELFTH JUDICIAL DISTRICT", "Bronx"),
                             (r"QUEENS COUNTY CLERK|COUNTY OF QUEENS", "Queens"),
                             (r"RICHMOND COUNTY CLERK|COUNTY OF RICHMOND", "Richmond"),
-                            (r"NASSAU COUNTY CLERK|COUNTY OF NASSAU|Nassau County Supreme", "Nassau"),
+                            (r"NASSAU COUNTY CLERK|COUNTY\s*OF\s*NASSAU|Nassau County Supreme|SUPREME\s*COURT\W{0,3}NASSAU\s*COUNTY",
+                             "Nassau"),
                             (r"FORECLOSURE AUCTION PART|NEW YORK COUNTY CLERK|COUNTY OF NEW YORK", "New York")):
         if re.search(pattern, body, re.I):
             return county
@@ -162,7 +163,7 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
         # By its file name: a Summons can quote notice wording ("will sell at public auction").
         if named:
             if premises := summons_premises(document["text"]):
-                summons[(county, f"{named.group(1)}/{named.group(2)}")] = premises
+                summons[(county, f"{int(named.group(1))}/{named.group(2)}")] = premises
             continue  # a Summons only supports a notice; it is not a sale
         if layout == "notice_of_sale":
             parsed = [parse_notice_of_sale(document["text"], county, document["file_address"])]
@@ -219,7 +220,7 @@ def calendar_records(documents: list[dict], records: list[dict], histories: list
         named = re.match(r"(\d{3,6})-((?:19|20)\d{2})\s+Summons\b", document["file"], re.I)
         county = county_of(document["text"])
         if named and county and (found := summons_premises(document["text"])):
-            premises[(county, f"{named.group(1)}/{named.group(2)}")] = (found, document)
+            premises[(county, f"{int(named.group(1))}/{named.group(2)}")] = (found, document)
     noticed = {(record["county"], record["index_number"]) for record in records}
     added = []
     for history in histories:
