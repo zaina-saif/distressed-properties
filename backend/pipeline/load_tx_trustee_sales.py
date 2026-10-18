@@ -1,4 +1,5 @@
-"""Load Texas trustee-sale notices (scrape_harris_trustee_notices, scrape_bexar_trustee_notices) as sale listings.
+"""Load Texas trustee-sale notices (scrape_harris_trustee_notices, scrape_bexar_trustee_notices,
+scrape_collin_trustee_notices, scrape_fort_bend_trustee_notices) as sale listings.
 
 A notice says a sale is planned, not that it will happen: many are cancelled on the
 morning of the sale, and the clerk publishes no results. Listings are therefore
@@ -36,7 +37,9 @@ def money(value: float | None) -> str | None:
 def notice_details(notice: dict, county: str) -> str:
     sale_date = date.fromisoformat(notice["sale_date"]).strftime("%B %-d, %Y")
     filed = date.fromisoformat(notice["file_date"]).strftime("%B %-d, %Y") if notice.get("file_date") else None
-    lines = [f"Notice of Trustee's Sale {notice['doc_id']}, filed with the {county} County Clerk"
+    # Collin's list has no document numbers: its key is the address and sale date.
+    number = f" {notice['doc_id']}" if notice.get("clerk_number", True) else ""
+    lines = [f"Notice of Trustee's Sale{number}, filed with the {county} County Clerk"
              + (f" on {filed}" if filed else "") + ".",
              f"Sale: {sale_date} (the first Tuesday of the month), between 10 AM and 4 PM at the place the"
              f" {county} County Commissioners Court designates. Highest bidder for cash; many sales are cancelled"
@@ -44,6 +47,8 @@ def notice_details(notice: dict, county: str) -> str:
     if notice.get("notice_kind") == "association_assessment_lien":
         lines.append("Owners' association assessment lien foreclosure: the buyer usually takes the property subject to"
                      " the mortgage and any other senior liens.")
+    if notice.get("property_type"):
+        lines.append(f"Property type (appraisal district): {notice['property_type']}.")
     if notice.get("lender"):
         lines.append(f"Foreclosing lender: {notice['lender']}.")
     if notice.get("original_principal"):
@@ -58,7 +63,9 @@ def notice_details(notice: dict, county: str) -> str:
     elif notice.get("address_source") == "inferred":
         lines.append("The street address was read from the notice without a label; check it against the legal"
                      " description.")
-    if notice.get("address_source") == "clerk_map":
+    if notice.get("address_source") == "clerk_list":
+        lines.append(f"Listed on the {county} County Clerk's foreclosure notices site, where the notice can be opened.")
+    elif notice.get("address_source") == "clerk_map":
         lines.append(f"Listed on the {county} County Clerk's foreclosure map; search document {notice['doc_id']} in the"
                      " Clerk's public records to read the notice.")
     else:

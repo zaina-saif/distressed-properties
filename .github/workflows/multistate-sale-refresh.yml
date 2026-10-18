@@ -44,6 +44,10 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Collin County's notices site renders in a browser (scrape_collin_trustee_notices).
+      - name: Install Chromium for Playwright
+        run: python -m playwright install --with-deps chromium
+
       - name: Run Multi-state Sale Refresh
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}

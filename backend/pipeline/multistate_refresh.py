@@ -74,6 +74,8 @@ SOURCES = [
      ["pipeline.load_county_sale_lists", "--all"]),
     ("TX Bexar trustee-sale notices", ["pipeline.scrape_bexar_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),
+    ("TX Collin trustee-sale notices", ["pipeline.scrape_collin_trustee_notices"],
+     ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_collin_trustee_notices.json"]),
     # Orange County's page answers 403, so only Erie is scraped.
     ("NY Erie sheriff sales", ["pipeline.scrape_ny_county_pages", "--counties", "Erie"],
      ["pipeline.load_ny_sales", "--counties", "Erie"]),

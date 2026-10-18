@@ -87,3 +87,11 @@ register(CommandScraper(
     load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
                                 "data/sheriff_sales/tx_bexar_trustee_notices.json"],
 ))
+
+# Texas trustee-sale notices from the Collin County Clerk's foreclosure notices site (headless browser).
+register(CommandScraper(
+    name="tx-collin-trustee-notices", state="TX", counties=["Collin"],
+    scrape=lambda selected, ctx: ["pipeline.scrape_collin_trustee_notices"],
+    load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
+                                "data/sheriff_sales/tx_collin_trustee_notices.json"],
+))
