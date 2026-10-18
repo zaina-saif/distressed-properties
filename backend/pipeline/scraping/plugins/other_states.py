@@ -95,3 +95,12 @@ register(CommandScraper(
     load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
                                 "data/sheriff_sales/tx_collin_trustee_notices.json"],
 ))
+
+# Texas trustee-sale notices from the Fort Bend County Clerk's monthly list (scanned PDF read
+# with macOS OCR, so this runs on the operator's Mac, not in the scheduled refresh).
+register(CommandScraper(
+    name="tx-fort-bend-trustee-notices", state="TX", counties=["Fort Bend"],
+    scrape=lambda selected, ctx: ["pipeline.scrape_fort_bend_trustee_notices"],
+    load=lambda selected, ctx: ["pipeline.load_tx_trustee_sales", "--input",
+                                "data/sheriff_sales/tx_fort_bend_trustee_notices.json"],
+))

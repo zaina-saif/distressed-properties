@@ -117,3 +117,9 @@ def test_lender_spans_lines_and_never_takes_the_borrower_sentence():
                   "but not limited to the promissory note and all modifications, renewals and extensions of the\n"
                   "BANK is the current mortgagee of the note.") is None
     assert lender("Borrower: A Person\nLender:\nXuan Example\n") is None
+
+
+def test_lender_drops_a_name_before_it_and_role_words():
+    assert lender("to Mario Anthony Herrera Jr. Citibank, N.A., nor in its individual capacity, is the current mortgagee"
+                  " of the note.") == "Citibank, N.A."
+    assert lender("Loan Servicer is the current mortgagee of the note.") is None

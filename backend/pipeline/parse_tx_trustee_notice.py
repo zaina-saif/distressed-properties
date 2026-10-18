@@ -31,9 +31,11 @@ STREET_LINE = re.compile(rf"^\s*{STREET}\s*,?\s*$")
 LABEL = re.compile(r"(?i)commonly\s+known|property\s+address|street\s+address|address\s+of\s+(?:the\s+)?property"
                    r"|also\s+known\s+as|known\s+as|more\s+commonly|physical\s+address|property\s+located\s+at")
 # Lines naming someone else's address: law firms, trustees, lenders, servicers, the venue.
-NOT_PROPERTY = re.compile(r"(?i)\bsu?ite\b|\bsute\b|\bste\.?\s*\d|\bfloor\b|p\.?\s*o\.?\s*box|c/o\b|whose\s+address|mailing\s+address"
+NOT_PROPERTY = re.compile(r"(?i)\bsu?ite\b|\bsute\b|\bste\.?\s*\d|\bfloor\b|p\.?\s*o\.?\s*box|c/o\b|whose\s+address|(?<!/)mailing\s+address"
                           r"|servicer|trustee|payee|beneficiary|holder|mortgagee|lender|attorney|\blaw\b|\bllp\b|\bpllc\b"
-                          r"|\bp\.c\.|event\s+center|ballroom|knight\s+r(?:oa)?d|courthouse|caroline|declarant|my\s+name")
+                          r"|\bp\.c\.|event\s+center|ballroom|knight\s+r(?:oa)?d|courthouse|caroline|declarant|my\s+name"
+                          # Fort Bend's sale venue (Gus George Academy, Patton Hall, 1521 Eugene Heimann Circle)
+                          r"|heimann|gus\s+george|patton\s+hall|fairgrounds")
 STREET_WORDS = re.compile(r"(?i)\b(?:st|street|dr|drive|rd|road|ln|lane|ct|court|cir|circle|blvd|boulevard|ave|avenue|way|trl|"
                           r"trail|pl|place|pkwy|parkway|loop|hwy|highway|fwy|freeway|cv|cove|xing|crossing|bnd|bend|pt|point|"
                           r"holw|hollow|tr|ter|terrace|row|run|path|walk|park|creek|ridge|glen|oaks?|meadows?|vis|vista|sq|"
@@ -59,23 +61,24 @@ ORGANISATION = re.compile(r"(?i)\b(?:bank|banc|mortgage|llc|l\.l\.c|inc|corp|cor
                           r"federal|housing|lp|ltd|partners\w*|homes?\b|investments?|holdings?|savings|authority)")
 # A match that ran over the sentence naming the borrower, or a role rather than a name.
 NOT_A_LENDER = re.compile(r"(?i)\b(?:executed|securing|promissory|deed\s+of\s+trust|grantor|borrower|substitute\s+trustee|"
-                          r"obligations?\s+secured|clerk'?s\s+file|property\s+records)\b|^(?:loan|loan\s+servicing\s+agent)$")
+                          r"obligations?\s+secured|clerk'?s\s+file|property\s+records)\b|^(?:loan|loan\s+servicing\s+agent|(?:loan|mortgage)\s+servicer|original\s+(?:trustee|lender|mortgagee))$")
 LEGAL_START = re.compile(r"(?i)\b(?:lots?\s+[\w(]|tract\s+[\w(]|unit\s+[\w(]|condominium\s+unit|being\s+(?:a|all|that|lot)|"
-                         r"all\s+that\s+certain|field\s+notes|reserve\s+[\w(])")
+                         r"all\s+that\s+certain|field\s+notes|reserve\s+(?!component)[\w(])")
 LEGAL_END = re.compile(r"(?i)according\s+to\s+the\s+(?:map|plat)|\brecorded\s+(?:in|at|under)|\.\s+\d\.\s|\n\s*\d\.\s")
 LOT = re.compile(r"(?i)\blot\s+(?:[a-z\-]+\s*)?\(?\s*(\d+[A-Z]?)\s*\)?")
 BLOCK = re.compile(r"(?i)\bblock\s+(?:[a-z\-]+\s*)?\(?\s*(\d+[A-Z]?)\s*\)?")
 SUBDIVISION = re.compile(r"(?i)\b(?:block|lot)\s+[^,]*?,?\s+(?:of\s+)?(?:the\s+)?(?:replat\s+of\s+|amending\s+plat\s+of\s+)?"
                          r"([A-Z0-9][A-Z0-9 &'.\-]{3,60}?)(?:,?\s+(?:SEC(?:TION)?\.?|SECTION)\s+([\w()\-]+))?"
                          r"\s*,?\s+(?:an?\s+)?(?:subdivision|addition|amending|partial|replat|according)")
-# Mailing cities in and around Harris County, to correct OCR slips ("Mouston").
+# Mailing cities in and around Harris and Fort Bend counties, to correct OCR slips ("Mouston").
 CITIES = ["Houston", "Katy", "Spring", "Humble", "Cypress", "Tomball", "Pasadena", "Baytown", "Channelview", "Crosby",
           "Kingwood", "Friendswood", "La Porte", "Seabrook", "Webster", "Bellaire", "Missouri City", "Pearland",
           "Hockley", "Huffman", "Highlands", "South Houston", "Galena Park", "Jacinto City", "Deer Park",
           "Jersey Village", "Atascocita", "Waller", "Magnolia", "Sugar Land", "Stafford", "Nassau Bay", "Kemah",
           "League City", "Dickinson", "Richmond", "Rosenberg", "Fulshear", "Conroe", "The Woodlands", "Porter",
           "New Caney", "Dayton", "Mont Belvieu", "Barrett", "Sheldon", "Aldine", "Klein", "Hufsmith", "Fresno",
-          "Manvel", "Alvin", "Brookshire", "Pinehurst", "El Lago", "Taylor Lake Village", "Shoreacres", "Morgan's Point"]
+          "Manvel", "Alvin", "Brookshire", "Pinehurst", "El Lago", "Taylor Lake Village", "Shoreacres", "Morgan's Point",
+          "Needville", "Rosharon", "Simonton", "Beasley", "Arcola", "Thompsons", "Kendleton", "Orchard", "Damon"]
 HOA = re.compile(r"(?i)(?:home\s*owners?|property\s+owners?|community|maintenance|civic|condominium|owners)\s*'?\s*association")
 
 
@@ -195,11 +198,11 @@ def lender(text: str) -> str | None:
         match = pattern.search(flat if number in (0, 2) else text)
         if match:
             # A sentence may run into the name: keep what follows its last full stop.
-            value = re.split(r"(?<=[a-z]{2})\.\s+", _clean(match.group(1)))[-1]
+            value = re.split(r"(?:(?<=[a-z]{2})|(?<=\bJr)|(?<=\bSr)|(?<=\bII))\.\s+", _clean(match.group(1)))[-1]
             value = re.split(r"(?i),?\s+(?:is|and|as)\s+(?:the\s+)?(?:mortgage\s+servicer|current|holder|trustee)", value)[0]
             value = _clean(value)
             value = re.sub(r"^(?:o|c/o)\s+", "", value)
-            value = re.sub(r"(?i),?\s+(?:not\s+in\s+its\s+individual\s+capacity|not\s+individually|its\s+address\s+being|whose\s+addre?ss?\s+is)\b.*", "", value)
+            value = re.sub(r"(?i),?\s+(?:no[tr]\s+in\s+its\s+individual\s+capacity|no[tr]\s+in\s+its\b|not\s+individually|its\s+address\s+being|whose\s+addre?ss?\s+is|\w*\s*capacity|sol\w*ly\s+as)\b.*", "", value)
             value = re.sub(r"(?i)^note\s+dated\s+.{0,40}?\s+amount\s+of\s+[S$]?[\d,. ]*", "", value)
             if (len(value) >= 4 and re.match(r"[A-Z0-9]", value) and ":" not in value and not re.search(r"\b[A-Z]{2}\s+\d{5}\b|\bP\.?O\.? Box\b", value)
                     and not re.match(r"(?i)(?:mortgage|address|the\s+note|this|said|recorded|property|substitute|date|legal)\b", value)
