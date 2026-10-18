@@ -23,6 +23,7 @@ from datetime import date, datetime
 
 BOROUGHS = {  # county -> city used in addresses
     "Kings": "Brooklyn", "Bronx": "Bronx", "New York": "New York", "Queens": None, "Richmond": "Staten Island",
+    "Nassau": None,  # towns and villages: the city comes from the notice's address
 }
 INDEX = re.compile(r"(?<!\d)(\d{3,6})\s*/\s*((?:19|20)\d{2})(?:E\b)?")
 MONEY = re.compile(r"\$\s*([\d,]+(?:\.\d{2})?)")
@@ -112,7 +113,7 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
     found = {index_number(*m) for m in INDEX.findall(" ".join(re.findall(r"INDEX\s*(?:NO\.?|#|NUMBER)\s*:?\s*[\d/ ]+", body, re.I)))}
     if len(found) != 1:
         problems.append("index_number_missing_or_ambiguous")
-    sale = re.search(rf"(?:will\s+sell|publi\w*\s+a?uction).{{0,220}}?(?:\b|(?<=\d{{5}}))[o0]n\s+({DATE})(?:\s*,?\s*at\s+{TIME})?", body, re.I)
+    sale = re.search(rf"(?:will\s+sell|publi\w*\s+a?uction).{{0,220}}?(?:\b|(?<=\d{{5}}))[o0]n\s+(?:(?:Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,?\s+)?({DATE})(?:\s*,?\s*at\s+{TIME})?", body, re.I)
     sale_date = to_date(sale.group(1)) if sale else None
     if not sale_date:
         problems.append("auction_date_missing")
@@ -121,6 +122,9 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
         heading = re.search(rf"premises\s*:\s*(\d[\w .'#/-]{{3,60}}?),?\s+(Brooklyn|Bronx|Staten Island|Manhattan),?\s+(?:New York|N\.?Y\.?),?\s*(\d{{5}})\b", body, re.I)
         if heading:
             premises = re.match(r"(.*)", f"{heading.group(1)}, {heading.group(2)}, NY {heading.group(3)}")
+    if not premises:
+        # Nassau writes "premises k/a" or "prem. k/a" (known as), with a town and ZIP.
+        premises = re.search(r"prem(?:ises|\.)\s+k/a\s*:?\s*(\d.{4,160}?\d{5})", body, re.I)
     street = city = zip_code = None
     address_source = "notice"
     if premises:
@@ -165,6 +169,36 @@ def parse_notice_of_sale(text: str, county: str, file_address: str | None = None
         "plaintiff_attorney": attorney.group(1).strip(" ,") if attorney else None,
     }
     return record, problems
+
+
+SUMMONS_PREMISES = re.compile(r"Mortgaged\s+Premises\s*:\s*(\d[\w .,'#/&-]{3,110}?),?\s+(?:NY|N\.Y\.|New\s+York)\.?,?\s+(\d{5})\b",
+                              re.I)
+STREET_WORD = re.compile(r"\b(?:Street|St|Avenue|Ave|Place|Pl|Road|Rd|Boulevard|Blvd|Court|Ct|Lane|Ln|Drive|Dr|Terrace|"
+                         r"Parkway|Pkwy|Way|Walk|Plaza|Square|Loop|Oval|Path|Row|Crescent|Broadway|Circle|Cir|Highway|"
+                         r"Hwy|Turnpike|Tpke)\b\.?", re.I)
+
+
+def summons_premises(text: str) -> tuple[str, str, str] | None:
+    """The mortgaged premises a Summons names ("Mortgaged Premises: 20 PARSONS DRIVE HEMPSTEAD,
+    NY 11550"): street, city and ZIP, and nothing about the parties."""
+    match = SUMMONS_PREMISES.search(flat(text))
+    if not match:
+        return None
+    place, zip_code = " ".join(match.group(1).split()).strip(" ,"), match.group(2)
+    # The caption's columns interleave with the address ("2595 Merrick Avenue Plaintiff Merrick").
+    place = " ".join(re.sub(r"(?i)\b(?:plaintiffs?|defendants?|-?against-?|index\s+no\.?)\b", " ", place).split())
+    # "20 PARSONS DRIVE HEMPSTEAD": the town follows the last street-type word (or a comma).
+    if "," in place:
+        street, city = (part.strip() for part in place.rsplit(",", 1))
+    else:
+        words = list(STREET_WORD.finditer(place))
+        if not words or not place[words[-1].end():].strip():
+            return None
+        street, city = place[:words[-1].end()].strip(), place[words[-1].end():].strip()
+    if not (re.match(r"\d", street) and re.fullmatch(r"[A-Za-z][A-Za-z .']{1,30}", city)):
+        return None
+    street = re.split(r"\s+a/?k/?a\s+", street, maxsplit=1, flags=re.I)[0].strip(" ,")
+    return ordinal_case(street.title()) if street.isupper() else street, city.title(), zip_code
 
 
 def parse_calendar_summary(text: str, county: str) -> list[tuple[dict, list[str]]]:

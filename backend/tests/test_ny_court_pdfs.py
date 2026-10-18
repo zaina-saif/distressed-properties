@@ -308,3 +308,43 @@ def test_a_text_layer_without_spaces_is_spotted():
     from pipeline.load_ny_court_pdfs import spaceless
     assert spaceless("SUPREMECOURTOFTHESTATEOFNEWYORK" * 20)
     assert not spaceless("SUPREME COURT OF THE STATE OF NEW YORK " * 20)
+
+
+def test_nassau_notice_wording():
+    from pipeline.parse_ny_court_pdfs import parse_notice_of_sale
+    text = ("SUPREME COURT - COUNTY OF NASSAU INDEX NO. 609669/2024. Pursuant to judgment of foreclosure and sale"
+            " entered April 6, 2026, I will sell at public auction at the Nassau County Supreme Court, 100 Supreme"
+            " Court Drive, Mineola, NY on Thursday, June 22, 2026 at 2:30 p.m., prem. k/a 616 Liberty Avenue,"
+            " Williston Park, NY 11596 a/k/a Section 9, Block 144, Lot 54. Jane Roe, Esq., Referee.")
+    record, problems = parse_notice_of_sale(text, "Nassau")
+    assert problems == []
+    assert record["sale_date"] == "2026-06-22"
+    assert (record["street"], record["city"], record["zip_code"]) == ("616 Liberty Avenue", "Williston Park", "11596")
+
+
+def test_summons_names_the_mortgaged_premises_only():
+    from pipeline.parse_ny_court_pdfs import summons_premises
+    text = ("SUMMONS Index No. Mortgaged Premises: 20 PARSONS DRIVE HEMPSTEAD, NY 11550 TO THE ABOVE NAMED"
+            " DEFENDANT(S): YOU ARE HEREBY SUMMONED")
+    assert summons_premises(text) == ("20 Parsons Drive", "Hempstead", "11550")
+
+
+def test_summons_premises_skips_caption_words():
+    from pipeline.parse_ny_court_pdfs import summons_premises
+    text = "Mortgaged Premises: 2595 Merrick Avenue Plaintiff Merrick, New York 11566 -against- Section: 63"
+    assert summons_premises(text) == ("2595 Merrick Avenue", "Merrick", "11566")
+
+
+def test_calendar_records_need_a_summons_address_and_no_notice():
+    from pipeline.load_ny_court_pdfs import calendar_records
+    summons = {"file": "618077-2024 Summons.pdf", "sha256": "ab", "method": "embedded_text",
+               "text": "SUPREME COURT OF THE STATE OF NEW YORK COUNTY OF NASSAU SUMMONS Mortgaged Premises: "
+                       "20 PARSONS DRIVE HEMPSTEAD, NY 11550 TO THE ABOVE NAMED DEFENDANT(S)"}
+    history = {"county": "Nassau", "index_number": "618077/2024",
+               "auctions": [{"date": "2026-12-04", "time": "02:00 PM", "outcome": None},
+                            {"date": "2026-06-01", "time": "02:00 PM", "outcome": "Not Held"}]}
+    [record] = calendar_records([summons], [], [history], date(2026, 10, 17))
+    assert (record["street"], record["city"], record["sale_date"]) == ("20 Parsons Drive", "Hempstead", "2026-12-04")
+    assert "No Notice of Sale" in details(record)
+    noticed = [{"county": "Nassau", "index_number": "618077/2024"}]
+    assert calendar_records([summons], noticed, [history], date(2026, 10, 17)) == []

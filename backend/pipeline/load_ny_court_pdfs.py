@@ -34,6 +34,7 @@ from pipeline.collect_nyc_kings_foreclosure_pdfs import macos_ocr
 from pipeline.load_nyc_referee_sales import merge_court_duplicates
 from pipeline.parse_ny_court_pdfs import (
     kind, parse_auction_part_list, parse_calendar_summary, parse_notice_of_sale, parse_webcivil_appearances,
+    summons_premises,
 )
 from pipeline.sale_listing_loader import Sale, load_sales
 
@@ -47,6 +48,8 @@ SOURCE_URLS = {
     "New York": "https://www.nycourts.gov/courts/1jd/supctmanh/foreclosures.shtml",
 }
 WEBCIVIL_URL = "https://iapps.courts.state.ny.us/webcivil/FCASMain"
+# Nassau publishes no auction list; its notices come from the case files (WebCivil / NYSCEF).
+SOURCE_URLS["Nassau"] = WEBCIVIL_URL
 # WebCivil auction outcomes as listing statuses.
 OUTCOME_STATUS = {"Not Held": "adjourned", "Adjourned": "adjourned", "Sold": "sold", "Cancelled": "cancelled",
                   "Canceled": "cancelled", "Stayed": "stayed", "Marked Off": "cancelled", "Withdrawn": "cancelled",
@@ -97,6 +100,7 @@ def county_of(document_text: str) -> str | None:
                             (r"County:\s*Bronx|Bronx \(Supreme\)|TWELFTH JUDICIAL DISTRICT", "Bronx"),
                             (r"QUEENS COUNTY CLERK|COUNTY OF QUEENS", "Queens"),
                             (r"RICHMOND COUNTY CLERK|COUNTY OF RICHMOND", "Richmond"),
+                            (r"NASSAU COUNTY CLERK|COUNTY OF NASSAU|Nassau County Supreme", "Nassau"),
                             (r"FORECLOSURE AUCTION PART|NEW YORK COUNTY CLERK|COUNTY OF NEW YORK", "New York")):
         if re.search(pattern, body, re.I):
             return county
@@ -139,6 +143,9 @@ def read_folder(folder: Path) -> list[dict]:
 def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
     """Returns loadable records, failures and reported-only (no address) records."""
     records, failures, reported = [], [], []
+    # Nassau notices often give only Section/Block/Lot; the case's Summons names the
+    # premises. Keyed by the index number in the file name ("618077-2024 Summons.pdf").
+    summons = {}
     for document in documents:
         source = {"file": document["file"], "sha256": document["sha256"], "text_method": document["method"]}
         # A text layer that lost its spaces ("NOTICEOFSALE") is read again with OCR.
@@ -151,6 +158,12 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
         if not county:
             failures.append({**source, "problems": ["county_not_recognised"], "layout": layout})
             continue
+        named = re.match(r"(\d{3,6})-((?:19|20)\d{2})\s+Summons\b", document["file"], re.I)
+        # By its file name: a Summons can quote notice wording ("will sell at public auction").
+        if named:
+            if premises := summons_premises(document["text"]):
+                summons[(county, f"{named.group(1)}/{named.group(2)}")] = premises
+            continue  # a Summons only supports a notice; it is not a sale
         if layout == "notice_of_sale":
             parsed = [parse_notice_of_sale(document["text"], county, document["file_address"])]
             if parsed[0][1] and document["method"] == "embedded_text" and (ocr := ocr_text(document)):
@@ -175,6 +188,14 @@ def parse_documents(documents: list[dict]) -> tuple[list[dict], list[dict], list
                 if entry["index_number"] in PLAINTIFF_CORRECTIONS:
                     entry.update(plaintiff=PLAINTIFF_CORRECTIONS[entry["index_number"]])
                 records.append(entry)
+    # A notice without a street address takes its case's Summons premises.
+    for failure in [failure for failure in failures if failure.get("problems") == ["premises_address_missing"]]:
+        premises = summons.get((failure.get("county"), failure.get("index_number")))
+        if premises and failure.get("sale_date"):
+            failures.remove(failure)
+            street, city, zip_code = premises
+            records.append({**failure, "street": street, "city": city, "zip_code": failure.get("zip_code") or zip_code,
+                            "address_source": "summons", "problems": None})
     return records, failures, reported
 
 
@@ -188,6 +209,31 @@ def parse_appearances(documents: list[dict]) -> tuple[list[dict], list[dict]]:
         entry = {**record, "file": document["file"], "sha256": document["sha256"]}
         (failures if problems else histories).append({**entry, "problems": problems} if problems else entry)
     return histories, failures
+
+
+def calendar_records(documents: list[dict], records: list[dict], histories: list[dict], today: date) -> list[dict]:
+    """Cases with an upcoming WebCivil auction date but no Notice of Sale among the files,
+    whose Summons names the mortgaged premises (Nassau): one record each, from the two."""
+    premises = {}
+    for document in documents:
+        named = re.match(r"(\d{3,6})-((?:19|20)\d{2})\s+Summons\b", document["file"], re.I)
+        county = county_of(document["text"])
+        if named and county and (found := summons_premises(document["text"])):
+            premises[(county, f"{named.group(1)}/{named.group(2)}")] = (found, document)
+    noticed = {(record["county"], record["index_number"]) for record in records}
+    added = []
+    for history in histories:
+        key = (history.get("county"), history.get("index_number"))
+        upcoming = sorted((a for a in history.get("auctions", []) if a["date"] >= today.isoformat() and not a["outcome"]),
+                          key=lambda a: a["date"])
+        if key in noticed or key not in premises or not upcoming:
+            continue
+        (street, city, zip_code), document = premises[key]
+        added.append({"document": "webcivil_calendar", "county": key[0], "index_number": key[1],
+                      "sale_date": upcoming[0]["date"], "sale_time": upcoming[0].get("time"), "street": street,
+                      "city": city, "zip_code": zip_code, "address_source": "summons",
+                      "file": document["file"], "sha256": document["sha256"], "text_method": document["method"]})
+    return added
 
 
 def calendar_note(auctions: list[dict], today: date) -> str | None:
@@ -240,6 +286,21 @@ def apply_appearances(histories: list[dict], today: date) -> dict[str, int]:
                         connection.execute(text("""UPDATE sheriff_sales SET current_status=:status, updated_at=NOW()
                             WHERE id=:id"""), {"status": status, "id": sale["id"]})
                         counts["listings_updated"] += 1
+                # The court calendar's next auction, when it is later than the listing's date:
+                # an adjourned case is on the calendar again.
+                upcoming = sorted(auction["date"] for auction in history["auctions"]
+                                  if not auction["outcome"] and auction["date"] >= today.isoformat())
+                if upcoming and (not sale["sale_date"] or upcoming[0] > sale["sale_date"].isoformat()) \
+                        and sale["current_status"] in ("scheduled", "scheduled_unverified", "adjourned",
+                                                       "sold_or_cancelled_unverified"):
+                    connection.execute(text("""UPDATE sheriff_sales SET current_sale_date=CAST(:sale_date AS DATE),
+                        current_status='scheduled', updated_at=NOW() WHERE id=:id"""),
+                        {"sale_date": upcoming[0], "id": sale["id"]})
+                    connection.execute(text("""INSERT INTO sheriff_sale_status_history
+                        (id,sheriff_sale_id,status,sale_date,observed_at,source_url,raw_status)
+                        VALUES(:hid,:id,'scheduled',:sale_date,NOW(),:url,'Next auction on the court calendar (WebCivil)')"""),
+                        {"hid": str(uuid.uuid4()), "id": sale["id"], "sale_date": upcoming[0], "url": WEBCIVIL_URL})
+                    counts["rescheduled_from_calendar"] += 1
                 note = calendar_note(history["auctions"], today)
                 described = CALENDAR_NOTE.sub("", sale["description_text"] or "").strip()
                 connection.execute(text("""UPDATE sheriff_sales SET description_text=:details, updated_at=NOW()
@@ -249,6 +310,9 @@ def apply_appearances(histories: list[dict], today: date) -> dict[str, int]:
 
 def details(record: dict) -> str:
     parts = ["Court-ordered referee foreclosure auction."]
+    if record.get("document") == "webcivil_calendar":
+        parts.append("No Notice of Sale was among the saved case files: the auction date is the court calendar's"
+                     " (WebCivil) and the address is the mortgaged premises named in the Summons.")
     when = " ".join(filter(None, [record.get("sale_date"), record.get("sale_time")]))
     if record.get("sale_place"):
         when += f" at {record['sale_place']}"
@@ -343,6 +407,7 @@ def main() -> None:
     records, failures, reported = parse_documents(documents)
     histories, history_failures = parse_appearances(documents)
     failures += history_failures
+    records += calendar_records(documents, records, histories, date.today())
     args.run_dir.mkdir(parents=True, exist_ok=True)
     (args.run_dir / "ny_court_parse_failures.json").write_text(json.dumps(failures, indent=1, default=str))
     (args.run_dir / "ny_court_records.json").write_text(json.dumps(records, indent=1, default=str))
