@@ -11,9 +11,14 @@ folders. The list, "download all" and "delete all" take a folder: a folder id,
 """
 from __future__ import annotations
 
+import base64
 import hashlib
+import hmac
 import io
+import json
 import posixpath
+import secrets
+import time
 import uuid
 import zipfile
 from collections.abc import Iterable, Iterator
@@ -311,12 +316,64 @@ def delete_all_files(folder: str | None = Query(None),
     return DeleteAllResult(deleted=deleted)
 
 
+# "Download all" links: the browser opens the zip itself, so its download manager writes it
+# to disk as it arrives (a fetch would hold hundreds of MB in the page first). The link
+# carries the user's scope, signed with a key made when the API starts, and lasts a few minutes.
+LINK_KEY = secrets.token_bytes(32)
+LINK_SECONDS = 300
+
+
+class DownloadLink(BaseModel):
+    url: str
+
+
+def _sign(payload: bytes) -> str:
+    return base64.urlsafe_b64encode(hmac.new(LINK_KEY, payload, hashlib.sha256).digest()).decode().rstrip("=")
+
+
+def download_token(access: Access, folder: str | None, now: float | None = None) -> str:
+    payload = json.dumps({"user_id": access.user_id, "developer": access.is_developer, "folder": folder,
+                          "expires": int((now or time.time()) + LINK_SECONDS)}).encode()
+    return f"{base64.urlsafe_b64encode(payload).decode().rstrip('=')}.{_sign(payload)}"
+
+
+def read_download_token(token: str, now: float | None = None) -> dict:
+    try:
+        body, signature = token.split(".")
+        payload = base64.urlsafe_b64decode(body + "=" * (-len(body) % 4))
+        claims = json.loads(payload)
+    except ValueError:
+        claims = None
+    if claims is None or not hmac.compare_digest(_sign(payload), signature):
+        raise HTTPException(status_code=403, detail="This download link is not valid.")
+    if claims["expires"] < (now or time.time()):
+        raise HTTPException(status_code=403, detail="This download link has expired; click Download all again.")
+    return claims
+
+
+@router.post("/download-all/link", response_model=DownloadLink)
+def download_all_link(folder: str | None = Query(None),
+                      access: Access = Depends(require_file_access)) -> DownloadLink:
+    folder_filter(folder)
+    return DownloadLink(url=f"/api/v1/files/download-all/zip?token={download_token(access, folder)}")
+
+
+@router.get("/download-all/zip")
+def download_all_by_link(token: str = Query(...)) -> StreamingResponse:
+    claims = read_download_token(token)
+    return _zip_response(claims["folder"], {"user_id": claims["user_id"], "developer": claims["developer"]})
+
+
 @router.get("/download-all")
 def download_all(folder: str | None = Query(None),
                  access: Access = Depends(require_file_access)) -> StreamingResponse:
     """Every file the user can see (in the folder, when one is given), as one zip (newest first, as listed)."""
+    return _zip_response(folder, _scope(access))
+
+
+def _zip_response(folder: str | None, owner: dict) -> StreamingResponse:
     where, params = folder_filter(folder)
-    scope = {**_scope(access), **params}
+    scope = {**owner, **params}
     with engine.connect() as connection:
         if not connection.execute(text(f"SELECT 1 FROM developer_files f WHERE {OWNED}{where} LIMIT 1"), scope).first():
             raise HTTPException(status_code=404, detail="There are no files to download.")

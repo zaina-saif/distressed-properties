@@ -148,12 +148,14 @@ export function FileStoragePage() {
 
   async function downloadAll() {
     setError(null);
+    setNotice(null);
     setZipping(true);
     try {
-      const response = await authFetch(`${API_URL}/api/v1/files/download-all${query}`);
-      if (!response.ok) throw new Error();
-      const name = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") ?? "")?.[1] ?? "files.zip";
-      save(await response.blob(), name);
+      // The browser downloads the zip itself from a short-lived link, so a large zip goes straight
+      // to disk with the browser's own progress instead of being held in the page first.
+      const { url } = await authJson<{ url: string }>(`/api/v1/files/download-all/link${query}`, { method: "POST" });
+      window.location.assign(`${API_URL}${url}`);
+      setNotice(`The zip is downloading in your browser (see its downloads list). ${files?.length ?? 0} files, ${size(totalSize)}: a large zip can take a few minutes.`);
     } catch {
       setError("Could not download the files. Try again shortly.");
     } finally {

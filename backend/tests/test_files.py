@@ -6,7 +6,8 @@ from fastapi.testclient import TestClient
 import pytest
 from fastapi import HTTPException
 
-from app.api.files import clean_name, folder_filter, is_pdf, pdfs_in_zip, unique_name, zip_stream
+from app.api.files import (clean_name, download_token, folder_filter, is_pdf, pdfs_in_zip, read_download_token,
+                           unique_name, zip_stream)
 from app.auth import Access, current_user
 from app.main import app
 
@@ -51,6 +52,8 @@ def test_file_routes_are_for_developers_and_file_uploaders_only():
         assert client.get("/api/v1/files/folders").status_code == 403
         assert client.patch("/api/v1/files/x", json={"folder_id": None}).status_code == 403
         assert client.get("/api/v1/files/download-all").status_code == 403
+        assert client.post("/api/v1/files/download-all/link").status_code == 403
+        assert client.get("/api/v1/files/download-all/zip?token=x.y").status_code == 403
     finally:
         app.dependency_overrides.clear()
 
@@ -70,6 +73,19 @@ def test_download_all_zips_every_file_and_keeps_both_of_two_same_names():
     assert archive.namelist() == ["a.pdf", "A (2).pdf", "b.pdf"]
     assert archive.read("A (2).pdf") == PDF + b"2" and archive.testzip() is None
     assert unique_name("notes", {"notes"}) == "notes (2)"
+
+
+def test_download_links_carry_the_users_scope_and_expire():
+    uploader = Access(user_id="u1", email="a@example.com", role="file_uploader")
+    token = download_token(uploader, "none", now=1000)
+    assert read_download_token(token, now=1200) == {"user_id": "u1", "developer": False, "folder": "none",
+                                                     "expires": 1300}
+    with pytest.raises(HTTPException, match="expired"):
+        read_download_token(token, now=1301)
+    signature = token.split(".")[1]
+    forged = download_token(Access(user_id="u2", email="b@example.com", role="developer"), None, now=1000)
+    with pytest.raises(HTTPException, match="not valid"):
+        read_download_token(f"{forged.split('.')[0]}.{signature}", now=1200)
 
 
 def test_folder_filter_takes_a_folder_id_none_or_nothing():
