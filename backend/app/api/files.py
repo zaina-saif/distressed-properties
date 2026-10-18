@@ -34,6 +34,8 @@ from app.auth import Access, require_developer, require_file_access
 from app.database.session import engine
 
 router = APIRouter(prefix="/api/v1/files", tags=["files"])
+# The one route that takes no sign-in: a "download all" link, checked by its signature.
+link_router = APIRouter(prefix="/api/v1/files", tags=["files"])
 
 MAX_PDF_BYTES = 50 * 1024 * 1024
 MAX_UPLOAD_BYTES = 200 * 1024 * 1024
@@ -358,7 +360,7 @@ def download_all_link(folder: str | None = Query(None),
     return DownloadLink(url=f"/api/v1/files/download-all/zip?token={download_token(access, folder)}")
 
 
-@router.get("/download-all/zip")
+@link_router.get("/download-all/zip")
 def download_all_by_link(token: str = Query(...)) -> StreamingResponse:
     claims = read_download_token(token)
     return _zip_response(claims["folder"], {"user_id": claims["user_id"], "developer": claims["developer"]})

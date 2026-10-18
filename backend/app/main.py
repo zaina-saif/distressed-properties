@@ -9,7 +9,7 @@ from app.api.alerts import router as alerts_router
 from app.api.analytics import router as analytics_router
 from app.api.contact import router as contact_router
 from app.api.court_cases import router as court_cases_router
-from app.api.files import router as files_router
+from app.api.files import link_router as files_link_router, router as files_router
 from app.api.investor_profile import router as investor_profile_router
 from app.api.properties import router as properties_router
 from app.api.liens import jobs_router as lien_jobs_router
@@ -60,6 +60,7 @@ app.include_router(lien_jobs_router, dependencies=[Depends(require_developer)])
 app.include_router(pa_data_router, dependencies=[Depends(require_developer)])
 # Private PDF storage; a file uploader's routes are scoped to their own files.
 app.include_router(files_router, dependencies=[Depends(require_file_access)])
+app.include_router(files_link_router)
 # The warehouse is a self-hosted database a hosted API cannot reach; production
 # sets ENABLE_WAREHOUSE_API=0 instead of letting these routes fall back to Supabase.
 if os.getenv("ENABLE_WAREHOUSE_API", "1") != "0":

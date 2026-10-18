@@ -53,7 +53,6 @@ def test_file_routes_are_for_developers_and_file_uploaders_only():
         assert client.patch("/api/v1/files/x", json={"folder_id": None}).status_code == 403
         assert client.get("/api/v1/files/download-all").status_code == 403
         assert client.post("/api/v1/files/download-all/link").status_code == 403
-        assert client.get("/api/v1/files/download-all/zip?token=x.y").status_code == 403
     finally:
         app.dependency_overrides.clear()
 
@@ -73,6 +72,11 @@ def test_download_all_zips_every_file_and_keeps_both_of_two_same_names():
     assert archive.namelist() == ["a.pdf", "A (2).pdf", "b.pdf"]
     assert archive.read("A (2).pdf") == PDF + b"2" and archive.testzip() is None
     assert unique_name("notes", {"notes"}) == "notes (2)"
+
+
+def test_a_download_link_needs_no_sign_in_but_a_valid_signature():
+    response = TestClient(app).get("/api/v1/files/download-all/zip?token=x.y")
+    assert response.status_code == 403 and "not valid" in response.json()["detail"]
 
 
 def test_download_links_carry_the_users_scope_and_expire():
