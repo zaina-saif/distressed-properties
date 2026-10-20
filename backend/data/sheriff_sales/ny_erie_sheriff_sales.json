@@ -28,11 +28,11 @@
     "sheriff_number": "ERIE-1920D7EC47A8",
     "address": "206 Locust Street, Buffalo, NY 14204",
     "sale_date": "2026-10-06T00:00:00",
-    "status": "scheduled",
+    "status": "cancelled",
     "upset_price": null,
     "source_url": "https://www4.erie.gov/sheriff/sites/www4.erie.gov.sheriff/files/2026-07/471147-ballard.pdf",
     "raw_payload": {
-      "listing_text": "October 6, 2026 - Sale of 206 Locust Street, Buffalo, NY 14204",
+      "listing_text": "October 6, 2026 - Sale of 206 Locust Street, Buffalo, NY 14204 - Cancelled",
       "identifier_is_synthetic": true,
       "official_listing_url": "https://www4.erie.gov/sheriff/scheduled-sheriffs-sales"
     },
