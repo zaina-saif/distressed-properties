@@ -1,5 +1,6 @@
 /** States with sale listings in the dashboard, with the map view used when none is mapped. */
-export const STATES: { code: string; name: string; view: [number, number, number] }[] = [
+/** taxOnly: every listing is a tax sale, so the dashboard opens the state on "Tax sales". */
+export const STATES: { code: string; name: string; view: [number, number, number]; taxOnly?: boolean }[] = [
   { code: "NJ", name: "New Jersey", view: [40.1, -74.6, 8] },
   { code: "NY", name: "New York", view: [40.72, -73.92, 10] },
   { code: "PA", name: "Pennsylvania", view: [40.9, -77.6, 7] },
@@ -23,8 +24,12 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "OK", name: "Oklahoma", view: [35.5, -97.5, 10] },
   { code: "WI", name: "Wisconsin", view: [43.07, -89.4, 10] },
   { code: "SD", name: "South Dakota", view: [43.55, -96.73, 11] },
-  { code: "CA", name: "California", view: [37.3, -120.5, 6] },
+  { code: "CA", name: "California", view: [37.3, -120.5, 6], taxOnly: true },
 ];
+
+export function isTaxOnlyState(code: string): boolean {
+  return STATES.some((item) => item.code === code && item.taxOnly);
+}
 
 /** "Tue, Oct 13, 2026" for a YYYY-MM-DD sale date (dates are calendar days, not times). */
 export function formatSaleDate(value: string): string {

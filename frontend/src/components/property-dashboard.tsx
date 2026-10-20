@@ -37,7 +37,7 @@ import { SaleAnalyticsView } from "@/components/sale-analytics";
 import { filterChips, SearchFiltersButton, withoutFilters } from "@/components/search-filters";
 import { StateGuidePanel } from "@/components/state-guide-panel";
 import { getProfile } from "@/lib/profile";
-import { formatSaleDate, STATES } from "@/lib/states";
+import { formatSaleDate, isTaxOnlyState, STATES } from "@/lib/states";
 
 const ALL_STATES = "ALL";
 const ALL_STATES_INFO = { code: ALL_STATES, name: "All states", view: [39.5, -96, 4] as [number, number, number] };
@@ -121,7 +121,16 @@ export default function PropertyDashboard({
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   // The Filters panel: price, value, beds, baths, home type, size, year, sale dates, probability.
-  const [searchFilters, setSearchFilters] = useState<SearchFilterValues>({});
+  // A state whose listings are all tax sales (California) opens on "Tax sales" rather than an empty list.
+  const [searchFilters, setSearchFilters] = useState<SearchFilterValues>(isTaxOnlyState(selectedState) ? { saleKind: "tax" } : {});
+  const selectState = useCallback((state: string) => {
+    setSearchFilters((filters) => {
+      if (isTaxOnlyState(state) && !filters.saleKind) return { ...filters, saleKind: "tax" };
+      if (isTaxOnlyState(selectedState) && !isTaxOnlyState(state) && filters.saleKind === "tax") return withoutFilters(filters, ["saleKind"]);
+      return filters;
+    });
+    setSelectedState(state);
+  }, [selectedState]);
   const [sort, setSort] = useState("gross-equity");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -253,11 +262,11 @@ export default function PropertyDashboard({
     // From "All states", a county on the map opens its state.
     if (state !== selectedState) {
       if (selectedState !== ALL_STATES || !allowedStates.some((item) => item.code === state)) return;
-      setSelectedState(state);
+      selectState(state);
     }
     setSelectedCounty(county);
     setPage(1);
-  }, [allowedStates, lockedCounty, selectedState]);
+  }, [allowedStates, lockedCounty, selectState, selectedState]);
 
   function submitSearch(event: FormEvent) {
     event.preventDefault();
@@ -271,7 +280,7 @@ export default function PropertyDashboard({
     setSelectedCounty(lockedCounty ?? "");
     setSearchInput("");
     setSearchQuery("");
-    setSearchFilters({});
+    setSearchFilters(isTaxOnlyState(selectedState) ? { saleKind: "tax" } : {});
     setSort("gross-equity");
     setSortDirection("desc");
     setPage(1);
@@ -371,7 +380,7 @@ export default function PropertyDashboard({
             <select
               aria-label="State"
               value={selectedState}
-              onChange={(event) => { setSelectedState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
+              onChange={(event) => { selectState(event.target.value); setSelectedCounty(""); setFocusedProperty(null); setPage(1); }}
               className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-1.5 py-2 text-base outline-none focus:border-teal-500 sm:w-32 sm:flex-none sm:py-1 sm:text-xs"
             >
               {canShowAll && <option value={ALL_STATES}>All states</option>}
