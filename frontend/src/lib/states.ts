@@ -25,6 +25,9 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "WI", name: "Wisconsin", view: [43.07, -89.4, 10] },
   { code: "SD", name: "South Dakota", view: [43.55, -96.73, 11] },
   { code: "CA", name: "California", view: [37.3, -120.5, 6], taxOnly: true },
+  { code: "AK", name: "Alaska", view: [61.2, -149.9, 10] },
+  { code: "AZ", name: "Arizona", view: [33.5, -112.1, 9] },
+  { code: "UT", name: "Utah", view: [40.2, -111.65, 10] },
 ];
 
 export function isTaxOnlyState(code: string): boolean {
