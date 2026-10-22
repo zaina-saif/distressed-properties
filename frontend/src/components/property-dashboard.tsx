@@ -55,7 +55,8 @@ function wholeDollars(value: number | null | undefined): string {
 }
 
 export default function PropertyDashboard({
-  initialState = "NJ",
+  // "All states" for plans that cover several states; a one-state plan opens on its state.
+  initialState = "ALL",
   initialCounty = "",
   initialQuery = "",
   initialSpotlight = false,

@@ -25,7 +25,7 @@ export default async function DashboardPage({
     <PropertyDashboard
       // Remount when the link changes so the filters start from the URL.
       key={`${first(params.state)}|${first(params.county)}|${first(params.q)}|${first(params.spotlight)}|${first(params.view)}`}
-      initialState={first(params.state) || "NJ"}
+      initialState={first(params.state) || "ALL"}
       initialCounty={first(params.county)}
       initialQuery={first(params.q)}
       initialSpotlight={first(params.spotlight) === "1"}
