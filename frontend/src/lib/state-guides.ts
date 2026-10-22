@@ -155,10 +155,10 @@ export const STATE_GUIDES: StateGuide[] = [
   },
   {
     code: "GA", name: "Georgia", who: "County sheriff or tax commissioner",
-    bid: "Listed here are the county tax sales of Fulton (the Sheriff's tax / levy sale) and Cobb (the Tax Commissioner's sale), held at the courthouse on the first Tuesday of the month; each county posts its list a few weeks before and removes parcels as owners pay. Georgia mortgage foreclosures are private sales advertised only in the county newspaper and are not listed.",
+    bid: "Listed here are the county tax sales of Fulton (the Sheriff's tax / levy sale), Cobb and DeKalb (the Tax Commissioners' sales), held at the courthouse on the first Tuesday of the month; each county posts its list a few weeks before and removes parcels as owners pay. Georgia mortgage foreclosures are private sales advertised only in the county newspaper and are not listed.",
     deposit: "Payment is due on the day of the sale in certified funds (Fulton: cashier's or certified check by 3:00 p.m.); Cobb asks bidders to pre-register. Check the county's terms of sale.",
     after: "The buyer receives a tax deed, but the owner can redeem, usually within 12 months, by paying the price plus a premium. Possession comes only after the right of redemption is foreclosed.",
-    extra: ["Starting bids cover the taxes, penalties and costs; Fulton's list does not publish them."],
+    extra: ["Starting bids cover the taxes, penalties and costs; Fulton's list does not publish them, and DeKalb's shows the total tax due."],
   },
   {
     code: "NV", name: "Nevada", who: "County treasurer",

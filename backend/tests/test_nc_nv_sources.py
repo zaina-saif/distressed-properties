@@ -114,3 +114,17 @@ def test_georgia_rows_are_rebuilt_by_height_without_the_owner():
     assert [row["parcel_printed"] for row in rows] == ["16-0011-0-155-0", "16-0011-0-157-0"]
     assert rows[0]["street"] == "727 FARMDALE WAY" and rows[0]["starting_bid"] == "4,015.06 Residential"
     assert "MITTLEIDER" not in str(rows) and rows[1]["street"] == "723 FARMDALE wAY"
+
+
+def test_dekalb_rows_skip_owner_tenant_and_defendant():
+    from pipeline.scrape_ga_dekalb_tax_sales import parcel_from, rows
+
+    cells = ["03-NOV-2026", "12 253 02 012", "12 253 02 012", "26-R30266532-NOV", "OWNER NAME", "4804 FLAKES MILL RD",
+             "TENANT NAME", "DEFENDANT NAME", "DEK", "2919", "0357", "11-SEP-26", " 2025", " 2025", "$7,210.66"]
+    page = "<table><tr><td>Tax Sale Date</td></tr><tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr></table>"
+    listed = rows(page)
+    assert len(listed) == 1 and "NAME" not in str(listed)
+    place = {"street": "4804 Flakes Mill Road", "city": "Ellenwood", "zip_code": "30294", "latitude": 33.6, "longitude": -84.2}
+    parcel = parcel_from(listed[0], place)
+    assert parcel["sale_date"] == "2026-11-03" and parcel["starting_bid"] == 7210.66 and parcel["city"] == "Ellenwood"
+    assert parcel_from(listed[0], None)["matched_by"] is None

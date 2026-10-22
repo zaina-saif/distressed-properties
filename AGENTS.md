@@ -184,7 +184,7 @@ python -m pipeline.scrape_ca_tax_sales --state NV && python -m pipeline.load_ca_
 - Both loaders treat each county's rows as complete and retire open sales that drop off, including in counties left with none. North Carolina sales stay open ten days for upset bids (5%, minimum $750); the notice details and dashboard notes say so.
 - **Nevada:** county treasurers' tax sales on Bid4Assets (`nv_bid4assets_tax_sale`, the CA collector with `--state NV`; non-tax storefronts such as Douglas County's public works sale are skipped). Nevada mortgage foreclosures are private trustee sales with no public list; Clark County's yearly treasurer trustee auction is collected by `pipeline.scrape_nv_clark_tax_auction` / `load_nv_clark_tax_auction` (`nv_clark_treasurer_tax_sale`): the Treasurer's auction page's `Event_Read` and `Parcel_Read` JSON (owner names dropped), with city, ZIP and position from the county parcel layer `CC_PARCELS_SHP` (only `PARCEL,STRCITY,ZIPMAIN` and the centroid are requested). After the auction a winning bid is `sold`, a struck parcel without one `cancelled`, and the rest `unsold`. Add NV to `SUPPORTED_STATES` and `frontend/src/lib/states.ts` once it has listings.
 
-### Georgia county tax sales (Fulton, Cobb)
+### Georgia county tax sales (Fulton, Cobb, DeKalb)
 
 Georgia counties sell tax-delinquent property at the courthouse on the first Tuesday of the month; the buyer gets a redeemable tax deed (sale type "Tax sale (redeemable deed)", the Tax sales filter; `source_system='ga_county_tax_sale'`). Georgia mortgage foreclosures are advertised only in county newspapers and are not collected. The lists are scanned PDFs, so the collector runs on the operator's Mac each month once the next lists are posted (a few weeks before the sale):
 
@@ -197,6 +197,7 @@ python -m pipeline.load_ga_tax_sales [--dry-run]
 - `pipeline/ocr_pdf_macos_boxes.swift` prints each OCR line with its position; rows are rebuilt from lines at the same height, pieces joined left to right.
 - Each parcel ID is looked up in the county's parcel layer (Fulton `gismaps.fultoncountyga.gov` Tax_Parcels, Cobb `gis.cobbcounty.org` Parcels; only ID, situs address and shape are requested), which gives the official address and position; the Census geocoder gives city and ZIP. An ID whose parcel has a different house number than the listed address is an OCR slip: the row is then matched by its address, only when exactly one parcel has it, and keeps the layer's ID. Unmatched rows are reported, not loaded.
 - A county whose collection fails (for example its GIS is down: an unreachable robots.txt counts as disallowed) keeps its previous rows.
+- **DeKalb** needs no OCR and runs in the Monday multistate refresh: `python -m pipeline.scrape_ga_dekalb_tax_sales && python -m pipeline.load_ga_tax_sales --input data/sheriff_sales/ga_dekalb_tax_sales.json`. The Tax Commissioner's listing (`publicaccess.dekalbtaxga.gov/content/search/tax_sale_listing.html`, an HTML table) gives sale date, parcel ID, tax sale ID, address, levy and total tax due (the minimum-bid proxy); its owner, tenant and defendant columns are never read. City, ZIP and position come from the county's HansenParcels layer (`dcgis.dekalbcountyga.gov`, only ID, site address fields and shape requested).
 
 ### STOX trustee sales (CA, AZ, AK, OR, UT)
 

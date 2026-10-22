@@ -80,6 +80,8 @@ SOURCES = [
      ["pipeline.load_ca_tax_sales", "--state", "NV"]),
     ("NV Clark County treasurer tax auction", ["pipeline.scrape_nv_clark_tax_auction"],
      ["pipeline.load_nv_clark_tax_auction"]),
+    ("GA DeKalb County tax sales", ["pipeline.scrape_ga_dekalb_tax_sales"],
+     ["pipeline.load_ga_tax_sales", "--input", "data/sheriff_sales/ga_dekalb_tax_sales.json"]),
     ("NC foreclosure sales (Hutchens Law Firm)", ["pipeline.scrape_nc_hutchens_sales"], ["pipeline.load_nc_hutchens_sales"]),
     ("NC tax foreclosure sales (Zacchaeus Legal Services)", ["pipeline.scrape_nc_zls_tax_foreclosures"],
      ["pipeline.load_nc_zls_tax_foreclosures"]),

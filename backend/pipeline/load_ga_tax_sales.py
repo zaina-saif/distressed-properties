@@ -21,17 +21,25 @@ from pipeline.sale_listing_loader import Sale, load_sales, usable_address
 from pipeline.scrape_ga_tax_sales import COUNTIES, OUTPUT
 
 SOURCE_SYSTEM = "ga_county_tax_sale"
-SELLERS = {"Fulton": "the Fulton County Sheriff's Office (tax / levy sale)", "Cobb": "the Cobb County Tax Commissioner"}
+SELLERS = {"Fulton": "the Fulton County Sheriff's Office (tax / levy sale)", "Cobb": "the Cobb County Tax Commissioner",
+           "DeKalb": "the DeKalb County Tax Commissioner"}
+# The county pages listing each sale (DeKalb's snapshot comes from scrape_ga_dekalb_tax_sales).
+SOURCE_URLS = {**{name: county.page for name, county in COUNTIES.items()},
+               "DeKalb": "https://dekalbtaxga.gov/property-tax/tax-sales/"}
 
 
 def details(parcel: dict) -> str:
     lines = [f"Georgia tax sale held by {SELLERS[parcel['county']]} at the courthouse on"
              f" {date.fromisoformat(parcel['sale_date']):%B %-d, %Y} (the first Tuesday of the month).",
              "The list changes until the sale: parcels whose taxes are paid are removed."]
-    if parcel.get("starting_bid"):
+    if parcel.get("starting_bid") and parcel["county"] == "DeKalb":
+        lines.append(f"Total tax due: ${parcel['starting_bid']:,.2f} (tax years {parcel['tax_years']}); bidding starts at"
+                     " the taxes and costs owed.")
+    elif parcel.get("starting_bid"):
         lines.append(f"Starting bid: ${parcel['starting_bid']:,.2f} (taxes, penalties and costs; the payoff may vary).")
     if parcel.get("sale_number"):
-        lines.append(f"Sheriff's sale number {parcel['sale_number']}.")
+        label = "Tax sale ID" if parcel["county"] == "DeKalb" else "Sheriff's sale number"
+        lines.append(f"{label} {parcel['sale_number']}.")
     lines.append("The buyer receives a tax deed the owner can redeem, usually within 12 months, by paying the price"
                  " plus a premium; the buyer cannot take possession until the redemption right is foreclosed.")
     lines.append(f"Parcel {parcel['parcel']}. Address and map position from the county's parcel map; list: {parcel['list_url']}")
@@ -67,7 +75,7 @@ def main(argv=None) -> int:
         if county in snapshot.get("failed", []):
             print(f"GA {county}: scrape failed, left as it was")
             continue
-        source_url = COUNTIES[county].page
+        source_url = SOURCE_URLS[county]
         result = load_sales("GA", county, SOURCE_SYSTEM, source_url, [sale for _, sale in pairs],
                             job=f"ga_{county.lower()}_tax_sale")
         with engine.begin() as connection:
