@@ -29,7 +29,7 @@ from sqlalchemy import text
 
 from app.api.alerts import unsubscribe_url
 from app.api.properties import EFFECTIVE_STATUS_SQL, MINIMUM_BID_SQL
-from app.auth import Access
+from app.auth import SUPPORTED_STATES, Access
 from app.database.session import engine
 
 SITE_URL = os.getenv("SITE_URL", "https://www.sheriffsalehunter.ai").rstrip("/")
@@ -61,10 +61,10 @@ def criteria(profile: dict) -> tuple[str, dict]:
                     plan_status=profile["plan_status"], coverage_state=profile["coverage_state"],
                     coverage_county=profile["coverage_county"], trial_ends_at=profile.get("trial_ends_at"))
     conditions = [f"strpos({EFFECTIVE_STATUS_SQL}, 'scheduled') > 0", "ss.current_sale_date >= CURRENT_DATE",
-                  "ss.property_id IS NOT NULL",
+                  "ss.property_id IS NOT NULL", "p.state = ANY(:supported_states)",
                   "NOT EXISTS (SELECT 1 FROM opportunity_alert_items i WHERE i.user_id = CAST(:user_id AS UUID) "
                   "AND i.sheriff_sale_id = ss.id)"]
-    params: dict = {"user_id": profile["user_id"]}
+    params: dict = {"user_id": profile["user_id"], "supported_states": sorted(SUPPORTED_STATES)}
     # Plan coverage always applies; the profile's states narrow it further.
     if access.scope_state:
         conditions.append("p.state = :scope_state")

@@ -1,10 +1,10 @@
 """Multi-state Sale Refresh: the recurring refresh for every state outside NJ.
 
 Stages, in order:
-  scrape   Each source's scraper (RealAuction OH/FL, CivilView DE/PA/IL/TX/GA,
-           PA county portals, SC Master-in-Equity, Illinois TJSC, NY Erie
-           sheriff and NYC tax-lien referee sales). A source that fails is
-           reported; the others still run.
+  scrape   Each source's scraper (RealAuction OH/FL/TX, CivilView PA/IL/TX/AZ/GA,
+           PA county portals, Illinois TJSC, TX trustee notices, CA tax sales,
+           NY Erie sheriff and NYC tax-lien referee sales), phase 1 states only.
+           A source that fails is reported; the others still run.
   load     Load whatever snapshots were written. A county whose scrape failed
            has no new snapshot, so its open sales are left untouched. NY court
            referee auctions are loaded by hand (the court sites block scripts)
@@ -44,8 +44,14 @@ from typing import Any
 from sqlalchemy import text
 
 from app.database.session import engine
+from pipeline.scrape_civilview_states import COUNTIES as CIVILVIEW_COUNTIES
 
-STATES = ("OH", "FL", "IN", "PA", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD", "NY", "CA")
+# Phase 1 states outside NJ (October 2026; see SUPPORTED_STATES in app/auth.py). Indiana,
+# Colorado, South Carolina, Connecticut and the county-list states (KY, OK, SD, WI) are no
+# longer refreshed or sent to Zillow; their listings stay in the database, hidden. GA is
+# collected (CivilView Coweta) so it can be shown once it has listings.
+STATES = ("OH", "FL", "PA", "IL", "TX", "NY", "CA", "AZ", "GA")
+CIVILVIEW = [f"{state}:{county}" for state, county in sorted(CIVILVIEW_COUNTIES) if state in STATES]
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
@@ -55,23 +61,14 @@ SOURCES = [
      ["pipeline.load_realauction_sales", "--state", "OH", "--all"]),
     ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--all", "--lookback-days", "14"],
      ["pipeline.load_realauction_sales", "--state", "FL", "--all"]),
-    ("Colorado RealAuction", ["pipeline.scrape_realauction", "--state", "CO", "--all"],
-     ["pipeline.load_realauction_sales", "--state", "CO", "--all"]),
-    ("Indiana SRI sheriff sales", ["pipeline.scrape_sri", "--all", "--lookback-days", "14"],
-     ["pipeline.load_sri_sales", "--all"]),
     ("Texas RealAuction tax sales", ["pipeline.scrape_realauction", "--state", "TX", "--all"],
      ["pipeline.load_realauction_sales", "--state", "TX", "--all"]),
-    ("CivilView (DE, PA, IL, CO, MN, LA, IA, WA, KS, ID, OR, AZ, AR, TX, GA)", ["pipeline.scrape_civilview_states", "--all"],
-     ["pipeline.load_civilview_states", "--all"]),
+    ("CivilView (PA, IL, TX, AZ, GA)", ["pipeline.scrape_civilview_states", "--counties", *CIVILVIEW],
+     ["pipeline.load_civilview_states", "--counties", *CIVILVIEW]),
     # Monroe's Bid4Assets page answers Access Denied, so it is left out.
     ("PA county portals", ["pipeline.scrape_pa_sale_listing", "--counties", *PA_PORTAL_COUNTIES],
      ["pipeline.load_pa_sales", "--counties", *PA_PORTAL_COUNTIES]),
-    ("SC Master-in-Equity", ["pipeline.scrape_sc_master_in_equity", "--all"],
-     ["pipeline.load_sc_master_in_equity", "--all"]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
-    ("Connecticut court sales", ["pipeline.scrape_ct_foreclosure_sales"], ["pipeline.load_ct_foreclosure_sales"]),
-    ("County sale lists (KY Jefferson, OK Oklahoma/Tulsa, SD Minnehaha, WI Dane/Milwaukee)", ["pipeline.scrape_county_sale_lists", "--all"],
-     ["pipeline.load_county_sale_lists", "--all"]),
     ("TX Bexar trustee-sale notices", ["pipeline.scrape_bexar_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),
     ("TX Collin trustee-sale notices", ["pipeline.scrape_collin_trustee_notices"],

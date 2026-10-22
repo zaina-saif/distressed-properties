@@ -33,6 +33,11 @@ from app.database.session import engine
 ACTIVE_STATUSES = {"active", "trialing"}
 logger = logging.getLogger(__name__)
 
+# Phase 1 coverage (October 2026): the only states the API serves, for every user.
+# Listings from other states stay in the database, hidden. GA, NC and NV are in
+# phase 1 but join this set once they have listings; keep frontend/src/lib/states.ts in step.
+SUPPORTED_STATES = frozenset({"NJ", "NY", "PA", "OH", "FL", "IL", "TX", "CA", "AZ"})
+
 
 @dataclass(frozen=True)
 class Access:
@@ -89,6 +94,8 @@ class Access:
         return self.coverage_county if self.plan == "free" and not self.is_developer else None
 
     def covers(self, state: str | None, county: str | None) -> bool:
+        if (state or "").upper() not in SUPPORTED_STATES:
+            return False
         if self.scope_state and (state or "").upper() != self.scope_state:
             return False
         if self.scope_county and (county or "").lower() != self.scope_county.lower():
@@ -220,6 +227,5 @@ def property_scope(property_id: str) -> tuple[str | None, str | None]:
 
 def require_property_access(property_id: str, access: Access = Depends(require_access)) -> Access:
     """For routes with a {property_id}: the property must be inside the user's coverage."""
-    if access.scope_state:
-        assert_covers(access, *property_scope(property_id))
+    assert_covers(access, *property_scope(property_id))
     return access

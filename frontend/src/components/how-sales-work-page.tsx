@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { SiteFooter, SiteHeader } from "@/components/marketing-chrome";
 import { STATE_GUIDES } from "@/lib/state-guides";
+import { STATES } from "@/lib/states";
 
 import styles from "./marketing-home.module.css";
 
@@ -10,7 +11,7 @@ const STEPS = [
   {
     icon: FileText,
     title: "The borrower defaults and the lender forecloses",
-    text: "After missed payments, the lender (or a taxing authority, for unpaid property taxes) starts a foreclosure. In judicial states such as New Jersey, New York, Ohio and Florida this is a court case; in others, such as Colorado and Minnesota, the lender can foreclose without a lawsuit by following a notice process.",
+    text: "After missed payments, the lender (or a taxing authority, for unpaid property taxes) starts a foreclosure. In judicial states such as New Jersey, New York, Ohio and Florida this is a court case; in others, such as California, Arizona and Texas, the lender can foreclose without a lawsuit by following a notice process.",
   },
   {
     icon: Scale,
@@ -55,9 +56,9 @@ const STEPS = [
 ];
 
 const SELLERS = [
-  { icon: Gavel, title: "Sheriff", text: "Most states: the county sheriff auctions property under a court judgment (NJ, OH, PA, IN, WI, OK, SD and others)." },
-  { icon: Scale, title: "Referee, commissioner or master", text: "Court-appointed officers: a referee in New York, the master commissioner in Kentucky, the master-in-equity in South Carolina, a committee in Connecticut." },
-  { icon: Landmark, title: "Clerk or public trustee", text: "Florida's clerks of court run online foreclosure auctions; in Colorado the county public trustee conducts non-judicial foreclosure sales." },
+  { icon: Gavel, title: "Sheriff", text: "Most states: the county sheriff auctions property under a court judgment (NJ, OH, PA, IL and others)." },
+  { icon: Scale, title: "Court-appointed referee", text: "Court-appointed officers: in New York, a referee appointed by the court conducts the foreclosure auction." },
+  { icon: Landmark, title: "Clerk or trustee", text: "Florida's clerks of court run online foreclosure auctions; in California, Arizona and Texas a trustee conducts non-judicial foreclosure sales." },
 ];
 
 /** How a sheriff or foreclosure sale works, step by step, with state-specific notes. */
@@ -103,7 +104,7 @@ export function HowSalesWorkPage() {
       <section id="state-notes" className="value-section container why-section">
         <span className="eyebrow">SPECIAL INSTRUCTIONS BY STATE</span>
         <div className="section-heading"><h2>State and county rules<br/>to know before you bid.</h2><p>Drawn from the selling offices&apos; published terms. Terms change and vary by county, so always read the notice of sale for the property you want.</p></div>
-        <div className="state-notes">{STATE_GUIDES.map((guide) => <article key={guide.code} id={`state-${guide.code}`} className="state-note">
+        <div className="state-notes">{STATE_GUIDES.filter((guide) => STATES.some((state) => state.code === guide.code)).map((guide) => <article key={guide.code} id={`state-${guide.code}`} className="state-note">
           <h3>{guide.name}</h3><span className="state-note-who">{guide.who}</span>
           <ul>{[guide.bid, guide.deposit, guide.after, ...(guide.extra ?? [])].map((note) => <li key={note}>{note}</li>)}</ul>
         </article>)}</div>

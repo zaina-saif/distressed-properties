@@ -96,6 +96,13 @@ def test_plan_rules():
     assert developer.has_plan and developer.scope_state is None and developer.is_developer
 
 
+def test_states_outside_phase_one_are_hidden_from_everyone():
+    for access in (Access("u", "e", plan="pro", plan_status="active"), Access("u", "e", role="developer"),
+                   Access("u", "e", plan="starter", plan_status="active", coverage_state="IN")):
+        assert not access.covers("IN", "Marion") and not access.covers(None, None)
+    assert Access("u", "e", plan="pro", plan_status="active").covers("az", "Maricopa")
+
+
 def test_trial_covers_every_state_until_it_ends():
     now = datetime.now(timezone.utc)
     trial = Access("u", "e", plan="trial", plan_status="active", trial_ends_at=now + timedelta(days=3))
@@ -131,13 +138,20 @@ def test_data_routes_need_sign_in(client):
         assert client.get(path).status_code == 401, path
 
 
+def test_hidden_state_property_is_refused(client, monkeypatch):
+    monkeypatch.setattr(auth, "property_scope", lambda property_id: ("IN", "Marion"))
+    signed_in_as(Access("u", "e", role="developer"))
+    assert client.get("/api/v1/properties/abc/liens").status_code == 403
+
+
 def test_data_routes_need_a_plan(client):
     signed_in_as(Access("u", "e"))
     assert client.get("/api/v1/properties").status_code == 402
     assert client.get("/api/v1/properties/abc/liens").status_code == 402
 
 
-def test_developer_routes_refuse_subscribers(client):
+def test_developer_routes_refuse_subscribers(client, monkeypatch):
+    monkeypatch.setattr(auth, "property_scope", lambda property_id: ("NJ", "Monmouth"))
     signed_in_as(Access("u", "e", plan="pro", plan_status="active"))
     assert client.get("/api/v1/pa/imports/status").status_code == 403
     assert client.get("/api/v1/lien-jobs/abc").status_code == 403

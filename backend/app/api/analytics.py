@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import text
 
 from app.api.properties import MINIMUM_BID_SQL, SearchFilters, search_filters
-from app.auth import Access, require_access
+from app.auth import SUPPORTED_STATES, Access, require_access
 from app.database.session import engine
 from app.rate_limit import per_user
 
@@ -45,8 +45,8 @@ def sale_analytics(
     filters: SearchFilters = Depends(search_filters),
     access: Access = Depends(require_access),
 ):
-    conditions = ["outcome_date <= CURRENT_DATE"]
-    parameters: dict[str, Any] = {}
+    conditions = ["outcome_date <= CURRENT_DATE", "state = ANY(:supported_states)"]
+    parameters: dict[str, Any] = {"supported_states": sorted(SUPPORTED_STATES)}
     # The plan's coverage always applies, on top of any filters in the request.
     if access.scope_state:
         conditions.append("state = :scope_state")

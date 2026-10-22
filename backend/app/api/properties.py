@@ -13,7 +13,7 @@ from openpyxl import Workbook
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import Access, require_access, require_developer, require_property_access
+from app.auth import SUPPORTED_STATES, Access, require_access, require_developer, require_property_access
 from app.rate_limit import per_user
 from app.database.session import engine
 
@@ -310,8 +310,8 @@ def _property_filters(
     """WHERE conditions and parameters shared by the property list and its map points.
 
     They expect the list query's aliases: ss, p, azr (Zillow), ra (risk) and sp (probability)."""
-    conditions = ["ss.property_id IS NOT NULL"]
-    parameters: dict = {}
+    conditions = ["ss.property_id IS NOT NULL", "p.state = ANY(:supported_states)"]
+    parameters: dict = {"supported_states": sorted(SUPPORTED_STATES)}
 
     # The plan's coverage always applies, on top of any filters in the request.
     if access.scope_state:
@@ -1132,7 +1132,7 @@ def list_property_coverage(status_contains: Optional[str] = Query(default=None, 
         FROM sheriff_sales AS ss
         JOIN properties AS p
             ON p.id = ss.property_id
-        WHERE ss.property_id IS NOT NULL
+        WHERE ss.property_id IS NOT NULL AND p.state = ANY(:supported_states)
         {status_filter}
         GROUP BY p.state, p.county
         ORDER BY p.state, p.county
@@ -1143,7 +1143,8 @@ def list_property_coverage(status_contains: Optional[str] = Query(default=None, 
         items = [
             dict(row)
             for row in connection.execute(
-                query, {"status_contains": (status_contains or "").strip().lower()},
+                query, {"status_contains": (status_contains or "").strip().lower(),
+                        "supported_states": sorted(SUPPORTED_STATES)},
             ).mappings()
         ]
 
@@ -1155,7 +1156,7 @@ def landing_summary(state: str = "NJ"):
     """Headline numbers for the landing page: upcoming scheduled sales, what
     is new this week, and the equity sitting behind the debt."""
     upcoming = (
-        "ss.property_id IS NOT NULL AND ss.state = :state "
+        "ss.property_id IS NOT NULL AND ss.state = :state AND ss.state = ANY(:supported_states) "
         "AND strpos(lower(ss.current_status), 'scheduled') > 0 "
         "AND ss.current_sale_date >= CURRENT_DATE"
     )
@@ -1180,7 +1181,7 @@ def landing_summary(state: str = "NJ"):
             FROM sheriff_sales AS ss
             {zestimate_join}
             WHERE {upcoming}
-        """), {"state": state.upper()}).mappings().one()
+        """), {"state": state.upper(), "supported_states": sorted(SUPPORTED_STATES)}).mappings().one()
         counties = connection.execute(text(f"""
             SELECT ss.county, COUNT(*) AS upcoming_sales,
                    SUM({equity}) FILTER (WHERE {equity} > 0) AS equity_behind_debt
@@ -1189,7 +1190,7 @@ def landing_summary(state: str = "NJ"):
             WHERE {upcoming}
             GROUP BY ss.county
             ORDER BY COUNT(*) DESC, ss.county
-        """), {"state": state.upper()}).mappings().all()
+        """), {"state": state.upper(), "supported_states": sorted(SUPPORTED_STATES)}).mappings().all()
     return {
         "state": state.upper(),
         "upcoming_sales": totals["upcoming_sales"],
@@ -1227,9 +1228,10 @@ def state_summary():
                 ORDER BY retrieved_at DESC, id DESC LIMIT 1
             ) AS azr ON TRUE
             WHERE ss.property_id IS NOT NULL AND strpos({EFFECTIVE_STATUS_SQL}, 'scheduled') > 0
+              AND ss.state = ANY(:supported_states)
             GROUP BY ss.state
             ORDER BY COUNT(*) DESC
-        """)).mappings().all()
+        """), {"supported_states": sorted(SUPPORTED_STATES)}).mappings().all()
     return {"states": [
         {"state": row["state"], "scheduled_sales": row["scheduled_sales"], "counties": row["counties"],
          "sales_with_equity": row["sales_with_equity"], "gross_equity": float(row["gross_equity"] or 0),

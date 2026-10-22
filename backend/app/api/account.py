@@ -19,13 +19,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import Access, current_user
+from app.auth import SUPPORTED_STATES, Access, current_user
 from app.database.session import engine
 
 router = APIRouter(prefix="/api/v1", tags=["account"])
 
-# States with sale listings; plan coverage must be one of these.
-SUPPORTED_STATES = {"NJ", "NY", "PA", "OH", "FL", "IN", "IL", "SC", "DE", "CO", "MN", "LA", "IA", "WA", "KS", "ID", "OR", "AZ", "AR", "CT", "TX", "KY", "OK", "WI", "SD", "CA"}
 COVERAGE_CHANGE_DAYS = 30
 TRIAL_DAYS = 7
 # Stripe subscription status -> plan_status.

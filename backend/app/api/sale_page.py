@@ -152,13 +152,12 @@ def _fetch(county_id: int, sheriff_number: str) -> dict[str, Any] | None:
 
 def require_sale_access(sheriff_sale_id: str, access: Access = Depends(require_access)) -> Access:
     """The sale must be inside the user's plan coverage."""
-    if access.scope_state:
-        with engine.connect() as connection:
-            sale = connection.execute(text("SELECT state, county FROM sheriff_sales WHERE id::text = :id"),
-                                      {"id": sheriff_sale_id}).first()
-        if sale is None:
-            raise HTTPException(status_code=404, detail="Sale not found")
-        assert_covers(access, sale[0], sale[1])
+    with engine.connect() as connection:
+        sale = connection.execute(text("SELECT state, county FROM sheriff_sales WHERE id::text = :id"),
+                                  {"id": sheriff_sale_id}).first()
+    if sale is None:
+        raise HTTPException(status_code=404, detail="Sale not found")
+    assert_covers(access, sale[0], sale[1])
     return access
 
 

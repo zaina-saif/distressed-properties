@@ -1,33 +1,17 @@
 /** States with sale listings in the dashboard, with the map view used when none is mapped. */
 /** taxOnly: every listing is a tax sale, so the dashboard opens the state on "Tax sales". */
+/** Phase 1 coverage (October 2026); must match SUPPORTED_STATES in backend/app/auth.py. GA, NC and NV
+ *  join once they have listings; other states' listings stay in the database, hidden. */
 export const STATES: { code: string; name: string; view: [number, number, number]; taxOnly?: boolean }[] = [
   { code: "NJ", name: "New Jersey", view: [40.1, -74.6, 8] },
   { code: "NY", name: "New York", view: [40.72, -73.92, 10] },
   { code: "PA", name: "Pennsylvania", view: [40.9, -77.6, 7] },
   { code: "OH", name: "Ohio", view: [40.3, -82.8, 7] },
   { code: "FL", name: "Florida", view: [27.8, -82.6, 6] },
-  { code: "IN", name: "Indiana", view: [39.9, -86.3, 7] },
   { code: "IL", name: "Illinois", view: [40.0, -89.2, 6] },
-  { code: "SC", name: "South Carolina", view: [33.8, -80.9, 7] },
-  { code: "DE", name: "Delaware", view: [39.1, -75.5, 8] },
-  { code: "CO", name: "Colorado", view: [39.0, -105.5, 7] },
-  { code: "MN", name: "Minnesota", view: [46.3, -94.3, 6] },
-  { code: "LA", name: "Louisiana", view: [30.9, -91.9, 7] },
-  { code: "IA", name: "Iowa", view: [42.0, -93.5, 7] },
-  { code: "WA", name: "Washington", view: [47.4, -120.5, 7] },
-  { code: "KS", name: "Kansas", view: [38.5, -98.3, 7] },
-  { code: "ID", name: "Idaho", view: [44.2, -114.6, 6] },
-  { code: "OR", name: "Oregon", view: [44.0, -120.6, 7] },
-  { code: "CT", name: "Connecticut", view: [41.6, -72.7, 8] },
   { code: "TX", name: "Texas", view: [31.0, -98.5, 6] },
-  { code: "KY", name: "Kentucky", view: [38.2, -85.7, 10] },
-  { code: "OK", name: "Oklahoma", view: [35.5, -97.5, 10] },
-  { code: "WI", name: "Wisconsin", view: [43.07, -89.4, 10] },
-  { code: "SD", name: "South Dakota", view: [43.55, -96.73, 11] },
   { code: "CA", name: "California", view: [37.3, -120.5, 6], taxOnly: true },
-  { code: "AK", name: "Alaska", view: [61.2, -149.9, 10] },
   { code: "AZ", name: "Arizona", view: [33.5, -112.1, 9] },
-  { code: "UT", name: "Utah", view: [40.2, -111.65, 10] },
 ];
 
 export function isTaxOnlyState(code: string): boolean {

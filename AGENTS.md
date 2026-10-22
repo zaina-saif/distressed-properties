@@ -6,6 +6,8 @@ Guidance for coding agents (Claude Code, Codex, and others) working in this repo
 
 A multi-state foreclosure/sheriff-sale data platform (started with Monmouth County, NJ). Python pipelines scrape sale listings and import public property records, a FastAPI API serves them, and a Next.js dashboard displays listings with valuations, equity, status history, lien pre-screening, and sale-probability explanations. `CODEX_CONTEXT.md` (core goals and parsing rules), `LIEN_CONTEXT.md` (lien engine spec), and `plan.md` (valuation coverage plan) hold the design intent; the code is the source of truth when they disagree.
 
+**Phase 1 coverage (October 2026):** to keep costs down, the product covers NJ, NY, PA, OH, FL, IL, TX, CA and AZ, plus GA, NC and NV once they have listings (GA is collected through CivilView Coweta; NC and NV have no collector yet). `SUPPORTED_STATES` in `backend/app/auth.py` is enforced on every data route, export, facet and alert email for every user, developers included; `frontend/src/lib/states.ts` must list the same states. Listings from other states (IN, CO, CT, DE, KY, OK, WI, SD, SC, MN, LA, IA, WA, KS, ID, OR, AK, UT, AR) stay in the database, hidden, and the multistate refresh no longer scrapes them or sends them to Zillow. To add a state, put it in both lists and its sources in `multistate_refresh.SOURCES`.
+
 ## Commands
 
 Backend (run from `backend/`, venv at `../.venv`):
@@ -40,8 +42,8 @@ Run everything from `backend/` with the venv active. The two refresh orchestrato
 python -m pipeline.nj_sale_refresh --run-dir /tmp/nj-refresh --max-zillow-addresses 400
 python -m pipeline.nj_sale_refresh --stages load link score report --skip-zillow   # rerun part of it
 
-# Every other state (RealAuction OH/FL/CO/TX, SRI Indiana, CivilView states, PA portals, SC, IL TJSC, CT, county lists KY/OK/WI, TX Bexar and Collin trustee notices, California county tax sales on Bid4Assets,
-# NY Erie sheriff and NYC tax-lien sales). NY court auctions (Queens, Manhattan) are loaded by hand; this run reports per county when
+# Every other phase 1 state (RealAuction OH/FL/TX, CivilView PA/IL/TX/AZ/GA, PA portals, IL TJSC, TX Bexar and Collin trustee notices, California county tax sales on Bid4Assets,
+# NY Erie sheriff and NYC tax-lien sales). The IN, CO, SC, CT and county-list (KY/OK/SD/WI) collectors still work but are no longer run. NY court auctions (Queens, Manhattan) are loaded by hand; this run reports per county when
 # their files were last loaded and the next auction, geocodes them, adds Zestimates
 # (a missed Queens house is searched once more without the hyphen and with the town), gives NYC listings still without
 # one the city's DOF market value (pipeline.load_nyc_dof_values) and marks their passed dates sold_or_cancelled_unverified.
