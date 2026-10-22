@@ -155,8 +155,8 @@ export const STATE_GUIDES: StateGuide[] = [
   },
   {
     code: "NV", name: "Nevada", who: "County treasurer",
-    bid: "Listed here are the counties' tax sales of property held in trust by the treasurer after three years of unpaid taxes, held online on Bid4Assets (Churchill, Douglas, Elko, Lander, Nye and others); each parcel's auction page has the opening and closing times. Mortgage foreclosures in Nevada are private trustee sales and are not listed.",
-    deposit: "Bid4Assets requires a deposit (set by each county) before the sale; the sale page gives the deadline.",
+    bid: "Listed here are the counties' tax sales of property held in trust by the treasurer after three years of unpaid taxes: Clark County's yearly in-person auction at the Government Center in Las Vegas, and online sales on Bid4Assets (Churchill, Douglas, Elko, Lander, Nye and others), where each parcel's auction page has the opening and closing times. Mortgage foreclosures in Nevada are private trustee sales and are not listed.",
+    deposit: "Clark County requires a $5,000 registration deposit and payment in certified funds on the day of the auction; Bid4Assets requires a deposit (set by each county) before its sales.",
     after: "The full price and fees are due shortly after the close; the treasurer then delivers a deed to the buyer.",
     extra: ["The owner can redeem the property until the sale. Research the parcel and get a title search before bidding."],
   },

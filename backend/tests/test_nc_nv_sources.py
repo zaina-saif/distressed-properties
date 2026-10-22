@@ -62,3 +62,27 @@ def test_bid4assets_reads_nevada_tax_sales_only():
     assert storefront_info(page.replace("Tax Defaulted Properties Auction", "Public Works Special Sale"), "NV") is None
     auction = "<div>Location:</div><div>101 Main St</div><div>Pahrump, NV 89048</div>"
     assert location(auction, "NV") == ("101 Main St", "Pahrump", "89048")
+
+
+def test_clark_parcels_drop_the_owner_and_get_a_city():
+    from pipeline.scrape_nv_clark_tax_auction import apn, city_of, parcel_from
+
+    row = {"ParcelNumber": "124-32-611-028", "MinBidAmount": 6780.64, "Owner": "SOMEONE", "PropertyLocation":
+           "2603 BRAVE HEART AVE", "IsLineOut": True, "WinningBidAmount": 0.0, "DeedRecordingDate": None}
+    places = {"12432611028": {"city": "North Las Vegas", "zip_code": "89031", "latitude": 36.25, "longitude": -115.18}}
+    parcel = parcel_from(row, places)
+    assert "SOMEONE" not in str(parcel) and apn(row["ParcelNumber"]) == "12432611028"
+    assert parcel["street"] == "2603 Brave Heart Ave" and parcel["city"] == "North Las Vegas" and not parcel["winning_bid"]
+    assert parcel_from({**row, "PropertyLocation": "UNASSIGNED SITUS"}, places)["street"] is None
+    assert city_of("SPRV", "89148") == "Las Vegas" and city_of("CNTY", "89040") == "Overton" and city_of("CNTY", "76050") is None
+
+
+def test_clark_statuses_before_and_after_the_auction():
+    from pipeline.load_nv_clark_tax_auction import status_of
+
+    day, parcel = date(2026, 5, 7), {"struck": False, "winning_bid": None}
+    assert status_of(parcel, day, date(2026, 5, 1))[0] == "scheduled"
+    assert status_of({**parcel, "struck": True}, day, date(2026, 5, 1))[0] == "cancelled"
+    assert status_of({"struck": True, "winning_bid": 1537.13}, day, date(2026, 6, 1))[0] == "sold"
+    assert status_of({**parcel, "struck": True}, day, date(2026, 6, 1))[0] == "cancelled"
+    assert status_of(parcel, day, date(2026, 6, 1))[0] == "unsold"

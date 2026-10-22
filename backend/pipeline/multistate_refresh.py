@@ -50,7 +50,8 @@ from pipeline.scrape_civilview_states import COUNTIES as CIVILVIEW_COUNTIES
 # Phase 1 states outside NJ (October 2026; see SUPPORTED_STATES in app/auth.py). Indiana,
 # Colorado, South Carolina, Connecticut and the county-list states (KY, OK, SD, WI) are no
 # longer refreshed or sent to Zillow; their listings stay in the database, hidden. GA
-# and NV are collected (CivilView Coweta; Bid4Assets tax sales) so they can be shown once they have listings.
+# and NV are collected (CivilView Coweta; Bid4Assets and Clark County tax sales) so they can be shown once they have
+# upcoming listings.
 STATES = ("OH", "FL", "PA", "IL", "TX", "NY", "CA", "AZ", "GA", "NC", "NV")
 CIVILVIEW = [f"{state}:{county}" for state, county in sorted(CIVILVIEW_COUNTIES) if state in STATES]
 STAGES = ("scrape", "load", "zillow", "score", "report")
@@ -77,6 +78,8 @@ SOURCES = [
     ("California county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales"], ["pipeline.load_ca_tax_sales"]),
     ("Nevada county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales", "--state", "NV"],
      ["pipeline.load_ca_tax_sales", "--state", "NV"]),
+    ("NV Clark County treasurer tax auction", ["pipeline.scrape_nv_clark_tax_auction"],
+     ["pipeline.load_nv_clark_tax_auction"]),
     ("NC foreclosure sales (Hutchens Law Firm)", ["pipeline.scrape_nc_hutchens_sales"], ["pipeline.load_nc_hutchens_sales"]),
     ("NC tax foreclosure sales (Zacchaeus Legal Services)", ["pipeline.scrape_nc_zls_tax_foreclosures"],
      ["pipeline.load_nc_zls_tax_foreclosures"]),
