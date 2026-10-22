@@ -1,6 +1,6 @@
 /** States with sale listings in the dashboard, with the map view used when none is mapped. */
 /** taxOnly: every listing is a tax sale, so the dashboard opens the state on "Tax sales". */
-/** Phase 1 coverage (October 2026); must match SUPPORTED_STATES in backend/app/auth.py. GA, NC and NV
+/** Phase 1 coverage (October 2026); must match SUPPORTED_STATES in backend/app/auth.py. GA and NV
  *  join once they have listings; other states' listings stay in the database, hidden. */
 export const STATES: { code: string; name: string; view: [number, number, number]; taxOnly?: boolean }[] = [
   { code: "NJ", name: "New Jersey", view: [40.1, -74.6, 8] },
@@ -12,6 +12,7 @@ export const STATES: { code: string; name: string; view: [number, number, number
   { code: "TX", name: "Texas", view: [31.0, -98.5, 6] },
   { code: "CA", name: "California", view: [37.3, -120.5, 6], taxOnly: true },
   { code: "AZ", name: "Arizona", view: [33.5, -112.1, 9] },
+  { code: "NC", name: "North Carolina", view: [35.5, -79.4, 7] },
 ];
 
 export function isTaxOnlyState(code: string): boolean {

@@ -1,4 +1,4 @@
-"""California county tax-defaulted property sales on Bid4Assets.
+"""California and Nevada county tax-defaulted property sales on Bid4Assets.
 
 California counties' treasurer-tax collectors sell property whose taxes have been
 unpaid for five years (three for some commercial and vacant land) at a public auction,
@@ -8,12 +8,16 @@ in closing groups, which the page reads from /api/storefront/auctions/index (APN
 minimum bid, opening and closing times), and each parcel's auction page gives its
 address ("Location: 889 Canada Dr / Milpitas, CA 95035"). No party names are involved.
 
-This collector finds every California storefront on the calendar (timeshare-only sales
-are left out), keeps parcels whose auction has not closed, and reads each parcel's page
-once for its address (cached by auction number in .local/ca-tax-sales/).
+Nevada counties (Churchill, Douglas, Elko, Lander, Nye and others) sell property held in
+trust by the county treasurer after three years of unpaid taxes the same way.
 
-    python -m pipeline.scrape_ca_tax_sales
-    python -m pipeline.load_ca_tax_sales
+This collector finds every storefront of one state on the calendar (timeshare-only sales
+and sales that are not tax sales, such as Douglas County's public works sale, are left
+out), keeps parcels whose auction has not closed, and reads each parcel's page once for
+its address (cached by auction number in .local/ca-tax-sales/).
+
+    python -m pipeline.scrape_ca_tax_sales [--state NV]
+    python -m pipeline.load_ca_tax_sales [--state NV]
 """
 import argparse
 import html
@@ -29,15 +33,20 @@ BASE = "https://www.bid4assets.com"
 CALENDAR_URL = f"{BASE}/county-tax-sales"
 AUCTIONS_API = f"{BASE}/api/storefront/auctions/index"
 OUTPUT = Path("data/sheriff_sales/ca_bid4assets_tax_sales.json")
+STATE_NAMES = {"CA": "California", "NV": "Nevada"}
 CACHE = Path(__file__).resolve().parents[2] / ".local" / "ca-tax-sales"
 PARSER_VERSION = "ca_bid4assets_tax_sales_v1"
 STOREFRONT_LINK = re.compile(r'href="(/storefront/[A-Za-z0-9]+)"')
 TITLE = re.compile(r"<title>\s*(?:Bid4Assets:\s*)?(.*?)\s*</title>", re.S | re.I)
 # "County of Santa Clara, CA Tax Defaulted ..." / "El Dorado County, CA Tax Defaulted ..."
-CA_COUNTY = re.compile(r"^(?:County of\s+)?(.+?)(?:\s+County)?,\s*CA\b")
+COUNTY = r"^(?:County of\s+)?(.+?)(?:\s+County)?,\s*{state}\b"
 STOREFRONT_ID = re.compile(r"getauctiondisplay/(\d+)")
 COLLECTION_ID = re.compile(r'"StorefrontCollectionId":(\d+)')
-CITY_LINE = re.compile(r"^([A-Za-z][A-Za-z .'-]+),\s*CA\b\s*(\d{5})?")
+CITY_LINE = r"^([A-Za-z][A-Za-z .'-]+),\s*{state}\b\s*(\d{{5}})?"
+
+
+def output_for(state: str) -> Path:
+    return OUTPUT.with_name(f"{state.lower()}_bid4assets_tax_sales.json")
 
 
 def page_lines(page: str) -> list[str]:
@@ -49,25 +58,25 @@ def storefront_paths(calendar_html: str) -> list[str]:
     return sorted(set(STOREFRONT_LINK.findall(calendar_html)))
 
 
-def storefront_info(page: str) -> dict | None:
-    """County, sale title, storefront id and closing-group ids of a California storefront."""
+def storefront_info(page: str, state: str = "CA") -> dict | None:
+    """County, sale title, storefront id and closing-group ids of a tax-sale storefront in `state`."""
     title = TITLE.search(page)
     name = html.unescape(" ".join(title.group(1).split())) if title else ""
-    county = CA_COUNTY.match(name)
+    county = re.match(COUNTY.format(state=state), name)
     storefront = STOREFRONT_ID.search(page)
-    if not county or not storefront or re.search(r"(?i)timeshare", name):
+    if not county or not storefront or re.search(r"(?i)timeshare", name) or not re.search(r"(?i)\btax\b", name):
         return None
     return {"county": county.group(1).strip(), "title": name, "storefront_id": int(storefront.group(1)),
             "collections": sorted(set(int(found) for found in COLLECTION_ID.findall(page)))}
 
 
-def location(page: str) -> tuple[str | None, str | None, str | None]:
+def location(page: str, state: str = "CA") -> tuple[str | None, str | None, str | None]:
     """Street, city and ZIP from an auction page's "Location:" lines."""
     lines = page_lines(page)
     for index, line in enumerate(lines[:-2]):
         if line == "Location:":
             street, city_line = lines[index + 1], lines[index + 2]
-            match = CITY_LINE.match(city_line)
+            match = re.match(CITY_LINE.format(state=state), city_line)
             if match and re.match(r"\d", street):
                 return " ".join(street.split()), match.group(1).strip().title(), match.group(2)
             return None, None, None
@@ -80,7 +89,7 @@ def apn_of(title: str) -> str | None:
     return match.group(1) if match else None
 
 
-def parcels(client: PoliteClient, info: dict, now: datetime) -> list[dict]:
+def parcels(client: PoliteClient, info: dict, now: datetime, state: str = "CA") -> list[dict]:
     rows = {}
     for collection in info["collections"]:
         response = client.post(AUCTIONS_API, params={"take": 9999, "skip": 0, "page": 1, "pageSize": 9999},
@@ -99,7 +108,7 @@ def parcels(client: PoliteClient, info: dict, now: datetime) -> list[dict]:
         else:
             page = client.get(f"{BASE}/auction/index/{auction_id}")
             page.raise_for_status()
-            street, city, zip_code = location(page.text)
+            street, city, zip_code = location(page.text, state)
             cached.parent.mkdir(parents=True, exist_ok=True)
             cached.write_text(json.dumps([street, city, zip_code]))
         found.append({
@@ -113,8 +122,10 @@ def parcels(client: PoliteClient, info: dict, now: datetime) -> list[dict]:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--state", choices=sorted(STATE_NAMES), default="CA")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)
+    output = args.output or output_for(args.state)
     now = datetime.now(timezone.utc)
     sales = []
     with PoliteClient(ScrapingSettings.from_env()) as client:
@@ -124,19 +135,20 @@ def main(argv=None) -> int:
             page = client.get(BASE + path)
             if not page.is_success:
                 continue
-            info = storefront_info(page.text)
+            info = storefront_info(page.text, args.state)
             if not info:
                 continue
-            found = parcels(client, info, now)
+            found = parcels(client, info, now, args.state)
             if found:
                 print(f"{info['county']}: {info['title']}: {len(found)} open parcels "
                       f"({sum(bool(p['street']) for p in found)} with an address)", flush=True)
                 sales.append({**info, "url": BASE + path, "parcels": found})
-    snapshot = {"source_system": "ca_bid4assets_tax_sale", "state": "CA", "source_url": CALENDAR_URL,
-                "scraped_at": now.isoformat(), "parser_version": PARSER_VERSION, "sales": sales}
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(snapshot, indent=1) + "\n")
-    print(f"California: {len(sales)} sales, {sum(len(s['parcels']) for s in sales)} parcels -> {args.output}")
+    snapshot = {"source_system": f"{args.state.lower()}_bid4assets_tax_sale", "state": args.state,
+                "source_url": CALENDAR_URL, "scraped_at": now.isoformat(), "parser_version": PARSER_VERSION,
+                "sales": sales}
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(snapshot, indent=1) + "\n")
+    print(f"{STATE_NAMES[args.state]}: {len(sales)} sales, {sum(len(s['parcels']) for s in sales)} parcels -> {output}")
     return 0
 
 

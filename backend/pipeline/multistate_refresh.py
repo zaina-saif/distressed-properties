@@ -2,8 +2,9 @@
 
 Stages, in order:
   scrape   Each source's scraper (RealAuction OH/FL/TX, CivilView PA/IL/TX/AZ/GA,
-           PA county portals, Illinois TJSC, TX trustee notices, CA tax sales,
-           NY Erie sheriff and NYC tax-lien referee sales), phase 1 states only.
+           PA county portals, Illinois TJSC, TX trustee notices, CA and NV tax
+           sales, NC foreclosure and tax foreclosure lists, NY Erie sheriff and
+           NYC tax-lien referee sales), phase 1 states only.
            A source that fails is reported; the others still run.
   load     Load whatever snapshots were written. A county whose scrape failed
            has no new snapshot, so its open sales are left untouched. NY court
@@ -48,9 +49,9 @@ from pipeline.scrape_civilview_states import COUNTIES as CIVILVIEW_COUNTIES
 
 # Phase 1 states outside NJ (October 2026; see SUPPORTED_STATES in app/auth.py). Indiana,
 # Colorado, South Carolina, Connecticut and the county-list states (KY, OK, SD, WI) are no
-# longer refreshed or sent to Zillow; their listings stay in the database, hidden. GA is
-# collected (CivilView Coweta) so it can be shown once it has listings.
-STATES = ("OH", "FL", "PA", "IL", "TX", "NY", "CA", "AZ", "GA")
+# longer refreshed or sent to Zillow; their listings stay in the database, hidden. GA
+# and NV are collected (CivilView Coweta; Bid4Assets tax sales) so they can be shown once they have listings.
+STATES = ("OH", "FL", "PA", "IL", "TX", "NY", "CA", "AZ", "GA", "NC", "NV")
 CIVILVIEW = [f"{state}:{county}" for state, county in sorted(CIVILVIEW_COUNTIES) if state in STATES]
 STAGES = ("scrape", "load", "zillow", "score", "report")
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
@@ -74,6 +75,11 @@ SOURCES = [
     ("TX Collin trustee-sale notices", ["pipeline.scrape_collin_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_collin_trustee_notices.json"]),
     ("California county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales"], ["pipeline.load_ca_tax_sales"]),
+    ("Nevada county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales", "--state", "NV"],
+     ["pipeline.load_ca_tax_sales", "--state", "NV"]),
+    ("NC foreclosure sales (Hutchens Law Firm)", ["pipeline.scrape_nc_hutchens_sales"], ["pipeline.load_nc_hutchens_sales"]),
+    ("NC tax foreclosure sales (Zacchaeus Legal Services)", ["pipeline.scrape_nc_zls_tax_foreclosures"],
+     ["pipeline.load_nc_zls_tax_foreclosures"]),
     # Orange County's page answers 403, so only Erie is scraped.
     ("NY Erie sheriff sales", ["pipeline.scrape_ny_county_pages", "--counties", "Erie"],
      ["pipeline.load_ny_sales", "--counties", "Erie"]),

@@ -145,6 +145,21 @@ export const STATE_GUIDES: StateGuide[] = [
     extra: ["The owner can redeem only until the close of business on the last business day before the sale; there is no redemption after it.",
             "A tax deed clears most private liens, but some interests survive (for example easements, certain special assessments, and federal tax liens the IRS can redeem). Research the parcel and get a title search before bidding."],
   },
+  {
+    code: "NC", name: "North Carolina", who: "Substitute trustee or court-appointed commissioner",
+    bid: "Mortgage foreclosures are power-of-sale foreclosures: after a hearing before the Clerk of Superior Court, a substitute trustee auctions the property at the county courthouse. Tax foreclosures are sold the same way for the county tax office. Listed here are the sales posted by Hutchens Law Firm (mortgage foreclosures) and Zacchaeus Legal Services (tax foreclosures); dates are often postponed, so check the notice of sale with the Clerk.",
+    deposit: "The trustee may require a cash deposit at the sale, up to the greater of 5% of the bid or $750; the notice of sale states the terms.",
+    after: "A sale is not final on the day: for ten days anyone can upset the bid by at least 5% (minimum $750) with a deposit at the Clerk's office, and each upset bid starts a new ten-day period. When no upset bid comes in, the balance is due and the trustee or commissioner delivers the deed (the Clerk confirms tax foreclosure sales).",
+    extra: ["A listing in upset bidding is still open: its date here is the upset-bid deadline and its bid is the current bid to beat.",
+            "Liens senior to the one foreclosed survive the sale. Get a professional title search before bidding."],
+  },
+  {
+    code: "NV", name: "Nevada", who: "County treasurer",
+    bid: "Listed here are the counties' tax sales of property held in trust by the treasurer after three years of unpaid taxes, held online on Bid4Assets (Churchill, Douglas, Elko, Lander, Nye and others); each parcel's auction page has the opening and closing times. Mortgage foreclosures in Nevada are private trustee sales and are not listed.",
+    deposit: "Bid4Assets requires a deposit (set by each county) before the sale; the sale page gives the deadline.",
+    after: "The full price and fees are due shortly after the close; the treasurer then delivers a deed to the buyer.",
+    extra: ["The owner can redeem the property until the sale. Research the parcel and get a title search before bidding."],
+  },
 ];
 
 export function stateGuide(code: string): StateGuide | undefined {
