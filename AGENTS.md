@@ -6,7 +6,7 @@ Guidance for coding agents (Claude Code, Codex, and others) working in this repo
 
 A multi-state foreclosure/sheriff-sale data platform (started with Monmouth County, NJ). Python pipelines scrape sale listings and import public property records, a FastAPI API serves them, and a Next.js dashboard displays listings with valuations, equity, status history, lien pre-screening, and sale-probability explanations. `CODEX_CONTEXT.md` (core goals and parsing rules), `LIEN_CONTEXT.md` (lien engine spec), and `plan.md` (valuation coverage plan) hold the design intent; the code is the source of truth when they disagree.
 
-**Phase 1 coverage (October 2026):** to keep costs down, the product covers NJ, NY, PA, OH, FL, IL, TX, CA, AZ and NC, plus GA and NV once they have listings (GA is collected through CivilView Coweta, NV through Bid4Assets tax sales, whose 2026 sales have all closed). `SUPPORTED_STATES` in `backend/app/auth.py` is enforced on every data route, export, facet and alert email for every user, developers included; `frontend/src/lib/states.ts` must list the same states. Listings from other states (IN, CO, CT, DE, KY, OK, WI, SD, SC, MN, LA, IA, WA, KS, ID, OR, AK, UT, AR) stay in the database, hidden, and the multistate refresh no longer scrapes them or sends them to Zillow. To add a state, put it in both lists and its sources in `multistate_refresh.SOURCES`.
+**Phase 1 coverage (October 2026):** to keep costs down, the product covers NJ, NY, PA, OH, FL, IL, TX, CA, AZ, NC and GA, plus NV once it has upcoming sales (its Bid4Assets and Clark County collectors run weekly; 2026's sales are over). `SUPPORTED_STATES` in `backend/app/auth.py` is enforced on every data route, export, facet and alert email for every user, developers included; `frontend/src/lib/states.ts` must list the same states. Listings from other states (IN, CO, CT, DE, KY, OK, WI, SD, SC, MN, LA, IA, WA, KS, ID, OR, AK, UT, AR) stay in the database, hidden, and the multistate refresh no longer scrapes them or sends them to Zillow. To add a state, put it in both lists and its sources in `multistate_refresh.SOURCES`.
 
 ## Commands
 
@@ -183,6 +183,20 @@ python -m pipeline.scrape_ca_tax_sales --state NV && python -m pipeline.load_ca_
 - **Zacchaeus Legal Services** (`zls-nc.com/listings`, a DevExpress Blazor grid read with BrowserManager after setting the site's own disclaimer cookie): county tax foreclosures for many tax offices (town offices are mapped to their county in `OFFICE_COUNTIES`). `source_system='nc_zls_tax_foreclosure'`, keyed by `<tax office>:<parcel>`, sale type "Tax foreclosure sale" (the Tax sales filter). "Courthouse Sale" is `scheduled` on the sale date with the opening bid; "Upset Bidding in Progress" is `scheduled` on the upset-bid deadline with the current bid; confirmed or pending-confirmation sales are `sold` for the current bid; "Redeemed" is `redeemed`.
 - Both loaders treat each county's rows as complete and retire open sales that drop off, including in counties left with none. North Carolina sales stay open ten days for upset bids (5%, minimum $750); the notice details and dashboard notes say so.
 - **Nevada:** county treasurers' tax sales on Bid4Assets (`nv_bid4assets_tax_sale`, the CA collector with `--state NV`; non-tax storefronts such as Douglas County's public works sale are skipped). Nevada mortgage foreclosures are private trustee sales with no public list; Clark County's yearly treasurer trustee auction is collected by `pipeline.scrape_nv_clark_tax_auction` / `load_nv_clark_tax_auction` (`nv_clark_treasurer_tax_sale`): the Treasurer's auction page's `Event_Read` and `Parcel_Read` JSON (owner names dropped), with city, ZIP and position from the county parcel layer `CC_PARCELS_SHP` (only `PARCEL,STRCITY,ZIPMAIN` and the centroid are requested). After the auction a winning bid is `sold`, a struck parcel without one `cancelled`, and the rest `unsold`. Add NV to `SUPPORTED_STATES` and `frontend/src/lib/states.ts` once it has listings.
+
+### Georgia county tax sales (Fulton, Cobb)
+
+Georgia counties sell tax-delinquent property at the courthouse on the first Tuesday of the month; the buyer gets a redeemable tax deed (sale type "Tax sale (redeemable deed)", the Tax sales filter; `source_system='ga_county_tax_sale'`). Georgia mortgage foreclosures are advertised only in county newspapers and are not collected. The lists are scanned PDFs, so the collector runs on the operator's Mac each month once the next lists are posted (a few weeks before the sale):
+
+```bash
+python -m pipeline.scrape_ga_tax_sales [--counties Fulton Cobb]   # macOS Vision OCR with line positions
+python -m pipeline.load_ga_tax_sales [--dry-run]
+```
+
+- **Fulton:** the Sheriff's tax-sales page links each sale's list (sale number, parcel ID, situs; re-posted as "1st/2nd Posting", the latest wins). **Cobb:** the Tax Commissioner's page links the next sale's list (owner, parcel, address, starting bid); the owner column is never read.
+- `pipeline/ocr_pdf_macos_boxes.swift` prints each OCR line with its position; rows are rebuilt from lines at the same height, pieces joined left to right.
+- Each parcel ID is looked up in the county's parcel layer (Fulton `gismaps.fultoncountyga.gov` Tax_Parcels, Cobb `gis.cobbcounty.org` Parcels; only ID, situs address and shape are requested), which gives the official address and position; the Census geocoder gives city and ZIP. An ID whose parcel has a different house number than the listed address is an OCR slip: the row is then matched by its address, only when exactly one parcel has it, and keeps the layer's ID. Unmatched rows are reported, not loaded.
+- A county whose collection fails (for example its GIS is down: an unreachable robots.txt counts as disallowed) keeps its previous rows.
 
 ### STOX trustee sales (CA, AZ, AK, OR, UT)
 

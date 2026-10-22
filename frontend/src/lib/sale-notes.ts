@@ -14,6 +14,9 @@ export function saleTypeNote(property: Property): string | null {
   if (property.sale_type === "Tax foreclosure sale" && property.state === "NC") {
     return "North Carolina tax foreclosure sale: the county sells the property at the courthouse to collect unpaid property taxes. For ten days after the sale anyone can upset the bid by at least 5% (minimum $750), and each upset bid starts a new ten-day period; while upset bidding is open, the date shown is the deadline and the bid is the current bid to beat. Addresses on the firm's list are not certified, so check the parcel and get a professional title search before bidding.";
   }
+  if (property.sale_type === "Tax sale (redeemable deed)" && property.state === "GA") {
+    return "Georgia tax sale: the county sells the property at the courthouse on the first Tuesday of the month to collect unpaid taxes, and the list changes until the sale as owners pay. The buyer gets a tax deed the owner can redeem, usually within 12 months, by paying the price plus a premium, and cannot take possession until that right is foreclosed. Get a professional title search before bidding.";
+  }
   if (property.sale_type === "Tax-defaulted property sale" && property.state === "NV") {
     return "Nevada tax sale: the county treasurer sells property held in trust after three years of unpaid taxes at a public auction (in person in Clark County, online on Bid4Assets in several other counties). The minimum bid covers the taxes, penalties and costs, and the owner can redeem until the sale. Research the parcel and get a professional title search before bidding.";
   }

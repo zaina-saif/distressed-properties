@@ -34,9 +34,9 @@ ACTIVE_STATUSES = {"active", "trialing"}
 logger = logging.getLogger(__name__)
 
 # Phase 1 coverage (October 2026): the only states the API serves, for every user.
-# Listings from other states stay in the database, hidden. GA and NV are in phase 1
-# but join this set once they have listings; keep frontend/src/lib/states.ts in step.
-SUPPORTED_STATES = frozenset({"NJ", "NY", "PA", "OH", "FL", "IL", "TX", "CA", "AZ", "NC"})
+# Listings from other states stay in the database, hidden. NV is in phase 1 but joins
+# this set once it has upcoming sales; keep frontend/src/lib/states.ts in step.
+SUPPORTED_STATES = frozenset({"NJ", "NY", "PA", "OH", "FL", "IL", "TX", "CA", "AZ", "NC", "GA"})
 
 
 @dataclass(frozen=True)

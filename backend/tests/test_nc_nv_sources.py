@@ -86,3 +86,31 @@ def test_clark_statuses_before_and_after_the_auction():
     assert status_of({"struck": True, "winning_bid": 1537.13}, day, date(2026, 6, 1))[0] == "sold"
     assert status_of({**parcel, "struck": True}, day, date(2026, 6, 1))[0] == "cancelled"
     assert status_of(parcel, day, date(2026, 6, 1))[0] == "unsold"
+
+
+def test_georgia_parcel_ids_and_list_dates():
+    from pipeline.scrape_ga_tax_sales import cobb_id, fulton_id, posting_rank, sale_date_of
+
+    assert fulton_id("06-0356-0004-007-8") == "06 035600040078"
+    assert fulton_id("13-0127-LL-018-4") == "13 0127  LL0184"
+    assert fulton_id("09F-1709-0067-060-1") == "09F170900670601"
+    assert fulton_id("11- 0261-0119-011-6") == "11 026101190116" and fulton_id("1126-57775") is None
+    assert cobb_id("16-0011-0-155-0") == "16001101550" and cobb_id("16-0011") is None
+    cobb = [(1, 0.01, 0.83, 0.01, "OCT 20, 2026"), (1, 0.41, 0.85, 0.01, "TAX SALE STARTING BIDS NOV-2026")]
+    assert sale_date_of(cobb) == date(2026, 11, 3)
+    assert sale_date_of([(1, 0.26, 0.9, 0.01, "NOVEMBER 3, 2026, SHERIFF'S TAX / LEVY SALE")]) == date(2026, 11, 3)
+    assert posting_rank("/Sheriffs-August-4-2026-Levy-Sale-List--2nd-Posting.pdf") == 2
+    assert posting_rank("/FCSO-November-3-2026-Sale-List--1st-Posting.pdf") == 1
+
+
+def test_georgia_rows_are_rebuilt_by_height_without_the_owner():
+    from pipeline.scrape_ga_tax_sales import COUNTIES, rows_from
+
+    boxes = [(1, 0.01, 0.7744, 0.011, "MITTLEIDER DOUGLAS K"), (1, 0.2306, 0.7744, 0.011, "16-0011-0-155-0"),
+             (1, 0.3578, 0.7744, 0.011, "727 FARMDALE WAY"), (1, 0.8534, 0.7744, 0.011, "4,015.06 Residential"),
+             (1, 0.2306, 0.7521, 0.011, "16-0011-0-157-0"), (1, 0.3578, 0.7521, 0.011, "723"),
+             (1, 0.3901, 0.7521, 0.011, "FARMDALE wAY"), (1, 0.8534, 0.7521, 0.011, "4,015.06 Residential")]
+    rows = rows_from(boxes, COUNTIES["Cobb"])
+    assert [row["parcel_printed"] for row in rows] == ["16-0011-0-155-0", "16-0011-0-157-0"]
+    assert rows[0]["street"] == "727 FARMDALE WAY" and rows[0]["starting_bid"] == "4,015.06 Residential"
+    assert "MITTLEIDER" not in str(rows) and rows[1]["street"] == "723 FARMDALE wAY"
