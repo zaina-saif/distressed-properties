@@ -305,7 +305,9 @@ def main(argv=None) -> int:
             unmatched += missing
             print(f"{name}: {len(found)} parcels, {len(missing)} without a matching parcel", flush=True)
     previous = json.loads(args.output.read_text()) if args.output.exists() else {"parcels": []}
-    parcels += [parcel for parcel in previous["parcels"] if parcel["county"] in failed]
+    # Counties not collected this time (failed, or not asked for) keep their previous rows.
+    parcels += [parcel for parcel in previous["parcels"]
+                if parcel["county"] in failed or parcel["county"] not in args.counties]
     for line in unmatched:
         print(f"not matched: {line}")
     snapshot = {"source_system": "ga_county_tax_sale", "state": "GA", "scraped_at": datetime.now(timezone.utc).isoformat(),
