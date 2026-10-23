@@ -1,0 +1,64 @@
+{
+ "source_system": "az_pima_sheriff_sale",
+ "state": "AZ",
+ "county": "Pima",
+ "source_url": "https://pimasheriff.org/services/civil-enforcement",
+ "scraped_at": "2026-10-23T14:08:40.764561+00:00",
+ "parser_version": "az_pima_notice_of_sale_v1",
+ "sales": [
+  {
+   "case": "C20254504",
+   "notice_url": "https://pimasheriff.org/download_file/2354/261",
+   "street": "1984 West Nava Drive",
+   "city": "Tucson",
+   "zip_code": "85746",
+   "sale_date": "2026-11-03",
+   "judgment": 7590.98,
+   "writ": "writ of special execution"
+  },
+  {
+   "case": "C20254782",
+   "notice_url": "https://pimasheriff.org/download_file/2376/261",
+   "street": "7554 S Circulo Rio Blanco",
+   "city": "Tucson",
+   "zip_code": "85756",
+   "sale_date": "2026-11-17",
+   "judgment": 9303.0,
+   "writ": "writ of special execution"
+  },
+  {
+   "case": "C20261874",
+   "notice_url": "https://pimasheriff.org/download_file/2362/261",
+   "street": "4067 E GRANT RD, #203",
+   "city": "Tucson",
+   "zip_code": "85712",
+   "sale_date": "2026-11-19",
+   "judgment": 83652.75,
+   "writ": "writ of general execution"
+  },
+  {
+   "case": "C20257014",
+   "notice_url": "https://pimasheriff.org/download_file/2374/261",
+   "street": "4698 W. Beeplant Wy",
+   "city": "Tucson",
+   "zip_code": "85741",
+   "sale_date": "2026-12-03",
+   "judgment": 252659.7,
+   "writ": "writ of special execution"
+  },
+  {
+   "case": "C20253955",
+   "notice_url": "https://pimasheriff.org/download_file/2373/261",
+   "street": "4686 W. Calatrava Ln.",
+   "city": "Tucson",
+   "zip_code": "85742",
+   "sale_date": "2026-12-08",
+   "judgment": 277539.94,
+   "writ": "writ of special execution"
+  }
+ ],
+ "unread": [
+  "2026: 10/22 Notice of Sale (C20243948)",
+  "2026: 10/27 Notice of Sale (C20253721)"
+ ]
+}

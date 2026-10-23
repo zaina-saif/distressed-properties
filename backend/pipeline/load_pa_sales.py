@@ -6,7 +6,8 @@ from sqlalchemy import text
 from app.database.session import engine
 from pipeline.pa_parcel_numbers import normalize_map_number
 
-FILES={"Butler":Path("data/sheriff_sales/pa_butler_sheriff_sales.json"),
+FILES={"Allegheny":Path("data/sheriff_sales/pa_allegheny_sheriff_sales.json"),
+ "Butler":Path("data/sheriff_sales/pa_butler_sheriff_sales.json"),
  "Centre":Path("data/sheriff_sales/pa_centre_sheriff_sales.json"),
  "Cumberland":Path("data/sheriff_sales/pa_cumberland_sheriff_sales.json"),
  "Franklin":Path("data/sheriff_sales/pa_franklin_sheriff_sales.json"),

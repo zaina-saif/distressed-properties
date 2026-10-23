@@ -162,3 +162,27 @@ def test_delaware_rows_by_position_skip_names():
     assert rows[0]["street"] == "910 W Cobbs Creek Parkway" and rows[0]["sale_date"] == date(2026, 12, 18)
     assert rows[0]["status"] == "scheduled" and rows[0]["debt"] == 38491.35
     assert rows[1]["city"] == "Upper Darby" and rows[1]["status"] == "stayed"
+
+
+def test_allegheny_ward_suffixes_and_statuses():
+    from pipeline.scrape_pa_allegheny_sheriff_sales import WARD, status_of
+
+    assert WARD.sub("", "5415 Butler Street - 10TH") == "5415 Butler Street"
+    assert WARD.sub("", "227 MARLAND ST 30TH WARD") == "227 MARLAND ST"
+    assert WARD.sub("", "229 Thornberry Drive -") == "229 Thornberry Drive"
+    assert WARD.sub("", "100 1ST ST") == "100 1ST ST"
+    assert status_of("Postponed to 5/3/2027", date(2026, 11, 2)) == ("scheduled", date(2027, 5, 3))
+    assert status_of("Active", date(2026, 11, 2)) == ("scheduled", date(2026, 11, 2))
+    assert status_of("Stayed", date(2026, 11, 2))[0] == "stayed"
+
+
+def test_pima_notice_addresses():
+    from pipeline.scrape_az_pima_sheriff_sales import notice_from
+
+    one_line = ("judgment sum of $7,590.98, plus\n1984 West Nava Drive Tucson, AZ, 85746 Property Location:\n"
+                "on the 3rd day of November, 2026 at 10:01 AM WRIT OF SPECIAL EXECUTION issued by")
+    two_lines = "PAGE 59.\n4698 W. Beeplant Wy\nTucson, AZ 85741\nProperty Location:\non the 3rd day of December, 2026"
+    first, second = notice_from(one_line), notice_from(two_lines)
+    assert (first["street"], first["city"], first["zip_code"]) == ("1984 West Nava Drive", "Tucson", "85746")
+    assert first["sale_date"] == "2026-11-03" and first["judgment"] == 7590.98
+    assert (second["street"], second["zip_code"], second["sale_date"]) == ("4698 W. Beeplant Wy", "85741", "2026-12-03")
