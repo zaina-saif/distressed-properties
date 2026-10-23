@@ -13,13 +13,17 @@ SOURCES={"Butler":"https://civil.co.butler.pa.us/Sheriff.SaleListing/",
  "Lancaster":"https://portal.lancaster.pa.countysuite-azuregov.us/Sheriff.SaleListing/",
  "Luzerne":"https://sheriffsale.luzernecounty.org/Sheriff.SaleListing/",
  "Monroe":"https://www.bid4assets.com/monroecountysheriffsales",
+ # Philadelphia's sheriff sales: mortgage and tax foreclosures, one Bid4Assets storefront each.
+ "Philadelphia":"https://www.bid4assets.com/philaforeclosures",
  "Susquehanna":"https://sheriff.susqco.com/Sheriff.SaleListing/"}
+PHILADELPHIA_TAX_SALES="https://www.bid4assets.com/philataxsales"
 async def run(counties):
  out=Path("data/sheriff_sales");out.mkdir(parents=True,exist_ok=True)
  failed=[]
  for county in counties:
   try:
    records=(await MonroeBid4AssetsAdapter().fetch() if county=="Monroe"
+            else await MonroeBid4AssetsAdapter("Philadelphia",[SOURCES[county],PHILADELPHIA_TAX_SALES]).fetch() if county=="Philadelphia"
             else await PASaleListingAdapter(county,SOURCES[county]).fetch())
   except Exception as exc:
    # Keep the previous snapshot; a blocked or changed site must not erase it.

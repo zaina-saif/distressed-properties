@@ -79,6 +79,8 @@ SOURCES = [
      ["pipeline.load_realauction_sales", "--state", "TX", "--counties", *realauction("TX")]),
     (f"CivilView ({', '.join(CIVILVIEW)})", ["pipeline.scrape_civilview_states", "--counties", *CIVILVIEW],
      ["pipeline.load_civilview_states", "--counties", *CIVILVIEW]),
+    ("PA Philadelphia sheriff sales (Bid4Assets)", ["pipeline.scrape_pa_sale_listing", "--counties", "Philadelphia"],
+     ["pipeline.load_pa_sales", "--counties", "Philadelphia"]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
     ("TX Bexar trustee-sale notices", ["pipeline.scrape_bexar_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),

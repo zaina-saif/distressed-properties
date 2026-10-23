@@ -45,7 +45,7 @@ FL_SITES = {
     "Clay": "clay", "Duval": "duval", "Escambia": "escambia", "Flagler": "flagler",
     "Hillsborough": "hillsborough", "Indian River": "indian-river",
     "Lee": "lee", "Leon": "leon", "Manatee": "manatee", "Marion": "marion", "Martin": "martin",
-    "Miami-Dade": "miamidade", "Pasco": "pasco", "Pinellas": "pinellas", "Polk": "polk",
+    "Miami-Dade": "miamidade", "Orange": "myorangeclerk", "Pasco": "pasco", "Pinellas": "pinellas", "Polk": "polk",
     "Putnam": "putnam", "Santa Rosa": "santarosa", "Sarasota": "sarasota", "St. Lucie": "stlucie",
     "Volusia": "volusia", "Walton": "walton"}
 
@@ -71,7 +71,9 @@ TX_SITES |= {"Montgomery": "https://montgomery.texas.realforeclose.com",
 
 SOURCES = {
     "OH": {county: f"https://{county.lower().replace(' ', '')}.sheriffsaleauction.ohio.gov" for county in OH_COUNTIES},
-    "FL": {county: f"https://www.{site}.realforeclose.com" for county, site in FL_SITES.items()},
+    # Palm Beach answers only without "www.".
+    "FL": {county: f"https://www.{site}.realforeclose.com" for county, site in FL_SITES.items()}
+          | {"Palm Beach": "https://palmbeach.realforeclose.com"},
     "CO": CO_SITES,
     "TX": TX_SITES,
 }

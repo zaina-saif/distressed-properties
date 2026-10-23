@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 from datetime import datetime
 from decimal import Decimal
 
@@ -10,7 +11,10 @@ from pipeline.adapters.base import RawSheriffSale
 
 
 class MonroeBid4AssetsAdapter:
+    """A county's sheriff sales on Bid4Assets storefront pages (a sale-date picker and an
+    "Auctions_grid"). Monroe has one page; Philadelphia has two, mortgage and tax foreclosures."""
     BASE_URL = "https://www.bid4assets.com/monroecountysheriffsales"
+    COUNTY = "Monroe"
     HEADERS = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -75,26 +79,34 @@ class MonroeBid4AssetsAdapter:
             return "sold"
         return normalized or "unknown"
 
+    def __init__(self, county: str | None = None, pages: list[str] | None = None) -> None:
+        self.county = county or self.COUNTY
+        self.pages = pages or [self.BASE_URL]
+
     async def fetch(self) -> list[RawSheriffSale]:
         async with httpx.AsyncClient(
             headers=self.HEADERS,
             timeout=60,
             follow_redirects=True,
         ) as client:
-            initial = await client.get(self.BASE_URL)
-            initial.raise_for_status()
-            dates = self._sale_dates(initial.text) or [datetime.now().strftime("%Y%m%d")]
-
             rows_by_id: dict[int, dict] = {}
-            for sale_date in dates:
-                response = await client.get(self.BASE_URL, params={"salesdate": sale_date})
-                response.raise_for_status()
-                for row in self._grid_rows(response.text):
-                    rows_by_id[int(row["AuctionID"])] = row
+            for page in self.pages:
+                initial = await client.get(page)
+                initial.raise_for_status()
+                dates = self._sale_dates(initial.text) or [datetime.now().strftime("%Y%m%d")]
+                for sale_date in dates:
+                    response = await client.get(page, params={"salesdate": sale_date})
+                    response.raise_for_status()
+                    for row in self._grid_rows(response.text):
+                        rows_by_id[int(row["AuctionID"])] = row
 
             semaphore = asyncio.Semaphore(8)
 
             async def enrich(row: dict) -> tuple[dict, str | None]:
+                # A grid address that already ends in "PA <ZIP>" needs no detail page; Philadelphia
+                # lists ~1,600 auctions and Bid4Assets refuses that many detail requests (403).
+                if re.search(r"\bPA\s+\d{5}\s*$", str(row.get("Address") or "")):
+                    return row, None
                 async with semaphore:
                     response = await client.get(
                         f"https://www.bid4assets.com/auction/{row['AuctionID']}"
@@ -110,13 +122,15 @@ class MonroeBid4AssetsAdapter:
             sale_date = datetime.fromisoformat(row["SaleDate"])
             debt = row.get("DebtAmount")
             records.append(RawSheriffSale(
-                county="Monroe",
+                county=self.county,
                 state="PA",
                 sheriff_number=str(row.get("SheriffNumber") or row.get("CourtCase") or auction_id),
                 address=detail_address or str(row.get("Address") or ""),
                 sale_date=sale_date,
                 status=self._status(str(row.get("AuctionStatusString") or "")),
-                upset_price=None,
+                # The plaintiff's attorney sets the minimum bid (Philadelphia flags it).
+                upset_price=(Decimal(str(row["MinimumBid"])) if row.get("AttorneyHasSetMinBid")
+                             and row.get("MinimumBid") is not None else None),
                 source_url=f"https://www.bid4assets.com/auction/{auction_id}",
                 raw_payload={
                     "auction_id": auction_id,

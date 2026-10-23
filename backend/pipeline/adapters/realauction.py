@@ -22,8 +22,9 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleW
 TOKENS = {"@A": '<div class="', "@B": "</div>", "@C": 'class="', "@D": "<tr><td", "@E": "AUCTION",
           "@F": "</td><td", "@G": "</td></tr>", "@H": '<span class="', "@I": "table", "@J": "</span>"}
 DAY = re.compile(r"""dayid='(\d{2}/\d{2}/\d{4})'(.*?)(?=<div[^>]*class='CALBOX|\Z)""", re.S)
-# Sites expand the tokens differently, so match rows by their label/data classes.
-FIELD = re.compile(r'AD_LBL"[^>]*>(.*?)</t[dh]>\s*<td[^>]*AD_DTA[^>]*>(.*?)</td>', re.S)
+# Sites expand the tokens differently, so match rows by their label/data classes; most lay
+# them out as table cells, Orange (FL) as divs.
+FIELD = re.compile(r'AD_LBL"[^>]*>(.*?)</(?:t[dh]|div)>\s*<(?:td|div)[^>]*AD_DTA[^>]*>(.*?)</(?:td|div)>', re.S)
 
 
 def decode(html):

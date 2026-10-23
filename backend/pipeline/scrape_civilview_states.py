@@ -20,7 +20,9 @@ PARSER_VERSION = "civilview_listing_v1"
 # precinct and the sheriff separately.
 COUNTIES = {
     ("DE", "New Castle"): [24], ("DE", "Kent"): [4], ("DE", "Sussex"): [12],
-    ("PA", "Philadelphia"): [60], ("PA", "Montgomery"): [23], ("PA", "Lehigh"): [51],
+    # Philadelphia is collected from its Bid4Assets storefronts (scrape_pa_sale_listing): its
+    # CivilView details dropped the session and stalled the weekly refresh for hours.
+    ("PA", "Montgomery"): [23], ("PA", "Lehigh"): [51],
     ("IL", "Lake"): [58], ("IL", "Champaign"): [42],
     ("GA", "Coweta"): [92],
     ("TX", "Dallas"): [93, 94, 95, 96, 97], ("TX", "Guadalupe"): [86, 87, 88, 89, 90],
