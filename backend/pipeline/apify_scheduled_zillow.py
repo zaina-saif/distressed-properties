@@ -215,6 +215,18 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
             # Normalized addresses sometimes split multi-word towns ("West New, York");
             # Zillow's free-text search matches better without the commas.
             row["input_address"] = first_pass_address(row)
+    if only_missing and not retry_unmatched and manifest:
+        # A property Zillow already failed to match on this same address is not sent again
+        # (it would cost a lookup every week); a corrected or newly geocoded address is.
+        with engine.connect() as connection:
+            failed = {(str(property_id), " ".join((address or "").lower().split())) for property_id, address in
+                      connection.execute(text("""SELECT property_id, submitted_address FROM apify_zillow_results
+                          WHERE is_current AND match_status='no_match' AND property_id = ANY(CAST(:ids AS uuid[]))"""),
+                          {"ids": sorted({r["property_id"] for r in manifest})})}
+        before = len(manifest)
+        manifest = [row for row in manifest
+                    if (row["property_id"], " ".join(row["input_address"].lower().split())) not in failed]
+        print(json.dumps({"skipped_failed_before": before - len(manifest)}), flush=True)
     if any(not row["input_address"] for row in manifest):
         raise RuntimeError("Blank input address; review manifest before submitting.")
     save("manifest.json", manifest)
