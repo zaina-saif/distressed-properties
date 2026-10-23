@@ -1,0 +1,377 @@
+{
+ "source_system": "tx_tarrant_constable_tax_sale",
+ "state": "TX",
+ "county": "Tarrant",
+ "source_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings.html",
+ "scraped_at": "2026-10-23T14:13:44.767818+00:00",
+ "parser_version": "tx_tarrant_constable3_tax_sales_v1",
+ "sales": [
+  {
+   "cause": "D46109-25",
+   "account": "00500151",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "5433 DIAZ AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D39264-23",
+   "account": "00515140",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "5128 HELMICK AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D44599-24",
+   "account": "00518239",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "5823 BONNELL AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D37745-23",
+   "account": "00862274",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "704 CHELTENHAM DR",
+   "city": "Everman"
+  },
+  {
+   "cause": "D39821-24",
+   "account": "01082043",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "1810 MC CURDY ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D40891-24",
+   "account": "01178849",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "5501 COMO DR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D45131-24",
+   "account": "01775979",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "3633 PATE DR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D45806-25",
+   "account": "02192128",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "1649 JASON CT",
+   "city": "Pelican Bay"
+  },
+  {
+   "cause": "D46251-25",
+   "account": "02667452",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "5805 BAYLOR ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D38832-23",
+   "account": "02902095",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "3417 GORDON AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D46079-25",
+   "account": "04689666",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "1812 S MAIN ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D39264-23",
+   "account": "04690435",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "2808 AVE L",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D46556-25",
+   "account": "06215378",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "821 VICKSBURG LN",
+   "city": "Burleson"
+  },
+  {
+   "cause": "D39369-23",
+   "account": "1460412",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "6211 SHADYDELL DR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D49875-25",
+   "account": "40971198",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "1333 CAMDEN YARD DR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D43975-24",
+   "account": "42338547",
+   "status": "For Sale",
+   "sale_date": "2026-11-03",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html",
+   "street": "6916 CRUISER LN",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D48106-25",
+   "account": "00364126",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "2514 MIRIAM LN",
+   "city": "Arlington"
+  },
+  {
+   "cause": "D40995-24",
+   "account": "00497592",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "4916 BONNELL AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D35393-23",
+   "account": "00509922",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "5412 BLACKMORE AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D43913-24",
+   "account": "00542814",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "4124 HAWLET ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D48329-25",
+   "account": "00800325",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "33 YORK DR",
+   "city": "Edgecliff Village"
+  },
+  {
+   "cause": "D48391-25",
+   "account": "01049852",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "1105 ZELDA DR",
+   "city": "Hurst"
+  },
+  {
+   "cause": "D42900-24",
+   "account": "01911767",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "1616 GOULD AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D43210-24",
+   "account": "01988395",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "5210 MANSFIELD HWY",
+   "city": "Forest Hill"
+  },
+  {
+   "cause": "D43210-24",
+   "account": "01988409",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "5210 MANSFIELD HWY",
+   "city": "Forest Hill"
+  },
+  {
+   "cause": "D33636-22",
+   "account": "02493063",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "2152 RIDGEVIEW ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D27210-21",
+   "account": "02629631",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "3721 LEBOW ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D40288-24",
+   "account": "02782766",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "7028 SMITHFIELD RD",
+   "city": "North Richland Hills"
+  },
+  {
+   "cause": "D43989-24",
+   "account": "02821311",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "3228 S JENNINGS AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D43313-24",
+   "account": "03005550",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "4744 CHINA ROSE DR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D45324-24",
+   "account": "03055876",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "3621 N LITTLEJOHN AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D34880-23",
+   "account": "03280233",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "4224 5TH AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D43662-24",
+   "account": "03287211",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "1111 PINEHURST CT",
+   "city": "Mansfield"
+  },
+  {
+   "cause": "D33636-22",
+   "account": "03676234",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "2236 RIDGEVIEW ST",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D49056-25",
+   "account": "04821947",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "2415 WILDBRIAR DR",
+   "city": "Arlington"
+  },
+  {
+   "cause": "D48107-25",
+   "account": "06052509",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "5401 SUMMIT PEAK DR",
+   "city": "Arlington"
+  },
+  {
+   "cause": "D43700-24",
+   "account": "06431356",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "724 NIGHTINGALE CIR",
+   "city": "Mansfield"
+  },
+  {
+   "cause": "D48391-25",
+   "account": "06883680",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "6750 TRILOBITE TR",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "352337-24",
+   "account": "2529483",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "2704 HANNA AVE",
+   "city": "Fort Worth"
+  },
+  {
+   "cause": "D46335-25",
+   "account": "41310853",
+   "status": "For Sale",
+   "sale_date": "2026-12-01",
+   "list_url": "https://www.tarrantcountytx.gov/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/december-1--2026.html",
+   "street": "9001 NOONTIDE DR",
+   "city": "Fort Worth"
+  }
+ ],
+ "unplaced": [
+  "07044909 (6321 N HIGHLAND CIR, city code 027)",
+  "04066324 (7230 ALLYN DR, city code None)",
+  "00750891 (7215 DARLING ST, city code None)",
+  "00750905 (7223 DARLING ST, city code None)",
+  "07096410 (5555 BONANZA DR, city code 027)"
+ ]
+}

@@ -186,3 +186,16 @@ def test_pima_notice_addresses():
     assert (first["street"], first["city"], first["zip_code"]) == ("1984 West Nava Drive", "Tucson", "85746")
     assert first["sale_date"] == "2026-11-03" and first["judgment"] == 7590.98
     assert (second["street"], second["zip_code"], second["sale_date"]) == ("4698 W. Beeplant Wy", "85741", "2026-12-03")
+
+
+def test_tarrant_monthly_pages_and_rows():
+    from pipeline.scrape_tx_tarrant_tax_sales import accounts_from, month_pages
+
+    index = ('<a href="/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/october-6--2026.html">'
+             '<a href="/en/constables/constable-3/delinquent-tax-sales/monthly-tax-sales-listings/november-3--2026.html">')
+    assert [day for _, day in month_pages(index, date(2026, 10, 23))] == [date(2026, 11, 3)]
+    page = ("<tr><td>CAUSE NUMBER</td><td>ACCOUNT NUMBER</td><td>STATUS</td></tr>"
+            "<tr><td>D37745-23</td><td>00862274</td><td>For Sale</td></tr>"
+            "<tr><td>D37745-23</td><td>60370998</td><td>For Sale Royalty&nbsp; Interest only</td></tr>"
+            "<tr><td>D38909-23</td><td>01645315</td><td>Withdrawn</td></tr>")
+    assert accounts_from(page) == [{"cause": "D37745-23", "account": "00862274", "status": "For Sale"}]

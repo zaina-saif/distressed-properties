@@ -88,6 +88,8 @@ SOURCES = [
      ["pipeline.load_il_county_sheriff_sales", "--county", "Kane"]),
     ("IL Will County sheriff sales", ["pipeline.scrape_il_will_sheriff_sales"],
      ["pipeline.load_il_county_sheriff_sales", "--county", "Will"]),
+    ("TX Tarrant County constable tax sales", ["pipeline.scrape_tx_tarrant_tax_sales"],
+     ["pipeline.load_tx_tarrant_tax_sales"]),
     ("TX Bexar trustee-sale notices", ["pipeline.scrape_bexar_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),
     ("California county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales"], ["pipeline.load_ca_tax_sales"]),
