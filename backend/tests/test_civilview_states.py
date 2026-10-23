@@ -56,3 +56,37 @@ def test_commonly_known_as_in_another_field():
 
 def test_writ_amount_inside_a_value():
     assert amount_after({"Writ": ["Writ Assigned Date: 2/9/2026", "Writ Amount: $220,143.88"]}, "Writ Amount") == 220143.88
+
+
+def test_civilview_stops_when_the_site_keeps_dropping_the_session(monkeypatch):
+    import pytest
+
+    from pipeline.adapters import civilview_listing
+
+    links = "".join(f'<a href="/Sales/SaleDetails?PropertyId={n}">x</a>' for n in range(50))
+
+    class Page:
+        text = f"Sales Listing {links}"
+
+        def raise_for_status(self):
+            pass
+
+    class Client:
+        def __init__(self, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def get(self, url):
+            return Page()
+
+    calls = []
+    monkeypatch.setattr(civilview_listing.httpx, "Client", Client)
+    monkeypatch.setattr(civilview_listing.CivilViewListingAdapter, "_detail", lambda self, client, link: calls.append(link))
+    with pytest.raises(RuntimeError, match="stopped serving details"):
+        civilview_listing.CivilViewListingAdapter(60).fetch()
+    assert len(calls) == 3  # gave up after three failures in a row, not after all 50

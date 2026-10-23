@@ -66,12 +66,18 @@ class CivilViewListingAdapter:
             if "Sales Listing" not in page.text and "SalesSearch" not in page.text:
                 raise RuntimeError("CivilView search page not recognised")
             links = detail_links(page.text)
-            missing = []
+            missing, in_a_row = [], 0
             for link in links:
                 html = self._detail(client, link)
                 if html is None:
                     missing.append(link)
+                    in_a_row += 1
+                    # Three in a row even after reloading the search page: the site has stopped
+                    # serving this session, and retrying every remaining listing takes hours.
+                    if in_a_row >= 3:
+                        raise RuntimeError(f"CivilView stopped serving details after {len(records)} of {len(links)}")
                     continue
+                in_a_row = 0
                 fields, history = parse_detail(html)
                 records.append({"detail_url": BASE + link, "fields": fields, "status_history": history})
         # A listing can be withdrawn between the search page and its details;

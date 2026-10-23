@@ -95,6 +95,11 @@ SOURCES = [
 # pages drop a sale without a result (Orange's page is no longer reachable at all).
 UNRETIRED_SOURCES = ("ny_court_foreclosure_auction", "ny_county_official")
 BACKEND = Path(__file__).resolve().parents[1]
+# One source may not use the whole run: Philadelphia's CivilView details once retried for
+# hours after the site dropped the session, and the workflow's 4-hour limit cancelled
+# every Monday run in the scrape stage. A source over this is stopped, reported, and
+# keeps its previous snapshot.
+SOURCE_TIMEOUT_SECONDS = 40 * 60
 DEFAULT_RUN_ROOT = BACKEND.parent / ".local" / "multistate-refresh"
 
 
@@ -159,8 +164,14 @@ class Refresh:
         with self.log_path.open("a", encoding="utf-8") as log:
             log.write(f"\n===== {stage}: {name}: {' '.join(module_args)}\n")
             log.flush()
-            result = subprocess.run([sys.executable, "-m", *module_args], cwd=BACKEND,
-                                    stdout=log, stderr=subprocess.STDOUT, env=os.environ.copy())
+            try:
+                result = subprocess.run([sys.executable, "-m", *module_args], cwd=BACKEND, stdout=log,
+                                        stderr=subprocess.STDOUT, env=os.environ.copy(), timeout=SOURCE_TIMEOUT_SECONDS)
+            except subprocess.TimeoutExpired:
+                log.write(f"\n[{stage}] {name}: stopped after {SOURCE_TIMEOUT_SECONDS // 60} minutes\n")
+                self.report["failures"].append({"stage": stage, "item": name, "error": "timed out"})
+                print(f"  ! {stage} {name}: timed out after {SOURCE_TIMEOUT_SECONDS // 60} minutes", flush=True)
+                return False
         if result.returncode:
             self.report["failures"].append({"stage": stage, "item": name, "exit_code": result.returncode})
             print(f"  ! {stage} {name}: exit {result.returncode}", flush=True)
