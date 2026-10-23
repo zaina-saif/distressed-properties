@@ -128,3 +128,37 @@ def test_dekalb_rows_skip_owner_tenant_and_defendant():
     parcel = parcel_from(listed[0], place)
     assert parcel["sale_date"] == "2026-11-03" and parcel["starting_bid"] == 7210.66 and parcel["city"] == "Ellenwood"
     assert parcel_from(listed[0], None)["matched_by"] is None
+
+
+def test_kane_and_will_lists():
+    from pipeline.scrape_il_kane_sheriff_sales import sales_from as kane_sales, split_town
+    from pipeline.scrape_il_will_sheriff_sales import sales_from as will_sales
+
+    assert split_town("278 B WHITFIELD DR Sugar Grove") == ("278 B WHITFIELD DR", "Sugar Grove")
+    assert split_town("703 S 7TH AVE St Charles") == ("703 S 7TH AVE", "St. Charles")
+    assert split_town("12 MAIN ST South Elgin") == ("12 MAIN ST", "South Elgin")
+    text = "11/5/2026 25FC627 26SCH198 560 BIRD STREET Elgin 37,794.99 1/2/2020 20FC1 20SCH1 1 OLD RD Aurora 1.00"
+    sales = kane_sales(text, date(2026, 10, 23))
+    assert [s["sheriff_number"] for s in sales] == ["26SCH198"] and sales[0]["judgment"] == 37794.99
+    page = ("<tr><td>25 FC 1342-0</td><td>2069 Sunrise Cir</td><td>AURORA</td><td>11-05-2026</td><td>181,300.00</td></tr>"
+            "<tr><td>25 FC 0821-0</td><td>455 Greenbriar Dr</td><td>Crete</td><td>11-05-2026</td><td>0.00</td></tr>")
+    will = will_sales(page, date(2026, 10, 23))
+    assert will[0]["opening_bid"] is None and will[1]["opening_bid"] == 181300.0 and will[1]["city"] == "Aurora"
+
+
+def test_delaware_rows_by_position_skip_names():
+    from pipeline.scrape_pa_delaware_sheriff_sales import rows_from
+
+    lines = [(1, 78, [(40, "1."), (212, "Yeadon"), (406, "24-002351"), (487, "SOMEONE NAMED"), (705, "$38,491.35"),
+                      (808, "Parker McCay PA")]),
+             (1, 93, [(212, "910 W Cobbs Creek Parkway,,"), (705, "$3,849.14")]),
+             (1, 108, [(40, "CONTINUED TO DECEMBER 18 2026 (1/30)")]),
+             (1, 135, [(40, "2."), (212, "Upper Darby Twp."), (406, "26-001704"), (487, "OTHER NAME"),
+                       (705, "$143,512.78"), (808, "Purcell Krug & Haller")]),
+             (1, 147, [(212, "5138 Whitehall Drive,")]),
+             (1, 160, [(40, "STAYED")])]
+    rows = rows_from(lines, date(2026, 11, 20))
+    assert "NAME" not in str(rows)
+    assert rows[0]["street"] == "910 W Cobbs Creek Parkway" and rows[0]["sale_date"] == date(2026, 12, 18)
+    assert rows[0]["status"] == "scheduled" and rows[0]["debt"] == 38491.35
+    assert rows[1]["city"] == "Upper Darby" and rows[1]["status"] == "stayed"

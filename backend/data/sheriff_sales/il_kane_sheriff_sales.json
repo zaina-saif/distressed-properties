@@ -1,0 +1,632 @@
+{
+ "source_system": "il_county_sheriff_sale",
+ "state": "IL",
+ "county": "Kane",
+ "source_url": "https://applications.kanecountyil.gov/foreclosures/foreclosures.pdf",
+ "posted": "10/23/2026",
+ "scraped_at": "2026-10-23T13:46:29.330649+00:00",
+ "parser_version": "il_kane_sheriff_foreclosures_v1",
+ "sales": [
+  {
+   "sheriff_number": "26SCH111",
+   "chancery_number": "25FC458",
+   "sale_date": "2026-11-05",
+   "street": "323 LAKE GILLILAN WAY",
+   "city": "Algonquin",
+   "address_as_listed": "323 LAKE GILLILAN WAY Algonquin",
+   "judgment": 276538.23
+  },
+  {
+   "sheriff_number": "26SCH118",
+   "chancery_number": "25FC669",
+   "sale_date": "2026-11-05",
+   "street": "333 GRANT PL",
+   "city": "Aurora",
+   "address_as_listed": "333 GRANT PL Aurora",
+   "judgment": 48375.07
+  },
+  {
+   "sheriff_number": "26SCH126",
+   "chancery_number": "26FC094",
+   "sale_date": "2026-11-05",
+   "street": "923 SARATOGA PKWY",
+   "city": "Sleepy Hollow",
+   "address_as_listed": "923 SARATOGA PKWY Sleepy Hollow",
+   "judgment": 407946.09
+  },
+  {
+   "sheriff_number": "26SCH135",
+   "chancery_number": "26FC082",
+   "sale_date": "2026-11-05",
+   "street": "703 S 7TH AVE",
+   "city": "St. Charles",
+   "address_as_listed": "703 S 7TH AVE St Charles",
+   "judgment": 232544.9
+  },
+  {
+   "sheriff_number": "26SCH150",
+   "chancery_number": "26FC140",
+   "sale_date": "2026-11-05",
+   "street": "731 WESTFIELD DR",
+   "city": "St. Charles",
+   "address_as_listed": "731 WESTFIELD DR St Charles",
+   "judgment": 223356.01
+  },
+  {
+   "sheriff_number": "26SCH154",
+   "chancery_number": "25FC396",
+   "sale_date": "2026-11-05",
+   "street": "889 VAN ST.",
+   "city": "Elgin",
+   "address_as_listed": "889 VAN ST. Elgin",
+   "judgment": 178604.3
+  },
+  {
+   "sheriff_number": "26SCH157",
+   "chancery_number": "25FC432",
+   "sale_date": "2026-11-05",
+   "street": "210 N. KENDALL ST.",
+   "city": "Aurora",
+   "address_as_listed": "210 N. KENDALL ST. Aurora",
+   "judgment": 220547.87
+  },
+  {
+   "sheriff_number": "26SCH161",
+   "chancery_number": "26FC096",
+   "sale_date": "2026-11-05",
+   "street": "8N032 FALCONS TRL",
+   "city": "St. Charles",
+   "address_as_listed": "8N032 FALCONS TRL St Charles",
+   "judgment": 225959.25
+  },
+  {
+   "sheriff_number": "26SCH167",
+   "chancery_number": "23FC168",
+   "sale_date": "2026-11-05",
+   "street": "43W690 OLD MIDLOTHIAN TURNPIKE",
+   "city": "Elburn",
+   "address_as_listed": "43W690 OLD MIDLOTHIAN TURNPIKE Elburn",
+   "judgment": 1029259.87
+  },
+  {
+   "sheriff_number": "26SCH172",
+   "chancery_number": "25FC264",
+   "sale_date": "2026-11-05",
+   "street": "64 DUNHAM PLACE",
+   "city": "St. Charles",
+   "address_as_listed": "64 DUNHAM PLACE St Charles",
+   "judgment": 397168.22
+  },
+  {
+   "sheriff_number": "26SCH176",
+   "chancery_number": "25FC576",
+   "sale_date": "2026-11-05",
+   "street": "1222 McDonald Ave.",
+   "city": "Aurora",
+   "address_as_listed": "1222 McDonald Ave. Aurora",
+   "judgment": 139988.18
+  },
+  {
+   "sheriff_number": "26SCH184",
+   "chancery_number": "25FC497",
+   "sale_date": "2026-11-05",
+   "street": "375 DOUGLAS RD",
+   "city": "Batavia",
+   "address_as_listed": "375 DOUGLAS RD Batavia",
+   "judgment": 312263.27
+  },
+  {
+   "sheriff_number": "26SCH185",
+   "chancery_number": "25FC128",
+   "sale_date": "2026-11-05",
+   "street": "430 PRAIRIE ST",
+   "city": "Elgin",
+   "address_as_listed": "430 PRAIRIE ST Elgin",
+   "judgment": 126427.11
+  },
+  {
+   "sheriff_number": "26SCH186",
+   "chancery_number": "23FC065",
+   "sale_date": "2026-11-05",
+   "street": "1323 SUPERIOR STREET",
+   "city": "Aurora",
+   "address_as_listed": "1323 SUPERIOR STREET Aurora",
+   "judgment": 145916.63
+  },
+  {
+   "sheriff_number": "26SCH187",
+   "chancery_number": "24FC519",
+   "sale_date": "2026-11-05",
+   "street": "1150 SYMPHONY DRIVE",
+   "city": "Aurora",
+   "address_as_listed": "1150 SYMPHONY DRIVE Aurora",
+   "judgment": 333137.89
+  },
+  {
+   "sheriff_number": "26SCH188",
+   "chancery_number": "24FC480",
+   "sale_date": "2026-11-05",
+   "street": "278 B WHITFIELD DR",
+   "city": "Sugar Grove",
+   "address_as_listed": "278 B WHITFIELD DR Sugar Grove",
+   "judgment": 139571.77
+  },
+  {
+   "sheriff_number": "26SCH197",
+   "chancery_number": "25FC307",
+   "sale_date": "2026-11-05",
+   "street": "40W913 TROTTER LN",
+   "city": "St. Charles",
+   "address_as_listed": "40W913 TROTTER LN St Charles",
+   "judgment": 902983.35
+  },
+  {
+   "sheriff_number": "26SCH198",
+   "chancery_number": "25FC627",
+   "sale_date": "2026-11-05",
+   "street": "560 BIRD STREET",
+   "city": "Elgin",
+   "address_as_listed": "560 BIRD STREET Elgin",
+   "judgment": 37794.99
+  },
+  {
+   "sheriff_number": "26SCH146",
+   "chancery_number": "26FC167",
+   "sale_date": "2026-11-19",
+   "street": "724 GRAND AVE",
+   "city": "Aurora",
+   "address_as_listed": "724 GRAND AVE Aurora",
+   "judgment": 79004.79
+  },
+  {
+   "sheriff_number": "26SCH169",
+   "chancery_number": "26FC095",
+   "sale_date": "2026-11-19",
+   "street": "1007 OLIVER AVE",
+   "city": "Aurora",
+   "address_as_listed": "1007 OLIVER AVE Aurora",
+   "judgment": 240419.72
+  },
+  {
+   "sheriff_number": "26SCH170",
+   "chancery_number": "25FC609",
+   "sale_date": "2026-11-19",
+   "street": "322 WESTGATE DR",
+   "city": "Aurora",
+   "address_as_listed": "322 WESTGATE DR Aurora",
+   "judgment": 181051.63
+  },
+  {
+   "sheriff_number": "26SCH173",
+   "chancery_number": "26FC189",
+   "sale_date": "2026-11-19",
+   "street": "1326 VERONA RIDGE DR",
+   "city": "Aurora",
+   "address_as_listed": "1326 VERONA RIDGE DR Aurora",
+   "judgment": 432709.37
+  },
+  {
+   "sheriff_number": "26SCH177",
+   "chancery_number": "25FC209",
+   "sale_date": "2026-11-19",
+   "street": "7N018 IRVING AVENUE",
+   "city": "St. Charles",
+   "address_as_listed": "7N018 IRVING AVENUE St Charles",
+   "judgment": 221967.84
+  },
+  {
+   "sheriff_number": "26SCH178",
+   "chancery_number": "25FC367",
+   "sale_date": "2026-11-19",
+   "street": "1430 JERICHO RD",
+   "city": "Aurora",
+   "address_as_listed": "1430 JERICHO RD Aurora",
+   "judgment": 253549.19
+  },
+  {
+   "sheriff_number": "26SCH179",
+   "chancery_number": "25FC659",
+   "sale_date": "2026-11-19",
+   "street": "1639 RAVINE LN",
+   "city": "Carpentersville",
+   "address_as_listed": "1639 RAVINE LN Carpentersville",
+   "judgment": 143767.18
+  },
+  {
+   "sheriff_number": "26SCH214",
+   "chancery_number": "25FC508",
+   "sale_date": "2026-11-19",
+   "street": "1125 LINDENWOOD DRIVE",
+   "city": "Aurora",
+   "address_as_listed": "1125 LINDENWOOD DRIVE Aurora",
+   "judgment": 152918.1
+  },
+  {
+   "sheriff_number": "26SCH159",
+   "chancery_number": "25FC353",
+   "sale_date": "2026-12-03",
+   "street": "6008 BREEZELAND COURT",
+   "city": "Carpentersville",
+   "address_as_listed": "6008 BREEZELAND COURT Carpentersville",
+   "judgment": 505451.65
+  },
+  {
+   "sheriff_number": "26SCH160",
+   "chancery_number": "26FC038",
+   "sale_date": "2026-12-03",
+   "street": "411 SOUTH STREET",
+   "city": "West Dundee",
+   "address_as_listed": "411 SOUTH STREET West Dundee",
+   "judgment": 132678.3
+  },
+  {
+   "sheriff_number": "26SCH164",
+   "chancery_number": "26FC201",
+   "sale_date": "2026-12-03",
+   "street": "105 S. ALDINE AVE.",
+   "city": "Elgin",
+   "address_as_listed": "105 S. ALDINE AVE. Elgin",
+   "judgment": 111116.74
+  },
+  {
+   "sheriff_number": "26SCH171",
+   "chancery_number": "25FC547",
+   "sale_date": "2026-12-03",
+   "street": "2328 ARROW ST",
+   "city": "Carpentersville",
+   "address_as_listed": "2328 ARROW ST Carpentersville",
+   "judgment": 60012.0
+  },
+  {
+   "sheriff_number": "26SCH183",
+   "chancery_number": "25FC106",
+   "sale_date": "2026-12-03",
+   "street": "406 JUNIPER DR",
+   "city": "North Aurora",
+   "address_as_listed": "406 JUNIPER DR North Aurora",
+   "judgment": 337363.71
+  },
+  {
+   "sheriff_number": "26SCH202",
+   "chancery_number": "19CH676",
+   "sale_date": "2026-12-03",
+   "street": "1460 KINGS ROAD",
+   "city": "Carpentersville",
+   "address_as_listed": "1460 KINGS ROAD Carpentersville",
+   "judgment": 310766.41
+  },
+  {
+   "sheriff_number": "26SCH203",
+   "chancery_number": "25FC427",
+   "sale_date": "2026-12-03",
+   "street": "1154 GOLDEN OAKS PARKWAY",
+   "city": "Aurora",
+   "address_as_listed": "1154 GOLDEN OAKS PARKWAY Aurora",
+   "judgment": 295844.95
+  },
+  {
+   "sheriff_number": "26SCH206",
+   "chancery_number": "25FC614",
+   "sale_date": "2026-12-03",
+   "street": "38W460 BURR OAK LN",
+   "city": "St. Charles",
+   "address_as_listed": "38W460 BURR OAK LN St Charles",
+   "judgment": 349466.59
+  },
+  {
+   "sheriff_number": "26SCH213",
+   "chancery_number": "26FC348",
+   "sale_date": "2026-12-03",
+   "street": "1008 SOUTH ST",
+   "city": "Elgin",
+   "address_as_listed": "1008 SOUTH ST Elgin",
+   "judgment": 280073.6
+  },
+  {
+   "sheriff_number": "26SCH215",
+   "chancery_number": "24FC433",
+   "sale_date": "2026-12-03",
+   "street": "2600 HEARTHSTONE DRIVE",
+   "city": "Hampshire",
+   "address_as_listed": "2600 HEARTHSTONE DRIVE Hampshire",
+   "judgment": 215047.64
+  },
+  {
+   "sheriff_number": "26SCH103",
+   "chancery_number": "25FC413",
+   "sale_date": "2026-12-17",
+   "street": "684 JEFFERSON AVENUE",
+   "city": "Elgin",
+   "address_as_listed": "684 JEFFERSON AVENUE Elgin",
+   "judgment": 112859.32
+  },
+  {
+   "sheriff_number": "26SCH153",
+   "chancery_number": "25FC347",
+   "sale_date": "2026-12-17",
+   "street": "500 LATHEM STREET",
+   "city": "Batavia",
+   "address_as_listed": "500 LATHEM STREET Batavia",
+   "judgment": 383225.64
+  },
+  {
+   "sheriff_number": "26SCH165",
+   "chancery_number": "26FC218",
+   "sale_date": "2026-12-17",
+   "street": "44 ASH ST.",
+   "city": "Carpentersville",
+   "address_as_listed": "44 ASH ST. Carpentersville",
+   "judgment": 175769.04
+  },
+  {
+   "sheriff_number": "26SCH175",
+   "chancery_number": "26FC203",
+   "sale_date": "2026-12-17",
+   "street": "450 VILLA ST.",
+   "city": "Elgin",
+   "address_as_listed": "450 VILLA ST. Elgin",
+   "judgment": 181330.19
+  },
+  {
+   "sheriff_number": "26SCH181",
+   "chancery_number": "25FC671",
+   "sale_date": "2026-12-17",
+   "street": "761 VERDE VISTA CT #611F",
+   "city": "Elgin",
+   "address_as_listed": "761 VERDE VISTA CT #611F Elgin",
+   "judgment": 310917.36
+  },
+  {
+   "sheriff_number": "26SCH189",
+   "chancery_number": "23FC486",
+   "sale_date": "2026-12-17",
+   "street": "2379 BIRD LANE",
+   "city": "Batavia",
+   "address_as_listed": "2379 BIRD LANE Batavia",
+   "judgment": 661677.91
+  },
+  {
+   "sheriff_number": "26SCH190",
+   "chancery_number": "26FC219",
+   "sale_date": "2026-12-17",
+   "street": "361 WELLINGTON AVE",
+   "city": "Elgin",
+   "address_as_listed": "361 WELLINGTON AVE Elgin",
+   "judgment": 42595.36
+  },
+  {
+   "sheriff_number": "26SCH192",
+   "chancery_number": "22FC436",
+   "sale_date": "2026-12-17",
+   "street": "1403 INDIAN LANE",
+   "city": "Carpentersville",
+   "address_as_listed": "1403 INDIAN LANE Carpentersville",
+   "judgment": 171582.36
+  },
+  {
+   "sheriff_number": "26SCH199",
+   "chancery_number": "26FC066",
+   "sale_date": "2026-12-17",
+   "street": "672 VILLA STREET",
+   "city": "Elgin",
+   "address_as_listed": "672 VILLA STREET Elgin",
+   "judgment": 63573.65
+  },
+  {
+   "sheriff_number": "26SCH204",
+   "chancery_number": "26FC151",
+   "sale_date": "2026-12-17",
+   "street": "722 STONEGATE",
+   "city": "Hampshire",
+   "address_as_listed": "722 STONEGATE Hampshire",
+   "judgment": 293097.43
+  },
+  {
+   "sheriff_number": "26SCH205",
+   "chancery_number": "25FC125",
+   "sale_date": "2026-12-17",
+   "street": "324 SPRING POINT DR",
+   "city": "Carpentersville",
+   "address_as_listed": "324 SPRING POINT DR Carpentersville",
+   "judgment": 131688.1
+  },
+  {
+   "sheriff_number": "26SCH211",
+   "chancery_number": "25FC098",
+   "sale_date": "2026-12-17",
+   "street": "1331 SIMMS ST",
+   "city": "Aurora",
+   "address_as_listed": "1331 SIMMS ST Aurora",
+   "judgment": 147566.57
+  },
+  {
+   "sheriff_number": "26SCH180",
+   "chancery_number": "26FC290",
+   "sale_date": "2027-01-07",
+   "street": "849 ASHBURY BLVD",
+   "city": "South Elgin",
+   "address_as_listed": "849 ASHBURY BLVD South Elgin",
+   "judgment": 549545.18
+  },
+  {
+   "sheriff_number": "26SCH191",
+   "chancery_number": "25FC645",
+   "sale_date": "2027-01-07",
+   "street": "1083 CASCADE DR",
+   "city": "Aurora",
+   "address_as_listed": "1083 CASCADE DR Aurora",
+   "judgment": 150222.31
+  },
+  {
+   "sheriff_number": "26SCH194",
+   "chancery_number": "25FC388",
+   "sale_date": "2027-01-07",
+   "street": "309 HICKORY ST",
+   "city": "North Aurora",
+   "address_as_listed": "309 HICKORY ST North Aurora",
+   "judgment": 165822.84
+  },
+  {
+   "sheriff_number": "26SCH195",
+   "chancery_number": "25FC573",
+   "sale_date": "2027-01-07",
+   "street": "523 S KENDALL ST",
+   "city": "Aurora",
+   "address_as_listed": "523 S KENDALL ST Aurora",
+   "judgment": 62975.75
+  },
+  {
+   "sheriff_number": "26SCH196",
+   "chancery_number": "25FC341",
+   "sale_date": "2027-01-07",
+   "street": "726 HILLCREST DR",
+   "city": "Sleepy Hollow",
+   "address_as_listed": "726 HILLCREST DR Sleepy Hollow",
+   "judgment": 361843.07
+  },
+  {
+   "sheriff_number": "26SCH210",
+   "chancery_number": "26FC282",
+   "sale_date": "2027-01-07",
+   "street": "5N875 MILLSTONE DR",
+   "city": "St. Charles",
+   "address_as_listed": "5N875 MILLSTONE DR St Charles",
+   "judgment": 419704.14
+  },
+  {
+   "sheriff_number": "26SCH216",
+   "chancery_number": "26FC229",
+   "sale_date": "2027-01-07",
+   "street": "223 GRAND AVE",
+   "city": "Aurora",
+   "address_as_listed": "223 GRAND AVE Aurora",
+   "judgment": 28649.74
+  },
+  {
+   "sheriff_number": "26SCH217",
+   "chancery_number": "25FC679",
+   "sale_date": "2027-01-07",
+   "street": "35W950 SOUTH ST",
+   "city": "Elgin",
+   "address_as_listed": "35W950 SOUTH ST Elgin",
+   "judgment": 182957.04
+  },
+  {
+   "sheriff_number": "26SCH218",
+   "chancery_number": "26FC037",
+   "sale_date": "2027-01-07",
+   "street": "347 SUTTON CT",
+   "city": "Sugar Grove",
+   "address_as_listed": "347 SUTTON CT Sugar Grove",
+   "judgment": 123817.6
+  },
+  {
+   "sheriff_number": "26SCH219",
+   "chancery_number": "26FC191",
+   "sale_date": "2027-01-07",
+   "street": "1931 CHARLES LN",
+   "city": "Aurora",
+   "address_as_listed": "1931 CHARLES LN Aurora",
+   "judgment": 228968.39
+  },
+  {
+   "sheriff_number": "26SCH182",
+   "chancery_number": "26FC022",
+   "sale_date": "2027-01-21",
+   "street": "2132 FESCUE DR",
+   "city": "Aurora",
+   "address_as_listed": "2132 FESCUE DR Aurora",
+   "judgment": 323522.69
+  },
+  {
+   "sheriff_number": "26SCH193",
+   "chancery_number": "26FC133",
+   "sale_date": "2027-01-21",
+   "street": "117 HILL AVE",
+   "city": "Elgin",
+   "address_as_listed": "117 HILL AVE Elgin",
+   "judgment": 184192.49
+  },
+  {
+   "sheriff_number": "26SCH200",
+   "chancery_number": "26FC281",
+   "sale_date": "2027-01-21",
+   "street": "1031 SYMPHONY DRIVE",
+   "city": "Aurora",
+   "address_as_listed": "1031 SYMPHONY DRIVE Aurora",
+   "judgment": 132885.85
+  },
+  {
+   "sheriff_number": "26SCH209",
+   "chancery_number": "26FC311",
+   "sale_date": "2027-01-21",
+   "street": "751 N RANDALL RD APT D",
+   "city": "Aurora",
+   "address_as_listed": "751 N RANDALL RD APT D Aurora",
+   "judgment": 159106.25
+  },
+  {
+   "sheriff_number": "26SCH220",
+   "chancery_number": "23FC178",
+   "sale_date": "2027-01-21",
+   "street": "47W398 INDIAN CREEK TRL",
+   "city": "Maple Park",
+   "address_as_listed": "47W398 INDIAN CREEK TRL Maple Park",
+   "judgment": 198900.9
+  },
+  {
+   "sheriff_number": "26SCH222",
+   "chancery_number": "26FC240",
+   "sale_date": "2027-01-21",
+   "street": "39W075 DEAN LN",
+   "city": "St. Charles",
+   "address_as_listed": "39W075 DEAN LN St Charles",
+   "judgment": 300302.35
+  },
+  {
+   "sheriff_number": "26SCH223",
+   "chancery_number": "26FC192",
+   "sale_date": "2027-01-21",
+   "street": "1563 SANDCASTLE LN",
+   "city": "Pingree Grove",
+   "address_as_listed": "1563 SANDCASTLE LN Pingree Grove",
+   "judgment": 171037.73
+  },
+  {
+   "sheriff_number": "26SCH207",
+   "chancery_number": "25FC603",
+   "sale_date": "2027-02-04",
+   "street": "2231 LARKSPUR COURT",
+   "city": "Aurora",
+   "address_as_listed": "2231 LARKSPUR COURT Aurora",
+   "judgment": 190618.93
+  },
+  {
+   "sheriff_number": "26SCH208",
+   "chancery_number": "26FC214",
+   "sale_date": "2027-02-04",
+   "street": "561 MORGAN ST",
+   "city": "Elgin",
+   "address_as_listed": "561 MORGAN ST Elgin",
+   "judgment": 80761.84
+  },
+  {
+   "sheriff_number": "26SCH221",
+   "chancery_number": "26FC115",
+   "sale_date": "2027-02-04",
+   "street": "1672 PLUM TREE LN",
+   "city": "Aurora",
+   "address_as_listed": "1672 PLUM TREE LN Aurora",
+   "judgment": 274804.79
+  },
+  {
+   "sheriff_number": "26SCH212",
+   "chancery_number": "26FC307",
+   "sale_date": "2027-03-04",
+   "street": "2358 SOUTH ST UNIT C",
+   "city": "Elgin",
+   "address_as_listed": "2358 SOUTH ST UNIT C Elgin",
+   "judgment": 173347.21
+  }
+ ]
+}

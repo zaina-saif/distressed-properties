@@ -13,6 +13,7 @@ FILES={"Butler":Path("data/sheriff_sales/pa_butler_sheriff_sales.json"),
  "Greene":Path("data/sheriff_sales/pa_greene_sheriff_sales.json"),
  "Lancaster":Path("data/sheriff_sales/pa_lancaster_sheriff_sales.json"),
  "Luzerne":Path("data/sheriff_sales/pa_luzerne_sheriff_sales.json"),
+ "Delaware":Path("data/sheriff_sales/pa_delaware_sheriff_sales.json"),
  "Monroe":Path("data/sheriff_sales/pa_monroe_sheriff_sales.json"),
  "Philadelphia":Path("data/sheriff_sales/pa_philadelphia_sheriff_sales.json"),
  "Susquehanna":Path("data/sheriff_sales/pa_susquehanna_sheriff_sales.json")}

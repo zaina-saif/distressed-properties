@@ -1,0 +1,1050 @@
+{
+ "source_system": "il_county_sheriff_sale",
+ "state": "IL",
+ "county": "Will",
+ "source_url": "https://www.willcosheriff.org/foreclosures/index.php/upcoming-sales",
+ "scraped_at": "2026-10-23T13:48:38.932133+00:00",
+ "parser_version": "il_will_sheriff_upcoming_v1",
+ "sales": [
+  {
+   "sheriff_number": "22 FC 1275-0",
+   "chancery_number": "22 FC 1275-0",
+   "sale_date": "2026-10-29",
+   "street": "3619 Timber Creek Lane",
+   "city": "Naperville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0601-0",
+   "chancery_number": "24 FC 0601-0",
+   "sale_date": "2026-10-29",
+   "street": "138 GUM ST",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0875-0",
+   "chancery_number": "24 FC 0875-0",
+   "sale_date": "2026-10-29",
+   "street": "613 W Park Lane AKA 24118 W Park Lane",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0948-0",
+   "chancery_number": "24 FC 0948-0",
+   "sale_date": "2026-10-29",
+   "street": "4006 Brenton Dr",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0561-0",
+   "chancery_number": "25 FC 0561-0",
+   "sale_date": "2026-10-29",
+   "street": "3132 Jo Ann Drive",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0882-0",
+   "chancery_number": "25 FC 0882-0",
+   "sale_date": "2026-10-29",
+   "street": "7325 Heritage Court #4",
+   "city": "Frankfort",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0900-0",
+   "chancery_number": "25 FC 0900-0",
+   "sale_date": "2026-10-29",
+   "street": "702 Halstead Avenue",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1142-0",
+   "chancery_number": "25 FC 1142-0",
+   "sale_date": "2026-10-29",
+   "street": "141 S DIVISION ST",
+   "city": "Braidwood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1325-0",
+   "chancery_number": "25 FC 1325-0",
+   "sale_date": "2026-10-29",
+   "street": "513 Cowles Avenue",
+   "city": "Joliet",
+   "opening_bid": 146507.53
+  },
+  {
+   "sheriff_number": "25 FC 1356-0",
+   "chancery_number": "25 FC 1356-0",
+   "sale_date": "2026-10-29",
+   "street": "1109 Frederick Street",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0081-0",
+   "chancery_number": "26 FC 0081-0",
+   "sale_date": "2026-10-29",
+   "street": "1565 Baytree Dr",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0121-0",
+   "chancery_number": "26 FC 0121-0",
+   "sale_date": "2026-10-29",
+   "street": "1323 BASSETT CT",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0173-0",
+   "chancery_number": "26 FC 0173-0",
+   "sale_date": "2026-10-29",
+   "street": "1392 MILL STREET",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0189-0",
+   "chancery_number": "26 FC 0189-0",
+   "sale_date": "2026-10-29",
+   "street": "705 N Hickory St",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0246-0",
+   "chancery_number": "26 FC 0246-0",
+   "sale_date": "2026-10-29",
+   "street": "414 S Raynor Ave",
+   "city": "Jolilet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0541-0",
+   "chancery_number": "26 FC 0541-0",
+   "sale_date": "2026-10-29",
+   "street": "108 Earl Ave",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "17 CH 2031-0",
+   "chancery_number": "17 CH 2031-0",
+   "sale_date": "2026-11-05",
+   "street": "3506 Morgan St",
+   "city": "Steger",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "23 FC 0192-0",
+   "chancery_number": "23 FC 0192-0",
+   "sale_date": "2026-11-05",
+   "street": "1005 CONRAD LN.,",
+   "city": "Shorewood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0812-0",
+   "chancery_number": "24 FC 0812-0",
+   "sale_date": "2026-11-05",
+   "street": "640 Aspen St",
+   "city": "Frankfort",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0379-0",
+   "chancery_number": "25 FC 0379-0",
+   "sale_date": "2026-11-05",
+   "street": "24921 Mary Lane",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0821-0",
+   "chancery_number": "25 FC 0821-0",
+   "sale_date": "2026-11-05",
+   "street": "455 Greenbriar Dr",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1109-0",
+   "chancery_number": "25 FC 1109-0",
+   "sale_date": "2026-11-05",
+   "street": "405 S REEDWOOD DR",
+   "city": "Joliet",
+   "opening_bid": 154231.36
+  },
+  {
+   "sheriff_number": "25 FC 1232-0",
+   "chancery_number": "25 FC 1232-0",
+   "sale_date": "2026-11-05",
+   "street": "8645 Cashel Ln.",
+   "city": "Tinley Park",
+   "opening_bid": 212237.63
+  },
+  {
+   "sheriff_number": "26 FC 0323-0",
+   "chancery_number": "26 FC 0323-0",
+   "sale_date": "2026-11-05",
+   "street": "523 Garnsey Ave",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "23 FC 1058-0",
+   "chancery_number": "23 FC 1058-0",
+   "sale_date": "2026-11-12",
+   "street": "909 Thorn Creek Drive",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "23 FC 1156-0",
+   "chancery_number": "23 FC 1156-0",
+   "sale_date": "2026-11-12",
+   "street": "1025 San Mateo Dr",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0314-0",
+   "chancery_number": "24 FC 0314-0",
+   "sale_date": "2026-11-12",
+   "street": "3494 FAIRWAY DR",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0554-0",
+   "chancery_number": "24 FC 0554-0",
+   "sale_date": "2026-11-12",
+   "street": "2508 CANYON VIEW LANE",
+   "city": "Joliet",
+   "opening_bid": 421343.29
+  },
+  {
+   "sheriff_number": "25 FC 0001-0",
+   "chancery_number": "25 FC 0001-0",
+   "sale_date": "2026-11-12",
+   "street": "25200 KNOLL RD",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0105-0",
+   "chancery_number": "25 FC 0105-0",
+   "sale_date": "2026-11-12",
+   "street": "25615 S Parkside Dr",
+   "city": "Channahon",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0244-0",
+   "chancery_number": "25 FC 0244-0",
+   "sale_date": "2026-11-12",
+   "street": "800 Lilac Lane",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0523-0",
+   "chancery_number": "25 FC 0523-0",
+   "sale_date": "2026-11-12",
+   "street": "50 Amanda Ct",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0808-0",
+   "chancery_number": "25 FC 0808-0",
+   "sale_date": "2026-11-12",
+   "street": "725 E Rose Lane",
+   "city": "Godley",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1267-0",
+   "chancery_number": "25 FC 1267-0",
+   "sale_date": "2026-11-12",
+   "street": "730 Geneva Ave",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0156-0",
+   "chancery_number": "26 FC 0156-0",
+   "sale_date": "2026-11-12",
+   "street": "20916 S River Rd",
+   "city": "Shorewood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0161-0",
+   "chancery_number": "26 FC 0161-0",
+   "sale_date": "2026-11-12",
+   "street": "25561 W US Highway 30",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0169-0",
+   "chancery_number": "26 FC 0169-0",
+   "sale_date": "2026-11-12",
+   "street": "6908 Monmouth Drive",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0235-0",
+   "chancery_number": "26 FC 0235-0",
+   "sale_date": "2026-11-12",
+   "street": "9 Dorchester Ct",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0288-0",
+   "chancery_number": "26 FC 0288-0",
+   "sale_date": "2026-11-12",
+   "street": "9933 CAMBRIDGE COURT, UNIT C",
+   "city": "Mokena",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0356-0",
+   "chancery_number": "26 FC 0356-0",
+   "sale_date": "2026-11-12",
+   "street": "665 Sandpiper Drive",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0429-0",
+   "chancery_number": "24 FC 0429-0",
+   "sale_date": "2026-11-19",
+   "street": "638 KINGSTON DR",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0073-0",
+   "chancery_number": "25 FC 0073-0",
+   "sale_date": "2026-11-19",
+   "street": "15422 SHARON DR.",
+   "city": "Homer Glen",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0225-0",
+   "chancery_number": "25 FC 0225-0",
+   "sale_date": "2026-11-19",
+   "street": "213 MEADOWBROOK DR",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0472-0",
+   "chancery_number": "25 FC 0472-0",
+   "sale_date": "2026-11-19",
+   "street": "1502 LAWRENCE AVENUE",
+   "city": "Lockport",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0569-0",
+   "chancery_number": "25 FC 0569-0",
+   "sale_date": "2026-11-19",
+   "street": "24431 South Rock Ridge Ct",
+   "city": "Channahon",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1107-0",
+   "chancery_number": "25 FC 1107-0",
+   "sale_date": "2026-11-19",
+   "street": "116 ZURICH RD",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1264-0",
+   "chancery_number": "25 FC 1264-0",
+   "sale_date": "2026-11-19",
+   "street": "244 NORTH LANCASTER DRIVE",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1307-0",
+   "chancery_number": "25 FC 1307-0",
+   "sale_date": "2026-11-19",
+   "street": "523 Rock Spring Court",
+   "city": "Naperville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0029-0",
+   "chancery_number": "26 FC 0029-0",
+   "sale_date": "2026-11-19",
+   "street": "909 Alann Drive",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0045-0",
+   "chancery_number": "26 FC 0045-0",
+   "sale_date": "2026-11-19",
+   "street": "427 W Marion St",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0145-0",
+   "chancery_number": "26 FC 0145-0",
+   "sale_date": "2026-11-19",
+   "street": "3327 Rosecroft Ln",
+   "city": "Naperville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0152-0",
+   "chancery_number": "26 FC 0152-0",
+   "sale_date": "2026-11-19",
+   "street": "3617 Halsted Boulevard",
+   "city": "Steger",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0204-0",
+   "chancery_number": "26 FC 0204-0",
+   "sale_date": "2026-11-19",
+   "street": "1124 Nicholson St",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0243-0",
+   "chancery_number": "26 FC 0243-0",
+   "sale_date": "2026-11-19",
+   "street": "9283 WEST ARQUILLA DRIVE",
+   "city": "Mokena",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "22 FC 1270-0",
+   "chancery_number": "22 FC 1270-0",
+   "sale_date": "2026-12-03",
+   "street": "16858 COMANDRA CIRCLE",
+   "city": "Homer Glen",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0814-0",
+   "chancery_number": "24 FC 0814-0",
+   "sale_date": "2026-12-03",
+   "street": "11517 S. HEGGS RD",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0883-0",
+   "chancery_number": "24 FC 0883-0",
+   "sale_date": "2026-12-03",
+   "street": "895 Laurel Dr",
+   "city": "Elwood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1022-0",
+   "chancery_number": "25 FC 1022-0",
+   "sale_date": "2026-12-03",
+   "street": "1615 EAST AVE.",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1024-0",
+   "chancery_number": "25 FC 1024-0",
+   "sale_date": "2026-12-03",
+   "street": "3236 Lightning Court",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1185-0",
+   "chancery_number": "25 FC 1185-0",
+   "sale_date": "2026-12-03",
+   "street": "965 SHILOH COURT",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1251-0",
+   "chancery_number": "25 FC 1251-0",
+   "sale_date": "2026-12-03",
+   "street": "2033 Lakewood Drive",
+   "city": "Wilmington",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 0198-0",
+   "chancery_number": "25 fc 0198-0",
+   "sale_date": "2026-12-03",
+   "street": "1920 Breckenridge Drive",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 0680-0",
+   "chancery_number": "25 fc 0680-0",
+   "sale_date": "2026-12-03",
+   "street": "543 North Maggie Lane",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 1239-0",
+   "chancery_number": "25 fc 1239-0",
+   "sale_date": "2026-12-03",
+   "street": "1209 HARVEST LN",
+   "city": "University Park",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0019-0",
+   "chancery_number": "26 FC 0019-0",
+   "sale_date": "2026-12-03",
+   "street": "2146 Middlebury Drive",
+   "city": "Aurora",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0308-0",
+   "chancery_number": "26 FC 0308-0",
+   "sale_date": "2026-12-03",
+   "street": "3464 DONOVAN DR",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0326-0",
+   "chancery_number": "26 FC 0326-0",
+   "sale_date": "2026-12-03",
+   "street": "612 Driftwood Ave",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0347-0",
+   "chancery_number": "26 FC 0347-0",
+   "sale_date": "2026-12-03",
+   "street": "2720 Arches Drive",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0455-0",
+   "chancery_number": "26 FC 0455-0",
+   "sale_date": "2026-12-03",
+   "street": "1433 Stonebridge Dr",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0415-0",
+   "chancery_number": "24 FC 0415-0",
+   "sale_date": "2026-12-10",
+   "street": "456 Winston Avenue",
+   "city": "Joliet",
+   "opening_bid": 34768.99
+  },
+  {
+   "sheriff_number": "24 FC 0879-0",
+   "chancery_number": "24 FC 0879-0",
+   "sale_date": "2026-12-10",
+   "street": "1482 Windflower Court",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0966-0",
+   "chancery_number": "24 FC 0966-0",
+   "sale_date": "2026-12-10",
+   "street": "1115 Thackery Lane",
+   "city": "Naperville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 1019-0",
+   "chancery_number": "24 FC 1019-0",
+   "sale_date": "2026-12-10",
+   "street": "417 Michigan Road",
+   "city": "Frankfort",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0201-0",
+   "chancery_number": "25 FC 0201-0",
+   "sale_date": "2026-12-10",
+   "street": "2439 East Royal Ridge Drive",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0265-0",
+   "chancery_number": "25 FC 0265-0",
+   "sale_date": "2026-12-10",
+   "street": "14 Brook Park Lane",
+   "city": "Park Forest",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0817-0",
+   "chancery_number": "25 FC 0817-0",
+   "sale_date": "2026-12-10",
+   "street": "800 Read St",
+   "city": "Lockport",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1202-0",
+   "chancery_number": "25 FC 1202-0",
+   "sale_date": "2026-12-10",
+   "street": "1410 Brookfield Drive",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 1026-0",
+   "chancery_number": "25 fc 1026-0",
+   "sale_date": "2026-12-10",
+   "street": "1126 Harvest Drive",
+   "city": "Shorewood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 1327-0",
+   "chancery_number": "25 fc 1327-0",
+   "sale_date": "2026-12-10",
+   "street": "13829 S. Jane Circle",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0214-0",
+   "chancery_number": "26 FC 0214-0",
+   "sale_date": "2026-12-10",
+   "street": "12726 Shenandoah Trail",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0314-0",
+   "chancery_number": "26 FC 0314-0",
+   "sale_date": "2026-12-10",
+   "street": "817 W Windsor Ave",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0334-0",
+   "chancery_number": "26 FC 0334-0",
+   "sale_date": "2026-12-10",
+   "street": "16223 S Serenity Dr",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0498-0",
+   "chancery_number": "26 FC 0498-0",
+   "sale_date": "2026-12-10",
+   "street": "1011 Misty Brook Ln",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 fc 0036-0",
+   "chancery_number": "26 fc 0036-0",
+   "sale_date": "2026-12-10",
+   "street": "207 North Matteson Street",
+   "city": "Elwood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "22 FC 1048-0",
+   "chancery_number": "22 FC 1048-0",
+   "sale_date": "2026-12-17",
+   "street": "18701 SUMMER GATE CT",
+   "city": "Mokena",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0212-0",
+   "chancery_number": "24 FC 0212-0",
+   "sale_date": "2026-12-17",
+   "street": "540 S. KATHLEEN DR.,",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0815-0",
+   "chancery_number": "24 FC 0815-0",
+   "sale_date": "2026-12-17",
+   "street": "1815 Grassy Knoll Dr",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0327-0",
+   "chancery_number": "25 FC 0327-0",
+   "sale_date": "2026-12-17",
+   "street": "1028 W Kennedy Rd",
+   "city": "Braidwood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0348-0",
+   "chancery_number": "25 FC 0348-0",
+   "sale_date": "2026-12-17",
+   "street": "832 N Center St",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0696-0",
+   "chancery_number": "25 FC 0696-0",
+   "sale_date": "2026-12-17",
+   "street": "421 Livingston Dr",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0801-0",
+   "chancery_number": "25 FC 0801-0",
+   "sale_date": "2026-12-17",
+   "street": "1904 Monhegan Avenue",
+   "city": "Beecher",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1033-0",
+   "chancery_number": "25 FC 1033-0",
+   "sale_date": "2026-12-17",
+   "street": "8576 Farmview Drive",
+   "city": "Frankfort",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1231-0",
+   "chancery_number": "25 FC 1231-0",
+   "sale_date": "2026-12-17",
+   "street": "23545 W Rueben St",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0256-0",
+   "chancery_number": "26 FC 0256-0",
+   "sale_date": "2026-12-17",
+   "street": "909 Croghan Avenue",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0269-0",
+   "chancery_number": "26 FC 0269-0",
+   "sale_date": "2026-12-17",
+   "street": "908 RONNIE CT",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0330-0",
+   "chancery_number": "26 FC 0330-0",
+   "sale_date": "2026-12-17",
+   "street": "237 Harbor Lndg",
+   "city": "Braidwood",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0354-0",
+   "chancery_number": "26 FC 0354-0",
+   "sale_date": "2026-12-17",
+   "street": "2308 Greengold Street",
+   "city": "Crest Hill",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0361-0",
+   "chancery_number": "26 FC 0361-0",
+   "sale_date": "2026-12-17",
+   "street": "25641 South Rose Lane",
+   "city": "Monee",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0375-0",
+   "chancery_number": "26 FC 0375-0",
+   "sale_date": "2026-12-31",
+   "street": "1509 Ridgebrook Drive",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0600-0",
+   "chancery_number": "25 FC 0600-0",
+   "sale_date": "2027-01-07",
+   "street": "336 MARBLE ST.,",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0936-0",
+   "chancery_number": "25 FC 0936-0",
+   "sale_date": "2027-01-07",
+   "street": "610 Oneida Street",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1008-0",
+   "chancery_number": "25 FC 1008-0",
+   "sale_date": "2027-01-07",
+   "street": "1209 CEDARWOOD DR UNIT E",
+   "city": "Crest Hill",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1192-0",
+   "chancery_number": "25 FC 1192-0",
+   "sale_date": "2027-01-07",
+   "street": "532 Landau Rd",
+   "city": "University Park",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1221-0",
+   "chancery_number": "25 FC 1221-0",
+   "sale_date": "2027-01-07",
+   "street": "311 Sunset Trail",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1247-0",
+   "chancery_number": "25 FC 1247-0",
+   "sale_date": "2027-01-07",
+   "street": "3671 RONALD RD",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1341-0",
+   "chancery_number": "25 FC 1341-0",
+   "sale_date": "2027-01-07",
+   "street": "9 NICHOLSON ST",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 fc 1049-0",
+   "chancery_number": "25 fc 1049-0",
+   "sale_date": "2027-01-07",
+   "street": "273 MILBURN AVE",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0050-0",
+   "chancery_number": "26 FC 0050-0",
+   "sale_date": "2027-01-07",
+   "street": "679 Madisen Ln",
+   "city": "University Park",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0232-0",
+   "chancery_number": "26 FC 0232-0",
+   "sale_date": "2027-01-07",
+   "street": "1104 MOUNTAIN VIEW DRIVE",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0254-0",
+   "chancery_number": "26 FC 0254-0",
+   "sale_date": "2027-01-07",
+   "street": "818 SHAGBARK RD",
+   "city": "New Lenox",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0332-0",
+   "chancery_number": "26 FC 0332-0",
+   "sale_date": "2027-01-07",
+   "street": "6932 West Corning Road",
+   "city": "Peotone",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0384-0",
+   "chancery_number": "26 FC 0384-0",
+   "sale_date": "2027-01-07",
+   "street": "316 E Division St",
+   "city": "Lockport",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0387-0",
+   "chancery_number": "26 FC 0387-0",
+   "sale_date": "2027-01-07",
+   "street": "183 Wedgeport Cr",
+   "city": "Romeoville",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0397-0",
+   "chancery_number": "26 FC 0397-0",
+   "sale_date": "2027-01-07",
+   "street": "1313 John St",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0542-0",
+   "chancery_number": "26 FC 0542-0",
+   "sale_date": "2027-01-07",
+   "street": "1303 West Park Front Street",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0571-0",
+   "chancery_number": "26 FC 0571-0",
+   "sale_date": "2027-01-07",
+   "street": "19838 Clare Drive",
+   "city": "Tinley Park",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0581-0",
+   "chancery_number": "26 FC 0581-0",
+   "sale_date": "2027-01-07",
+   "street": "267 Berkeley Dr",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0583-0",
+   "chancery_number": "26 FC 0583-0",
+   "sale_date": "2027-01-07",
+   "street": "2326 Olde Mill Rd",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "23 FC 1081-0",
+   "chancery_number": "23 FC 1081-0",
+   "sale_date": "2027-01-14",
+   "street": "528 Meadow Lily Drive #1",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "24 FC 0733-0",
+   "chancery_number": "24 FC 0733-0",
+   "sale_date": "2027-01-14",
+   "street": "24561 TUFTON ST",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 0454-0",
+   "chancery_number": "25 FC 0454-0",
+   "sale_date": "2027-01-14",
+   "street": "13444 W Navaho Trl",
+   "city": "Homer Glen",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0273-0",
+   "chancery_number": "26 FC 0273-0",
+   "sale_date": "2027-01-14",
+   "street": "5748 Emerald Pointe Drive",
+   "city": "Plainfield",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0576-0",
+   "chancery_number": "26 FC 0576-0",
+   "sale_date": "2027-01-14",
+   "street": "435 Wright Ct",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0159-0",
+   "chancery_number": "26 FC 0159-0",
+   "sale_date": "2027-01-21",
+   "street": "200 Fairlane Dr",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0324-0",
+   "chancery_number": "26 FC 0324-0",
+   "sale_date": "2027-01-28",
+   "street": "27815 South Stoney Island Avenue",
+   "city": "Crete",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0519-0",
+   "chancery_number": "26 FC 0519-0",
+   "sale_date": "2027-01-28",
+   "street": "25722 S. Polk St",
+   "city": "Monee",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0316-0",
+   "chancery_number": "26 FC 0316-0",
+   "sale_date": "2027-02-11",
+   "street": "312 Westridge Rd",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0716-0",
+   "chancery_number": "26 FC 0716-0",
+   "sale_date": "2027-02-11",
+   "street": "508 Garnsey Ave",
+   "city": "Joliet",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "25 FC 1339-0",
+   "chancery_number": "25 FC 1339-0",
+   "sale_date": "2027-02-18",
+   "street": "297 S PALMER DR",
+   "city": "Bolingbrook",
+   "opening_bid": null
+  },
+  {
+   "sheriff_number": "26 FC 0630-0",
+   "chancery_number": "26 FC 0630-0",
+   "sale_date": "2027-02-18",
+   "street": "16001 S McClellan Ave.",
+   "city": "Plainfield",
+   "opening_bid": null
+  }
+ ]
+}
