@@ -140,10 +140,11 @@ export const STATE_GUIDES: StateGuide[] = [
   {
     code: "CA", name: "California", who: "Trustee (mortgage foreclosures) or county tax collector",
     bid: "Listed here are trustee sales posted by STOX (non-judicial mortgage foreclosures, held at the county courthouse or another posted location) and the counties' tax-defaulted property sales on Bid4Assets when a target county holds one. Trustee sales are often postponed; check the notice of trustee's sale before bidding.",
-    deposit: "Bid4Assets requires a deposit (set by each county, often a few thousand dollars plus a processing fee) before the sale; the sale page gives the deadline.",
-    after: "The full price, plus documentary transfer tax and fees, is due within a few days of the close; the county then records a tax deed to the buyer.",
-    extra: ["The owner can redeem only until the close of business on the last business day before the sale; there is no redemption after it.",
-            "A tax deed clears most private liens, but some interests survive (for example easements, certain special assessments, and federal tax liens the IRS can redeem). Research the parcel and get a title search before bidding."],
+    deposit: "Trustee sales are paid in cash or cashier's checks drawn on a state or federal bank, and bidders show the funds before bidding. The full price is generally due at the sale (the trustee may allow until the next business day for part of it). Bid4Assets tax sales instead require a deposit with Bid4Assets before the sale.",
+    after: "The trustee issues a trustee's deed after the sale; there is no right of redemption after a California trustee sale. For a 1-4 unit home, though, the sale is not final at once: tenants, prospective owner-occupants and certain nonprofits can submit a notice of intent within 15 days and a matching bid within 45 days and take the property instead.",
+    extra: ["Liens senior to the deed of trust being foreclosed (and property taxes) survive the sale, and the buyer may have to evict the occupants. Get a professional title search before bidding.",
+            "Trustee sales are often postponed, sometimes on the day; recheck the date with the trustee shortly before the sale.",
+            "Tax sales on Bid4Assets: the owner can redeem until the close of business on the last business day before the sale, and the county records a tax deed after the full price is paid."],
   },
   {
     code: "NC", name: "North Carolina", who: "Substitute trustee or court-appointed commissioner",
