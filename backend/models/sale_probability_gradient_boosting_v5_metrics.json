@@ -2,43 +2,43 @@
   "model_version": "sale_probability_gradient_boosting_v5",
   "model_name": "sale_probability_gradient_boosting",
   "target": "reaches_auction",
-  "training_rows": 25058,
-  "holdout_rows": 6265,
-  "positive_rows": 16841,
-  "negative_rows": 14482,
-  "holdout_roc_auc": 0.7471,
-  "holdout_pr_auc": 0.7696,
-  "holdout_brier_score": 0.1999,
-  "holdout_mean_prediction": 0.5537,
-  "holdout_positive_rate": 0.547,
+  "training_rows": 25294,
+  "holdout_rows": 6448,
+  "positive_rows": 16875,
+  "negative_rows": 14867,
+  "holdout_roc_auc": 0.7473,
+  "holdout_pr_auc": 0.7573,
+  "holdout_brier_score": 0.2015,
+  "holdout_mean_prediction": 0.5472,
+  "holdout_positive_rate": 0.5268,
   "holdout_by_state": {
     "FL": {
-      "rows": 3194,
-      "roc_auc": 0.6914,
-      "positive_rate": 0.567,
-      "mean_prediction": 0.541
+      "rows": 3096,
+      "roc_auc": 0.6931,
+      "positive_rate": 0.5607,
+      "mean_prediction": 0.5438
     },
     "IN": {
-      "rows": 663,
-      "roc_auc": 0.569,
-      "positive_rate": 0.4661,
-      "mean_prediction": 0.5181
+      "rows": 729,
+      "roc_auc": 0.5742,
+      "positive_rate": 0.4211,
+      "mean_prediction": 0.5162
     },
     "NJ": {
-      "rows": 821,
-      "roc_auc": 0.8716,
-      "positive_rate": 0.2375,
-      "mean_prediction": 0.2935
+      "rows": 951,
+      "roc_auc": 0.8406,
+      "positive_rate": 0.2303,
+      "mean_prediction": 0.2569
     },
     "OH": {
-      "rows": 1565,
-      "roc_auc": 0.7021,
-      "positive_rate": 0.7105,
-      "mean_prediction": 0.7302
+      "rows": 1557,
+      "roc_auc": 0.7036,
+      "positive_rate": 0.7052,
+      "mean_prediction": 0.7311
     }
   },
   "calibration": "sigmoid, fit on the most recent 20% of events after fitting on the older 80%",
-  "holdout_cutoff": "2026-07-27T14:24:00.000000256",
+  "holdout_cutoff": "2026-07-30T00:00:00",
   "feature_columns": [
     "state",
     "county",
@@ -61,19 +61,19 @@
     "has_upset_price"
   ],
   "hyperparameters": {
-    "learning_rate": 0.03,
+    "learning_rate": 0.05,
     "max_iter": 300,
-    "max_leaf_nodes": 31,
-    "min_samples_leaf": 20,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 80,
     "l2_regularization": 1.0
   },
   "tuning": {
-    "validation_rows": 5120,
-    "validation_cutoff": "2026-05-26T00:00:00",
-    "best_validation_roc_auc": 0.7314,
-    "default_validation_roc_auc": 0.7291
+    "validation_rows": 5108,
+    "validation_cutoff": "2026-05-27T00:00:00",
+    "best_validation_roc_auc": 0.7357,
+    "default_validation_roc_auc": 0.733
   },
-  "trained_at": "2026-10-10T16:53:44.894485+00:00",
+  "trained_at": "2026-10-23T00:09:45.757999+00:00",
   "typical_sale": {
     "ALL": {
       "state": "FL",
@@ -93,7 +93,7 @@
       "days_since_previous_event": 0.0,
       "sale_month": 7.0,
       "sale_weekday": 2.0,
-      "minimum_bid": 144065.13,
+      "minimum_bid": 145469.36,
       "has_upset_price": 0.0
     },
     "FL": {
@@ -114,7 +114,7 @@
       "days_since_previous_event": 0.0,
       "sale_month": 7.0,
       "sale_weekday": 2.0,
-      "minimum_bid": 226259.445,
+      "minimum_bid": 226101.18,
       "has_upset_price": 0.0
     },
     "IN": {
@@ -135,7 +135,28 @@
       "days_since_previous_event": 0.0,
       "sale_month": 6.0,
       "sale_weekday": 2.0,
-      "minimum_bid": 114684.215,
+      "minimum_bid": 114718.18,
+      "has_upset_price": 0.0
+    },
+    "NC": {
+      "state": "NC",
+      "county": "Guilford",
+      "prior_event_count": 0.0,
+      "prior_scheduled_count": 0.0,
+      "adjournment_count": 0.0,
+      "plaintiff_adjournment_count": 0.0,
+      "defendant_adjournment_count": 0.0,
+      "court_adjournment_count": 0.0,
+      "bankruptcy_count": 0.0,
+      "distinct_status_count": 0.0,
+      "cancelled_count": 0.0,
+      "unsold_count": 0.0,
+      "prior_sold_count": 0.0,
+      "days_in_process": 0.0,
+      "days_since_previous_event": 0.0,
+      "sale_month": 6.0,
+      "sale_weekday": 2.0,
+      "minimum_bid": 0.0,
       "has_upset_price": 0.0
     },
     "NJ": {
@@ -156,8 +177,29 @@
       "days_since_previous_event": 0.0,
       "sale_month": 7.0,
       "sale_weekday": 2.0,
-      "minimum_bid": 263386.75,
+      "minimum_bid": 292240.07,
       "has_upset_price": 0.0
+    },
+    "NV": {
+      "state": "NV",
+      "county": "Clark",
+      "prior_event_count": 0.0,
+      "prior_scheduled_count": 0.0,
+      "adjournment_count": 0.0,
+      "plaintiff_adjournment_count": 0.0,
+      "defendant_adjournment_count": 0.0,
+      "court_adjournment_count": 0.0,
+      "bankruptcy_count": 0.0,
+      "distinct_status_count": 0.0,
+      "cancelled_count": 0.0,
+      "unsold_count": 0.0,
+      "prior_sold_count": 0.0,
+      "days_in_process": 0.0,
+      "days_since_previous_event": 0.0,
+      "sale_month": 5.0,
+      "sale_weekday": 3.0,
+      "minimum_bid": 71460.14,
+      "has_upset_price": 1.0
     },
     "OH": {
       "state": "OH",
