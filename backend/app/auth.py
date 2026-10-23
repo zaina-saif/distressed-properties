@@ -38,6 +38,41 @@ logger = logging.getLogger(__name__)
 # this set once it has upcoming sales; keep frontend/src/lib/states.ts in step.
 SUPPORTED_STATES = frozenset({"NJ", "NY", "PA", "OH", "FL", "IL", "TX", "CA", "AZ", "NC", "GA"})
 
+# Within them, the top metropolitan counties (October 2026 focus): the only counties
+# collected, enriched and served. Other counties' listings stay in the database, hidden;
+# add a county here to bring it back. Names as stored in sheriff_sales.county.
+TARGET_COUNTIES = {
+    "FL": ("Miami-Dade", "Broward", "Palm Beach", "Hillsborough", "Orange", "Duval"),
+    "CA": ("Los Angeles", "Riverside", "San Bernardino", "San Diego", "Orange", "Sacramento"),
+    "TX": ("Harris", "Dallas", "Tarrant", "Bexar", "Travis"),
+    "IL": ("Cook", "DuPage", "Lake", "Will", "Kane"),
+    "OH": ("Cuyahoga", "Franklin", "Hamilton", "Montgomery"),
+    "NJ": ("Essex", "Camden", "Hudson", "Bergen", "Middlesex"),
+    "PA": ("Philadelphia", "Allegheny", "Montgomery", "Delaware"),
+    "GA": ("Fulton", "Gwinnett", "DeKalb", "Cobb", "Clayton"),
+    "NY": ("Kings", "Queens", "Suffolk", "Nassau", "Bronx"),
+    "NC": ("Mecklenburg", "Wake", "Guilford"),
+    "NV": ("Clark", "Washoe"),
+    "AZ": ("Maricopa", "Pima"),
+}
+TARGET_COUNTY_KEYS = frozenset(f"{state}:{county.lower()}" for state, counties in TARGET_COUNTIES.items()
+                               for county in counties)
+
+
+def is_target_county(state: str | None, county: str | None) -> bool:
+    return f"{(state or '').upper()}:{(county or '').strip().lower()}" in TARGET_COUNTY_KEYS
+
+
+def coverage_sql(alias: str) -> str:
+    """WHERE condition: the row's state is served and its county is a target county."""
+    prefix = f"{alias}." if alias else ""
+    return (f"({prefix}state = ANY(:supported_states) "
+            f"AND UPPER({prefix}state) || ':' || LOWER(TRIM({prefix}county)) = ANY(:target_counties))")
+
+
+def coverage_params() -> dict:
+    return {"supported_states": sorted(SUPPORTED_STATES), "target_counties": sorted(TARGET_COUNTY_KEYS)}
+
 
 @dataclass(frozen=True)
 class Access:
@@ -94,7 +129,7 @@ class Access:
         return self.coverage_county if self.plan == "free" and not self.is_developer else None
 
     def covers(self, state: str | None, county: str | None) -> bool:
-        if (state or "").upper() not in SUPPORTED_STATES:
+        if (state or "").upper() not in SUPPORTED_STATES or not is_target_county(state, county):
             return False
         if self.scope_state and (state or "").upper() != self.scope_state:
             return False

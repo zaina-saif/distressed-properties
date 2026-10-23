@@ -88,7 +88,7 @@ def test_plan_rules():
     starter = Access("u", "e", plan="starter", plan_status="active", coverage_state="OH")
     assert starter.covers("OH", "Cuyahoga") and not starter.covers("FL", "Lee")
     pro = Access("u", "e", plan="pro", plan_status="active")
-    assert pro.has_plan and pro.scope_state is None and pro.covers("FL", "Lee")
+    assert pro.has_plan and pro.scope_state is None and pro.covers("FL", "Broward")
     assert not Access("u", "e", plan="pro", plan_status="past_due").has_plan
     assert not Access("u", "e", plan="starter", plan_status="active").has_plan  # no state chosen yet
     assert not Access("u", "e").has_plan
@@ -103,10 +103,17 @@ def test_states_outside_phase_one_are_hidden_from_everyone():
     assert Access("u", "e", plan="pro", plan_status="active").covers("az", "Maricopa")
 
 
+def test_only_target_counties_are_served():
+    pro = Access("u", "e", plan="pro", plan_status="active")
+    assert pro.covers("FL", "Miami-Dade") and pro.covers("NJ", "essex")
+    assert not pro.covers("FL", "Lee") and not pro.covers("NJ", "Monmouth")
+    assert not Access("u", "e", role="developer").covers("OH", "Summit")
+
+
 def test_trial_covers_every_state_until_it_ends():
     now = datetime.now(timezone.utc)
     trial = Access("u", "e", plan="trial", plan_status="active", trial_ends_at=now + timedelta(days=3))
-    assert trial.has_plan and trial.scope_state is None and trial.covers("FL", "Lee")
+    assert trial.has_plan and trial.scope_state is None and trial.covers("FL", "Broward")
     assert not Access("u", "e", plan="trial", plan_status="active", trial_ends_at=now - timedelta(minutes=1)).has_plan
     assert not Access("u", "e", plan="trial", plan_status="active").has_plan
 

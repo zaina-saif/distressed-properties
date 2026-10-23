@@ -1,8 +1,8 @@
 """NJ Sale Refresh: the recurring end-to-end refresh for NJ sheriff sales.
 
 Stages, in order:
-  scrape   CivilView open + sold/cancelled history for every NJ county, and
-           Ocean County's PDF. A county that fails is reported and skipped.
+  scrape   CivilView open + sold/cancelled history for the target NJ counties
+           (app.auth.TARGET_COUNTIES). A county that fails is reported and skipped.
   load     Load each snapshot into Supabase (open listings before history,
            so the newest status lands last).
   link     Create/link property records for new sales.
@@ -100,10 +100,13 @@ class Refresh:
     def scrape(self) -> None:
         from pipeline.scrape_nj_civilview import CIVILVIEW_COUNTIES, scrape as scrape_open
         from pipeline.scrape_nj_sold_cancelled import scrape as scrape_history
-        from pipeline.scrape_ocean_county import scrape as scrape_ocean
+        from app.auth import is_target_county
 
         counts: dict[str, dict[str, int]] = {}
+        # Only the target counties (app.auth.TARGET_COUNTIES: Essex, Camden, Hudson, Bergen, Middlesex).
         for county, county_id in sorted(CIVILVIEW_COUNTIES.items()):
+            if not is_target_county("NJ", county):
+                continue
             counts[county] = {}
             try:
                 path = self._quiet(lambda: asyncio.run(scrape_open(county, county_id, self.snapshot_dir)))
@@ -120,13 +123,7 @@ class Refresh:
                 except Exception as exc:  # noqa: BLE001
                     self._fail("scrape", f"{county} sold/cancelled", exc)
             print(f"  {county}: {counts[county]}", flush=True)
-        try:
-            path = self._quiet(scrape_ocean, self.snapshot_dir / "ocean_all_sheriff_sales.json")
-            counts["Ocean"] = {"open": self._record_count(path)}
-            self.open_files.append(path)
-            print(f"  Ocean: {counts['Ocean']}", flush=True)
-        except Exception as exc:  # noqa: BLE001
-            self._fail("scrape", "Ocean open", exc)
+        # Ocean County (its own PDF) is not a target county, so it is no longer scraped.
         empty = [f"{county} open" for county, value in counts.items() if value.get("open") == 0]
         if empty:
             self.report["warnings"] = [f"No open listings returned: {', '.join(empty)}"]

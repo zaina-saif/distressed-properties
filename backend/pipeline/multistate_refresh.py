@@ -1,11 +1,10 @@
 """Multi-state Sale Refresh: the recurring refresh for every state outside NJ.
 
 Stages, in order:
-  scrape   Each source's scraper (RealAuction OH/FL/TX, CivilView PA/IL/TX/AZ/GA,
-           PA county portals, Illinois TJSC, TX trustee notices, CA and NV tax
-           sales, NC foreclosure and tax foreclosure lists, NY Erie sheriff and
-           NYC tax-lien referee sales), phase 1 states only.
-           A source that fails is reported; the others still run.
+  scrape   Each source's scraper (RealAuction OH/FL/TX, CivilView, Illinois TJSC, TX Bexar
+           trustee notices, CA and NV tax sales, GA DeKalb, NC foreclosure and tax
+           foreclosure lists, NYC tax-lien referee sales), the target counties only
+           (app.auth.TARGET_COUNTIES). A source that fails is reported; the others still run.
   load     Load whatever snapshots were written. A county whose scrape failed
            has no new snapshot, so its open sales are left untouched. NY court
            referee auctions are loaded by hand (the court sites block scripts)
@@ -45,7 +44,9 @@ from typing import Any
 from sqlalchemy import text
 
 from app.database.session import engine
+from app.auth import is_target_county
 from pipeline.scrape_civilview_states import COUNTIES as CIVILVIEW_COUNTIES
+from pipeline.scrape_realauction import SOURCES as REALAUCTION_COUNTIES
 
 # Phase 1 states outside NJ (October 2026; see SUPPORTED_STATES in app/auth.py). Indiana,
 # Colorado, South Carolina, Connecticut and the county-list states (KY, OK, SD, WI) are no
@@ -53,28 +54,34 @@ from pipeline.scrape_civilview_states import COUNTIES as CIVILVIEW_COUNTIES
 # and NV are collected (CivilView Coweta; Bid4Assets and Clark County tax sales) so they can be shown once they have
 # upcoming listings.
 STATES = ("OH", "FL", "PA", "IL", "TX", "NY", "CA", "AZ", "GA", "NC", "NV")
-CIVILVIEW = [f"{state}:{county}" for state, county in sorted(CIVILVIEW_COUNTIES) if state in STATES]
+# Only the target metro counties (app.auth.TARGET_COUNTIES) are collected; load_sales also
+# refuses any other county, so statewide lists (NC, CA, IL TJSC) load just the targets.
+CIVILVIEW = [f"{state}:{county}" for state, county in sorted(CIVILVIEW_COUNTIES) if is_target_county(state, county)]
+
+
+def realauction(state: str) -> list[str]:
+    return sorted(county for county in REALAUCTION_COUNTIES[state] if is_target_county(state, county))
+
+
 STAGES = ("scrape", "load", "zillow", "score", "report")
+# PA county portals (none of them a target county; still registered for the scraper CLI).
 PA_PORTAL_COUNTIES = ["Butler", "Centre", "Cumberland", "Franklin", "Greene", "Lancaster", "Luzerne", "Susquehanna"]
 # (name, scrape command, load command); commands run as `python -m <args>` from backend/.
 SOURCES = [
     # Ohio and Florida look back two weeks so results of sales held since the last run are loaded.
-    ("Ohio RealAuction", ["pipeline.scrape_realauction", "--state", "OH", "--all", "--lookback-days", "14"],
-     ["pipeline.load_realauction_sales", "--state", "OH", "--all"]),
-    ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--all", "--lookback-days", "14"],
-     ["pipeline.load_realauction_sales", "--state", "FL", "--all"]),
-    ("Texas RealAuction tax sales", ["pipeline.scrape_realauction", "--state", "TX", "--all"],
-     ["pipeline.load_realauction_sales", "--state", "TX", "--all"]),
-    ("CivilView (PA, IL, TX, AZ, GA)", ["pipeline.scrape_civilview_states", "--counties", *CIVILVIEW],
+    ("Ohio RealAuction", ["pipeline.scrape_realauction", "--state", "OH", "--counties", *realauction("OH"),
+                          "--lookback-days", "14"],
+     ["pipeline.load_realauction_sales", "--state", "OH", "--counties", *realauction("OH")]),
+    ("Florida RealAuction", ["pipeline.scrape_realauction", "--state", "FL", "--counties", *realauction("FL"),
+                             "--lookback-days", "14"],
+     ["pipeline.load_realauction_sales", "--state", "FL", "--counties", *realauction("FL")]),
+    ("Texas RealAuction tax sales", ["pipeline.scrape_realauction", "--state", "TX", "--counties", *realauction("TX")],
+     ["pipeline.load_realauction_sales", "--state", "TX", "--counties", *realauction("TX")]),
+    (f"CivilView ({', '.join(CIVILVIEW)})", ["pipeline.scrape_civilview_states", "--counties", *CIVILVIEW],
      ["pipeline.load_civilview_states", "--counties", *CIVILVIEW]),
-    # Monroe's Bid4Assets page answers Access Denied, so it is left out.
-    ("PA county portals", ["pipeline.scrape_pa_sale_listing", "--counties", *PA_PORTAL_COUNTIES],
-     ["pipeline.load_pa_sales", "--counties", *PA_PORTAL_COUNTIES]),
     ("Illinois TJSC", ["pipeline.scrape_tjsc_upcoming_sales"], ["pipeline.load_tjsc_upcoming_sales"]),
     ("TX Bexar trustee-sale notices", ["pipeline.scrape_bexar_trustee_notices"],
      ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_bexar_trustee_notices.json"]),
-    ("TX Collin trustee-sale notices", ["pipeline.scrape_collin_trustee_notices"],
-     ["pipeline.load_tx_trustee_sales", "--input", "data/sheriff_sales/tx_collin_trustee_notices.json"]),
     ("California county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales"], ["pipeline.load_ca_tax_sales"]),
     ("Nevada county tax sales (Bid4Assets)", ["pipeline.scrape_ca_tax_sales", "--state", "NV"],
      ["pipeline.load_ca_tax_sales", "--state", "NV"]),
@@ -85,9 +92,6 @@ SOURCES = [
     ("NC foreclosure sales (Hutchens Law Firm)", ["pipeline.scrape_nc_hutchens_sales"], ["pipeline.load_nc_hutchens_sales"]),
     ("NC tax foreclosure sales (Zacchaeus Legal Services)", ["pipeline.scrape_nc_zls_tax_foreclosures"],
      ["pipeline.load_nc_zls_tax_foreclosures"]),
-    # Orange County's page answers 403, so only Erie is scraped.
-    ("NY Erie sheriff sales", ["pipeline.scrape_ny_county_pages", "--counties", "Erie"],
-     ["pipeline.load_ny_sales", "--counties", "Erie"]),
     ("NYC tax-lien referee sales", ["pipeline.scrape_nyc_referee_sales"], ["pipeline.load_nyc_referee_sales"]),
 ]
 # Sources whose loaders never retire a passed date: NY court auctions are loaded by hand

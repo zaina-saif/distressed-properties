@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import SUPPORTED_STATES, Access, current_user
+from app.auth import SUPPORTED_STATES, Access, current_user, is_target_county
 from app.database.session import engine
 
 router = APIRouter(prefix="/api/v1", tags=["account"])
@@ -63,7 +63,7 @@ def account_row(user_id: str) -> dict[str, Any]:
 
 
 def check_coverage(state: str, county: str | None) -> tuple[str, str | None]:
-    """A supported state and, if given, a county there with sale listings."""
+    """A supported state and, if given, a target county there with sale listings."""
     state = state.strip().upper()
     if state not in SUPPORTED_STATES:
         raise HTTPException(status_code=400, detail=f"{state} is not a covered state.")
@@ -74,7 +74,7 @@ def check_coverage(state: str, county: str | None) -> tuple[str, str | None]:
             SELECT p.county FROM sheriff_sales ss JOIN properties p ON p.id = ss.property_id
             WHERE p.state = :state AND LOWER(p.county) = LOWER(:county) LIMIT 1
         """), {"state": state, "county": county.strip()}).scalar()
-    if not match:
+    if not match or not is_target_county(state, match):
         raise HTTPException(status_code=400, detail=f"{county} is not a covered county in {state}.")
     return state, match
 

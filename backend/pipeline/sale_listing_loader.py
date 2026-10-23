@@ -13,6 +13,7 @@ from datetime import date, datetime, timezone
 
 from sqlalchemy import text
 
+from app.auth import is_target_county
 from app.database.session import engine
 
 BATCH = 100
@@ -59,7 +60,10 @@ def load_sales(state, county, source, source_url, sales, job, complete=True):
     """Upsert one county's complete snapshot of sales from `source`.
 
     complete=False loads a partial set, such as past results: nothing is retired, and
-    a sale already on a later date keeps it (its status history still gains the row)."""
+    a sale already on a later date keeps it (its status history still gains the row).
+    A county outside app.auth.TARGET_COUNTIES is not loaded at all."""
+    if not is_target_county(state, county):
+        return {"created": 0, "updated": 0, "skipped": len(sales), "no_longer_listed": 0, "outside_target_counties": True}
     now = datetime.now(timezone.utc)
     run = str(uuid.uuid4())
     created = updated = skipped = 0

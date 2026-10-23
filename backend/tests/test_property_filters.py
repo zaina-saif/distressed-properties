@@ -23,8 +23,9 @@ def test_lists_stay_inside_the_phase_one_states():
     access = Access(user_id="u", email="u@example.com", role="developer")
     conditions, parameters = _property_filters(access, state=["in"], county=[])
 
-    assert "p.state = ANY(:supported_states)" in conditions
+    assert any("ANY(:target_counties)" in condition for condition in conditions)
     assert "IN" not in parameters["supported_states"] and "AZ" in parameters["supported_states"]
+    assert "NJ:essex" in parameters["target_counties"] and "NJ:monmouth" not in parameters["target_counties"]
 
 
 def test_spotlight_is_the_top_ten_within_the_plan_scope():

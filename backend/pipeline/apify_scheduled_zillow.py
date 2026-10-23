@@ -11,6 +11,7 @@ import httpx
 from sqlalchemy import text
 from dotenv import load_dotenv
 
+from app.auth import TARGET_COUNTY_KEYS
 from app.database.session import engine
 from pipeline.fill_missing_zips import search_city
 
@@ -177,6 +178,8 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
                    ss.current_status, ss.current_sale_date
             FROM sheriff_sales ss JOIN properties p ON p.id=ss.property_id
             WHERE (:state IS NULL OR p.state=:state)
+              -- Only the target counties are enriched (app.auth.TARGET_COUNTIES).
+              AND UPPER(p.state) || ':' || LOWER(TRIM(p.county)) = ANY(:target_counties)
               AND p.valuation_excluded_reason IS NULL
               AND (CASE WHEN :sold_results THEN ss.sold_buyer IS NOT NULL ELSE strpos(LOWER(CASE
                 WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index',
@@ -195,7 +198,8 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
                   AND LOWER(COALESCE(z.raw_payload->>'isValid', 'true')) <> 'false'))
             ORDER BY p.normalized_address, ss.id
         """), {"state": TARGET_STATE, "status": TARGET_STATUS, "only_missing": only_missing,
-                "retry_unmatched": retry_unmatched, "sold_results": sold_results, "buyer": buyer}).mappings().all()
+                "retry_unmatched": retry_unmatched, "sold_results": sold_results, "buyer": buyer,
+                "target_counties": sorted(TARGET_COUNTY_KEYS)}).mappings().all()
     manifest = [dict(row) for row in rows if searchable(row)]
     if queens_retry:
         manifest = [row for row in manifest if is_queens(row)]
