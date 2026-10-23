@@ -7,11 +7,10 @@ on:
   workflow_dispatch:
     inputs:
       skip_zillow:
-        # Zillow is paused (Apify credit): scheduled runs skip it; a manual run can
-        # set this to false. To resume, flip the default and the check below.
+        # Scheduled runs include Zillow (resumed 2026-10-22); a manual run can skip it.
         description: "Skip the paid Apify Zillow stage"
         type: boolean
-        default: true
+        default: false
       max_zillow_addresses:
         description: "Refuse a Zillow run larger than this many addresses"
         type: number
@@ -49,7 +48,7 @@ jobs:
           APIFY_API_TOKEN: ${{ secrets.APIFY_API_TOKEN }}
         run: |
           args=(--run-dir "$RUNNER_TEMP/nj-sale-refresh" --max-zillow-addresses "${{ inputs.max_zillow_addresses || 400 }}")
-          if [ "${{ inputs.skip_zillow }}" != "false" ]; then args+=(--skip-zillow); fi
+          if [ "${{ inputs.skip_zillow }}" = "true" ]; then args+=(--skip-zillow); fi
           python -m pipeline.nj_sale_refresh "${args[@]}"
 
       # The run log holds addresses and party names, so it stays on the runner;
