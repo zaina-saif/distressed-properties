@@ -186,6 +186,22 @@ python -m pipeline.scrape_ca_tax_sales --state NV && python -m pipeline.load_ca_
 - Both loaders treat each county's rows as complete and retire open sales that drop off, including in counties left with none. North Carolina sales stay open ten days for upset bids (5%, minimum $750); the notice details and dashboard notes say so.
 - **Nevada:** county treasurers' tax sales on Bid4Assets (`nv_bid4assets_tax_sale`, the CA collector with `--state NV`; non-tax storefronts such as Douglas County's public works sale are skipped). Nevada mortgage foreclosures are private trustee sales with no public list; Clark County's yearly treasurer trustee auction is collected by `pipeline.scrape_nv_clark_tax_auction` / `load_nv_clark_tax_auction` (`nv_clark_treasurer_tax_sale`): the Treasurer's auction page's `Event_Read` and `Parcel_Read` JSON (owner names dropped), with city, ZIP and position from the county parcel layer `CC_PARCELS_SHP` (only `PARCEL,STRCITY,ZIPMAIN` and the centroid are requested). After the auction a winning bid is `sold`, a struck parcel without one `cancelled`, and the rest `unsold`. Add NV to `SUPPORTED_STATES` and `frontend/src/lib/states.ts` once it has listings.
 
+### Target-county collectors (October 2026)
+
+All run in the Monday multistate refresh unless noted; each keeps its previous snapshot when its site fails.
+
+| County | Module(s) | Source |
+|---|---|---|
+| FL Palm Beach, Orange | `scrape_realauction` / `load_realauction_sales` | RealForeclose (Palm Beach without "www.", Orange is `myorangeclerk`; Orange's detail rows are divs, which `adapters/realauction.FIELD` accepts). Orange timeshare interests have no address and are skipped. |
+| PA Philadelphia | `scrape_pa_sale_listing --counties Philadelphia` / `load_pa_sales` | Bid4Assets storefronts `philaforeclosures` and `philataxsales` through `MonroeBid4AssetsAdapter` (grid addresses with a ZIP skip the detail pages Bid4Assets throttles; the attorney's minimum bid is the opening bid). No longer CivilView. |
+| PA Delaware | `scrape_pa_delaware_sheriff_sales` / `load_pa_sales` | The Sheriff's two monthly list PDFs (pdfplumber word positions; defendants never read). |
+| PA Allegheny | `scrape_pa_allegheny_sheriff_sales` / `load_pa_sales` | `sheriffalleghenycounty.com` monthly Sale List PDF (alleghenycounty.us refuses scripts); Cost & Tax Bid is the opening bid; Pittsburgh ward suffixes stripped. |
+| IL Kane, Will | `scrape_il_kane_sheriff_sales`, `scrape_il_will_sheriff_sales` / `load_il_county_sheriff_sales --county` | Kane Sheriff's posted PDF; Will Sheriff's Fabrik list (`limit5=0`). |
+| TX Tarrant | `scrape_tx_tarrant_tax_sales` / `load_tx_tarrant_tax_sales` | Constable Pct 3 monthly tax-sale pages (30 s crawl delay) + TAD `PropertyData(Delimited).ZIP` for situs and city code (owner columns never read). |
+| AZ Pima | `scrape_az_pima_sheriff_sales` / `load_az_pima_sheriff_sales` | One Notice of Sale PDF per case on the Sheriff's Civil Enforcement page. |
+
+Not collectable or nothing posted yet: IL DuPage (sheriff robots.txt disallows all), TX Dallas mortgage notices (publicsearch robots), GA Gwinnett and Clayton (lists not yet posted for the next sale; add a collector once the format is known), NV Washoe (next auction April 2027), CA Riverside, San Diego and Orange (picked up by `scrape_ca_tax_sales` when Bid4Assets lists their sales), NY Suffolk, Kings and Bronx (court PDFs and WebCivil, loaded by hand or with assisted runs).
+
 ### Georgia county tax sales (Fulton, Cobb, DeKalb)
 
 Georgia counties sell tax-delinquent property at the courthouse on the first Tuesday of the month; the buyer gets a redeemable tax deed (sale type "Tax sale (redeemable deed)", the Tax sales filter; `source_system='ga_county_tax_sale'`). Georgia mortgage foreclosures are advertised only in county newspapers and are not collected. The lists are scanned PDFs, so the collector runs on the operator's Mac each month once the next lists are posted (a few weeks before the sale):
