@@ -4,7 +4,7 @@
  *  once it has upcoming sales; other states' listings stay in the database, hidden. */
 export const STATES: { code: string; name: string; view: [number, number, number]; taxOnly?: boolean }[] = [
   { code: "AZ", name: "Arizona", view: [33.5, -112.1, 9] },
-  { code: "CA", name: "California", view: [37.3, -120.5, 6], taxOnly: true },
+  { code: "CA", name: "California", view: [34.3, -118.0, 7] },
   { code: "FL", name: "Florida", view: [27.8, -82.6, 6] },
   { code: "GA", name: "Georgia", view: [33.8, -84.4, 9], taxOnly: true },
   { code: "IL", name: "Illinois", view: [40.0, -89.2, 6] },
