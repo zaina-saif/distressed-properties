@@ -6,6 +6,7 @@ import urllib.robotparser
 from collections.abc import Callable
 from urllib.parse import urlsplit
 
+from pipeline.scraping.challenge import detect_challenge
 from pipeline.scraping.config import ScrapingSettings
 
 
@@ -38,7 +39,9 @@ class RateLimiter:
 
 class RobotsPolicy:
     """robots.txt per host, following RFC 9309: an unavailable file (4xx) allows
-    everything; an unreachable one (5xx or network error) disallows everything."""
+    everything; an unreachable one (5xx or network error) disallows everything. A
+    verification page served instead of the file (a Cloudflare 403, say) is not "no
+    robots.txt": the site would not let the file be read, so it counts as unreachable."""
 
     def __init__(self, fetch: Callable[[str], tuple[int, str]], user_agent: str = "*"):
         self.fetch, self.user_agent = fetch, user_agent
@@ -52,7 +55,9 @@ class RobotsPolicy:
                 status, body = self.fetch(origin + "/robots.txt")
             except Exception:  # noqa: BLE001 - unreachable robots.txt means disallow
                 status, body = 503, ""
-            if 400 <= status < 500:
+            if status in (401, 403, 429) and detect_challenge(body, status) in ("cloudflare", "captcha", "bot_protection"):
+                self.parsers[origin] = False
+            elif 400 <= status < 500:
                 self.parsers[origin] = True
             elif status >= 500:
                 self.parsers[origin] = False

@@ -69,6 +69,14 @@ def test_robots_policy_follows_rfc_9309():
     assert not robots.allowed("https://c.com/anything")  # unreachable: disallowed
 
 
+def test_robots_policy_treats_a_challenge_instead_of_the_file_as_unreachable():
+    challenge = "<html><head><title>Just a moment...</title></head><body>Enable JavaScript and cookies</body></html>"
+    files = {"https://d.com/robots.txt": (403, challenge), "https://e.com/robots.txt": (403, "Forbidden")}
+    robots = RobotsPolicy(lambda url: files[url])
+    assert not robots.allowed("https://d.com/recdocdata/x")
+    assert robots.allowed("https://e.com/anything")  # a plain 403 is still "unavailable" (RFC 9309)
+
+
 def test_backoff_grows_and_is_capped():
     assert 2 <= backoff_delay(1, 2, 60, jitter=0) <= 2
     assert backoff_delay(3, 2, 60, jitter=0) == 8

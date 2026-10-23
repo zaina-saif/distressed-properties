@@ -183,7 +183,7 @@ def prepare(only_missing=False, retry_unmatched=False, sold_results=False, buyer
               AND p.valuation_excluded_reason IS NULL
               AND (CASE WHEN :sold_results THEN ss.sold_buyer IS NOT NULL ELSE strpos(LOWER(CASE
                 WHEN ss.source_system IN ('nyc_kings_court_foreclosure_index',
-                    'fl_hillsborough_published_foreclosure_notice', 'tx_county_clerk_trustee_sale')
+                    'fl_hillsborough_published_foreclosure_notice', 'tx_county_clerk_trustee_sale', 'az_county_recorder_trustee_sale')
                     AND ss.current_sale_date<CURRENT_DATE
                     AND ss.current_status='scheduled_unverified'
                 THEN 'date_passed_unverified' ELSE ss.current_status END), :status) > 0 END)

@@ -1,0 +1,46 @@
+{
+  "_comment": "Arizona trustee-sale sources per county (pipeline.scrape_az_trustee_sales). Add Pima or Pinal with their recorder and parcel-layer entries. See docs/arizona/maricopa-recorder.md.",
+  "defaults": {
+    "request_delay_seconds": 1.2,
+    "window_days": 7,
+    "page_size": 200,
+    "backfill_days": 120,
+    "ocr_engine": "auto",
+    "ocr_workers": 4,
+    "status_check_days": 14
+  },
+  "counties": {
+    "Maricopa": {
+      "recorder": {
+        "kind": "maricopa_publicapi",
+        "api": "https://publicapi.recorder.maricopa.gov",
+        "website": "https://recorder.maricopa.gov/recording/document-search.html",
+        "document_codes": {
+          "notice": "NS",
+          "cancellation": "CQ",
+          "trustee_deed": "TD"
+        }
+      },
+      "parcels": {
+        "kind": "arcgis",
+        "layer": "https://gis.mcassessor.maricopa.gov/arcgis/rest/services/Parcels/MapServer/0",
+        "apn_field": "APN_DASH",
+        "fields": {
+          "apn": "APN_DASH",
+          "street": "PHYSICAL_ADDRESS",
+          "city": "PHYSICAL_CITY",
+          "zip": "PHYSICAL_ZIP",
+          "latitude": "LATITUDE",
+          "longitude": "LONGITUDE",
+          "full_cash_value": "FCV_CUR",
+          "limited_value": "LPV_CUR",
+          "tax_year": "TAX_YR_CUR",
+          "use_code": "PUC",
+          "legal_class": "LC_CUR",
+          "deed_number": "DEED_NUMBER",
+          "deed_date": "DEED_DATE"
+        }
+      }
+    }
+  }
+}

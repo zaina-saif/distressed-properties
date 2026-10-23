@@ -1,27 +1,30 @@
 // Like ocr_pdf_macos.swift, but prints each recognized line with its position, for tables
 // whose columns OCR reads one after another: "page<TAB>x<TAB>y<TAB>width<TAB>height<TAB>text",
 // with x/y the line's lower-left corner as a fraction of the page (y grows upwards).
+// Optional: a page size in pixels (default 3200) and "correct" for Vision's language correction.
 import AppKit
 import PDFKit
 import Vision
 
-guard CommandLine.arguments.count == 2,
+guard (2...4).contains(CommandLine.arguments.count),
       let document = PDFDocument(url: URL(fileURLWithPath: CommandLine.arguments[1])) else {
-    fputs("usage: swift ocr_pdf_macos_boxes.swift path/to/file.pdf\n", stderr)
+    fputs("usage: swift ocr_pdf_macos_boxes.swift path/to/file.pdf [pixels] [correct]\n", stderr)
     exit(2)
 }
+let pixels = CommandLine.arguments.count > 2 ? (Double(CommandLine.arguments[2]) ?? 3200) : 3200
+let correct = CommandLine.arguments.count > 3 && CommandLine.arguments[3] == "correct"
 
 for pageIndex in 0..<document.pageCount {
     guard let page = document.page(at: pageIndex) else { continue }
     let bounds = page.bounds(for: .mediaBox)
-    let scale = 3200 / max(bounds.width, bounds.height)
+    let scale = pixels / max(bounds.width, bounds.height)
     let image = page.thumbnail(of: NSSize(width: bounds.width * scale, height: bounds.height * scale), for: .mediaBox)
     guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
         continue
     }
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .accurate
-    request.usesLanguageCorrection = false
+    request.usesLanguageCorrection = correct
     do {
         try VNImageRequestHandler(cgImage: cgImage).perform([request])
         for observation in request.results ?? [] {
