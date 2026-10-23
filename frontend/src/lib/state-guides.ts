@@ -138,8 +138,8 @@ export const STATE_GUIDES: StateGuide[] = [
     extra: ["In Minnehaha County the sheriff signs the deed on or after the 181st day if the property was not redeemed."],
   },
   {
-    code: "CA", name: "California", who: "County treasurer-tax collector",
-    bid: "Listed here are the counties' tax-defaulted property sales, held online on Bid4Assets once or twice a year; each parcel's auction page has the opening and closing times. Mortgage foreclosures in California are private trustee sales and are not listed.",
+    code: "CA", name: "California", who: "Trustee (mortgage foreclosures) or county tax collector",
+    bid: "Listed here are trustee sales posted by STOX (non-judicial mortgage foreclosures, held at the county courthouse or another posted location) and the counties' tax-defaulted property sales on Bid4Assets when a target county holds one. Trustee sales are often postponed; check the notice of trustee's sale before bidding.",
     deposit: "Bid4Assets requires a deposit (set by each county, often a few thousand dollars plus a processing fee) before the sale; the sale page gives the deadline.",
     after: "The full price, plus documentary transfer tax and fees, is due within a few days of the close; the county then records a tax deed to the buyer.",
     extra: ["The owner can redeem only until the close of business on the last business day before the sale; there is no redemption after it.",
