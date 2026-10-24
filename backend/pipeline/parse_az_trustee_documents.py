@@ -14,6 +14,10 @@ whether the grantee was the foreclosing beneficiary or a third party.
 Every result carries `confidence` (0-1, the share of key fields found, weighted) and
 `missing` (the key fields not found). OCR noise from the recorder's "Unofficial Document"
 watermark is expected; values are validated (APN shape, dates after recording, ZIPs 85xxx/86xxx).
+
+County differences come from the recorder's config (`rules`): its APN format ("maricopa" 3-2-3 with an
+optional split letter and check digit, "pima" 3-2-4) and its courthouse (`sale_location`: a pattern
+and the text to show). Without rules the Maricopa ones apply.
 """
 import re
 from datetime import date, datetime, timedelta
@@ -22,6 +26,9 @@ LABEL_END = re.compile(r"^[^|]*?:\s*\|?\s*")
 # Maricopa APNs: book-map-item and an optional split letter, often printed with a check digit
 # ("200-77-406-5", "133-44-047 4", "301-61-4189"), which is dropped.
 APN = re.compile(r"\b(\d{3})\s?-\s?(\d{2})\s?-\s?(\d{3})([A-Z])?(?:[\s-]?\d)?\b")
+# Pima APNs: book-map-parcel with a four-character parcel ("136-17-5140", "212174380" undashed after a label).
+PIMA_APN = re.compile(r"\b(\d{3})\s?-\s?(\d{2})\s?-\s?(\d{3}[\dA-Z])\b")
+PIMA_APN_UNDASHED = re.compile(r"\b(\d{3})(\d{2})(\d{3}[\dA-Z])\b")
 MONEY = re.compile(r"\$\s?(\d{1,3}(?:,\d{3})+(?:\.\d{2})?|\d+\.\d{2})")
 INSTRUMENT = re.compile(r"(?i)(?:instrument|document|doc\.?|recording)\s*(?:no\.?|number|#)?\s*[:.]?\s*(\d{4})-?(\d{7})\b"
                         r"|\b(?:in|as)\s+(20\d{2})-(\d{7})\b")
@@ -36,9 +43,12 @@ WEBSITE = re.compile(r"(?i)\b((?:https?://)?(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)
 COMPANY = re.compile(r"(?i)\b(LLC|L\.L\.C|Inc|Corp|Corporation|Company|Co\.|Bank|N\.A|Trust|Mortgage|Credit Union|"
                      r"Servicing|Financial|Funding|Capital|Lending|Loan|Association|Fund|Agency|P\.A|P\.C|PLLC|LLP|"
                      r"Solutions|Recon|Services|Title|Escrow|Federal|Investments?|Holdings|Partners|LP)\b")
+# A family or living trust named after a person is not a company.
+PERSONAL_TRUST = re.compile(r"(?i)\b(revocable|irrevocable|living|family|survivor'?s?)\s+trust\b")
 SALE_PLACE = re.compile(r"(?i)(main entrance|courtyard|front entrance|entrance)[^.|]{0,120}?Superior Court"
                         r"[^.|]{0,80}?(201\s+W(?:est|\.)?\s+Jefferson[^.|]{0,40}?85003)")
-LEGAL = re.compile(r"(?i)\b(?:Lot|Unit|Parcel)\s+[\w-]+[^|]{0,200}?Book\s+\d+\s+of\s+Maps,?\s+Page\s+\d+")
+LEGAL = re.compile(r"(?i)\b(?:Lot|Unit|Parcel)\s+[\w-]+[^|]{0,200}?Book\s+\d+\s+of\s+Maps(?:\s+and\s+Plats)?,?\s+"
+                   r"(?:at\s+)?Page\s+\d+")
 TS_LABEL = re.compile(r"(?i)(?:T\.?S\.?\s*(?:No\.?|Number|#|/File)|Trustee'?s?\s+Sale\s+No\.?|File\s+ID\.?\s*:?\s*#?)\s*[:.]?\s*"
                       r"([A-Z0-9][A-Z0-9-]{3,30})")
 NOTICE_WEIGHTS = {"address": 0.3, "apn": 0.2, "sale_date": 0.25, "original_principal": 0.1, "deed_of_trust": 0.1,
@@ -59,12 +69,21 @@ def parse_date(value: str) -> date | None:
     return None
 
 
-def money(text: str) -> float | None:
+def money(text: str, unsigned: bool = False) -> float | None:
+    """A $ amount; with `unsigned` (right after a label) also one whose "$" OCR dropped or read as
+    "5" or "S" ("5366,750.00": four digits before the first comma cannot be a grouped amount)."""
     found = MONEY.search(text)
-    return float(found.group(1).replace(",", "")) if found else None
+    if found:
+        return float(found.group(1).replace(",", ""))
+    bare = re.search(r"(?<![\d,.])([5S]?)(\d{1,3})((?:,\d{3})+\.\d{2})\b", text) if unsigned else None
+    return float((bare.group(2) + bare.group(3)).replace(",", "")) if bare else None
 
 
-def apn(text: str) -> str | None:
+def apn(text: str, style: str = "maricopa", labelled: bool = False) -> str | None:
+    """The first APN in the text, dashed. A Pima APN without dashes is taken only right after its label."""
+    if style == "pima":
+        found = PIMA_APN.search(text) or (PIMA_APN_UNDASHED.search(text) if labelled else None)
+        return f"{found.group(1)}-{found.group(2)}-{found.group(3)}" if found else None
     found = APN.search(text)
     return f"{found.group(1)}-{found.group(2)}-{found.group(3)}{found.group(4) or ''}" if found else None
 
@@ -90,7 +109,9 @@ def labelled(lines: list[str], label: re.Pattern, following: int = 3) -> str | N
             if not match:
                 continue
             rest = piece[match.end():].lstrip(" :.-")
-            if column + 1 < len(pieces) and not rest and not pieces[column + 1].rstrip().endswith(":"):
+            # "Original Principal Balance as shown on Deed of Trust: | $216,015.00": the label runs on
+            if column + 1 < len(pieces) and (not rest or rest.rstrip().endswith(":")) \
+                    and not pieces[column + 1].rstrip().endswith(":"):
                 rest = pieces[column + 1]
             if len(re.sub(r"[^A-Za-z0-9]", "", rest)) >= 4:
                 return rest.strip()
@@ -107,7 +128,7 @@ def company(value: str | None) -> str | None:
     lines = (value or "").split("\n")
     for index, line in enumerate(lines):
         line = next((piece for piece in line.split(" | ") if COMPANY.search(piece)), "").strip(" ,")
-        if not line or re.match(r"(?i)^(c/o|care of|\(as of|\(as shown)", line):
+        if not line or re.match(r"(?i)^(c/o|care of|\(as of|\(as shown)", line) or PERSONAL_TRUST.search(line):
             continue
         if re.search(r"(?i)d/b/a$", line) and index + 1 < len(lines):
             line = f"{line} {lines[index + 1].split(' | ')[0].strip(' ,')}"
@@ -115,8 +136,16 @@ def company(value: str | None) -> str | None:
     return None
 
 
-def address(lines: list[str]) -> dict | None:
-    labels = re.compile(r"(?i)(purported\s+(street|property)\s+address|street\s+address\s+or\s+identifiable\s+location|"
+def courthouse(text: str, rules: dict) -> bool:
+    """The sale's place (the county courthouse), which the address fallback must not take."""
+    pattern = (rules.get("sale_location") or {}).get("pattern") or r"201\s+W(?:est|\.)?\s+Jefferson"
+    return bool(re.search(pattern, text, re.I))
+
+
+def address(lines: list[str], rules: dict | None = None) -> dict | None:
+    rules = rules or {}
+    # "Purported Street Address" also as OCR misreads it ("Purported Streer Address")
+    labels = re.compile(r"(?i)(purported\s+(street|property|\S{4,7})\s+address|street\s+address\s+or\s+identifiable\s+location|"
                         r"purported\s+to\s+be|property\s+address|commonly\s+known\s+as|street\s+address)")
     for index, line in enumerate(lines):
         match = labels.search(line)
@@ -132,10 +161,12 @@ def address(lines: list[str]) -> dict | None:
                         "zip": city.group(2)}
         window = f"{rest} {' '.join(below)}"
         found = ADDRESS.search(window)
-        if found:
+        if found and not courthouse(found.group(0), rules):
             return clean_address(found)
-    found = ADDRESS.search(joined(lines))
-    return clean_address(found) if found else None
+    for found in ADDRESS.finditer(joined(lines)):
+        if not courthouse(found.group(0), rules):
+            return clean_address(found)
+    return None
 
 
 def clean_address(found: re.Match) -> dict:
@@ -169,34 +200,53 @@ def score(fields: dict, weights: dict) -> tuple[float, list[str]]:
     return round(sum(weight for name, weight in weights.items() if fields.get(name)), 2), missing
 
 
-def parse_notice(lines: list[str], recording_number: str, recorded: date | None) -> dict:
+def sale_place(text: str, rules: dict) -> str | None:
+    if place := rules.get("sale_location"):
+        return place["text"] if re.search(place["pattern"], text, re.I) else None
+    return ("Main entrance of the Superior Court Building, 201 W. Jefferson St., Phoenix, AZ 85003"
+            if SALE_PLACE.search(text) else None)
+
+
+def parse_notice(lines: list[str], recording_number: str, recorded: date | None, rules: dict | None = None) -> dict:
+    rules = rules or {}
+    style = rules.get("apn_format", "maricopa")
     text = joined(lines)
     when, time = sale_when(text, recorded)
     if when is None:
-        stated = re.match(DATE, (labelled(lines, re.compile(r"(?i)sale\s+date(\s+and\s+time)?\s*:")) or "").strip())
+        value = (labelled(lines, re.compile(r"(?i)sale\s+date(\s+and\s+time)?\s*:")) or "").strip()
+        # OCR sometimes drops the second slash ("2/102027")
+        value = re.sub(r"^(\d{1,2}/\d{2})(20\d{2})\b", r"\1/\2", value)
+        stated = re.match(DATE, value)
         day = parse_date(stated.group(1)) if stated else None
+        if stated and not time:
+            time = sale_when(value, recorded)[1]
         when = day if day and recorded and recorded < day <= recorded + timedelta(days=400) else None
+        # "Sale Date: | 01/27/2027" with "Sale Time: | 11:30 AM" on the next line
+        clock = re.match(r"(\d{1,2}:\d{2})\s*([AP])\.?\s?M\b",
+                         (labelled(lines, re.compile(r"(?i)sale\s+time\s*:")) or "").strip(), re.I)
+        if when and clock:
+            hour, minute = clock.group(1).split(":")
+            time = f"{int(hour)}:{minute} {clock.group(2).upper()}M"
     references = instruments(text, recording_number)
     trustee_value = labelled(lines, re.compile(r"(?i)(name\s*(,|and)\s*address(\s*&\s*telephone\s*number)?\s*of\s*trustee"
                                                r"(/agent)?|current\s+trustee|^trustee)\s*:?"))
     mail_to = labelled(lines, re.compile(r"(?i)(when\s+recorded,?\s+(mail|return)\s+to|recorded\s+at\s+request\s+of)\s*:?"),
                        following=4)
-    place = SALE_PLACE.search(text)
     legal = LEGAL.search(text)
     fields = {
-        "address": address(lines),
+        "address": address(lines, rules),
         "apn": apn(labelled(lines, re.compile(r"(?i)(tax\s+parcel\s+(number|no)|a\.?\s?p\.?\s?n\.?|parcel\s+(number|no))"
-                                              r"\s*(\(s\))?\s*[:.]?")) or "") or apn(text),
+                                              r"\s*(\(s\))?\s*[:.]?")) or "", style, labelled=True) or apn(text, style),
         "sale_date": when.isoformat() if when else None,
         "sale_time": time,
-        "sale_location": ("Main entrance of the Superior Court Building, 201 W. Jefferson St., Phoenix, AZ 85003"
-                          if place else None),
+        "sale_location": sale_place(text, rules),
         "legal_description": re.sub(r"\s{2,}", " ", legal.group(0)).strip()[:400] if legal else None,
-        "original_principal": money(labelled(lines, re.compile(r"(?i)original\s+principal\s+balance\s*[:;.]?")) or ""),
+        "original_principal": money(labelled(lines, re.compile(r"(?i)original\s+principal\s+bal\w*\s*[:;.]?")) or "",
+                                    unsigned=True),
         "deed_of_trust": references[0] if references else None,
         "deed_of_trust_recorded": None,
         "beneficiary": company(labelled(lines, re.compile(r"(?i)(name\s+and\s+address\s+of\s+(current\s+)?beneficiary|"
-                                                          r"(original/)?c?urrent\s+beneficiar\w*|^beneficiary)\s*:?"),
+                                                          r"(original/)?c?urrent\s+beneficiar\w*|^beneficiary(?=\s*:))\s*:?"),
                                         following=3)),
         "trustee": company(trustee_value) or company(mail_to),
         "trustee_phone": None,
@@ -214,9 +264,10 @@ def parse_notice(lines: list[str], recording_number: str, recorded: date | None)
     return fields
 
 
-def parse_cancellation(lines: list[str], recording_number: str) -> dict:
+def parse_cancellation(lines: list[str], recording_number: str, rules: dict | None = None) -> dict:
     text = joined(lines)
-    fields = {"references": instruments(text, recording_number), "ts_number": ts_number(lines), "apn": apn(text)}
+    fields = {"references": instruments(text, recording_number), "ts_number": ts_number(lines),
+              "apn": apn(text, (rules or {}).get("apn_format", "maricopa"))}
     dated = re.search(r"(?i)\bdated?\s*:\s*\|?\s*" + DATE, text)
     fields["dated"] = parse_date(dated.group(1)).isoformat() if dated and parse_date(dated.group(1)) else None
     fields["confidence"], fields["missing"] = score(fields, {"references": 0.5, "ts_number": 0.25, "apn": 0.25})
@@ -224,7 +275,7 @@ def parse_cancellation(lines: list[str], recording_number: str) -> dict:
 
 
 def parse_trustee_deed(lines: list[str], recording_number: str, recorded: date | None,
-                       beneficiary: str | None = None) -> dict:
+                       beneficiary: str | None = None, rules: dict | None = None) -> dict:
     text = joined(lines)
     upon_sale = bool(re.search(r"(?i)public\s+auction|deed\s+upon\s+sale|notice\s+of\s+trustee.?s\s+sale", text))
     if not upon_sale:
@@ -236,7 +287,7 @@ def parse_trustee_deed(lines: list[str], recording_number: str, recorded: date |
     amount = re.search(r"(?i)(?:amount\s+paid\s+by\s+the\s+grantee[^$]{0,40}?|amount\s+bid,?\s*(?:namely|being|of)?\s*|"
                        r"\bfor\s+(?:the\s+sum\s+of\s+)?)\$\s?(\d{1,3}(?:,\d{3})*[.,]\d{2})\b", text)
     fields = {"upon_sale": True, "references": instruments(text, recording_number),
-              "ts_number": ts_number(lines), "apn": apn(text),
+              "ts_number": ts_number(lines), "apn": apn(text, (rules or {}).get("apn_format", "maricopa")),
               "sold_on": sold_on.isoformat() if sold_on else None,
               "price": float(re.sub(r"[.,](\d{2})$", r"_\1", amount.group(1)).replace(",", "").replace("_", "."))
               if amount else None,

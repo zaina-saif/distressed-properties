@@ -1,4 +1,4 @@
-"""Arizona trustee sales from the county recorder (Maricopa first; other counties by config).
+"""Arizona trustee sales from the county recorder (Maricopa and Pima; other counties by config).
 
 Stages, each resumable and safe to rerun:
   1. index   the recorder's JSON search for notices of trustee's sale, cancellations of
@@ -18,6 +18,12 @@ Stages, each resumable and safe to rerun:
   7. output  data/sheriff_sales/az_<county>_trustee_sales.json (parsed fields only) and a
              report in the run dir: counts by status, parse success, samples, known gaps
 
+A `manual_export` recorder (Pima: its Tyler EagleWeb portal answers scripted searches with an
+AWS WAF human-verification page, see docs/arizona/pima-recorder.md) has no index to query: the
+operator saves the documents from a normal browser and --import-folder builds the index from
+the PDFs themselves, the recording number from the file name (else the recorder's stamp), the
+recording date from the stamp and the kind from the document's title. Stages 3-7 are the same.
+
 The PDFs and OCR text (which do contain borrowers' names) stay in .local/; only the
 parsed property, sale, loan, trustee and beneficiary fields reach the snapshot.
 
@@ -26,6 +32,8 @@ parsed property, sale, loan, trustee and beneficiary fields reach the snapshot.
     python -m pipeline.scrape_az_trustee_sales --import-folder ~/Downloads/maricopa  # daily: last 3 days + saved PDFs
     python -m pipeline.scrape_az_trustee_sales --from 2026-07-01 --to 2026-07-31
     python -m pipeline.load_az_trustee_sales
+    python -m pipeline.scrape_az_trustee_sales --county Pima --import-folder ~/Downloads/pima  # weekly, saved PDFs
+    python -m pipeline.load_az_trustee_sales --county Pima
 """
 import argparse
 import csv
@@ -120,6 +128,65 @@ def import_folder(county: CountyConfig, index: dict[str, dict], folder: Path, en
     return {**counts, "unmatched": unmatched}
 
 
+# Document titles, in the order they are tried on a line: a cancellation's title contains a notice's.
+TITLES = [("cancellation", re.compile(r"(?i)cancell?ation\s+of\s+(?:the\s+)?notice\s+of\s+trustee.?s\s+sale"
+                                      r"|notice\s+of\s+cancell?ation\s+of\s+trustee.?s\s+sale")),
+          ("trustee_deed", re.compile(r"(?i)trustee.?s\s+deed")),
+          ("notice", re.compile(r"(?i)notice\s+of\s+trustee.?s\s+sale"))]
+STAMP_DATE = re.compile(r"\b(\d{1,2}/\d{1,2}/\d{4})\s+\d{1,2}:\d{2}\s*[AP]\.?M\b", re.I)
+
+
+def recorder_stamp(lines: list[str]) -> tuple[str | None, date | None]:
+    """The recording number and date the recorder stamps at the top of the first page
+    ("20262940537" / "10/21/2026 03:52 PM | Page 1 of 3")."""
+    head = " ".join(lines[:12])
+    number = re.search(r"(?<!\d)(20\d{9})(?!\d)", head)
+    stamped = STAMP_DATE.search(head)
+    try:
+        recorded = datetime.strptime(stamped.group(1), "%m/%d/%Y").date() if stamped else None
+    except ValueError:
+        recorded = None
+    return (number.group(1) if number else None), recorded
+
+
+def document_kind(lines: list[str]) -> str | None:
+    """notice, cancellation or trustee_deed, from the first title in the document's first 40 lines."""
+    for line in lines[:40]:
+        for kind, title in TITLES:
+            if title.search(line):
+                return kind
+    return None
+
+
+def import_exported(county: CountyConfig, index: dict[str, dict], folder: Path, engine_name: str) -> dict:
+    """Index and copy PDFs saved from a manual_export recorder. A PDF whose recording number,
+    recording date or kind cannot be read is reported, not indexed."""
+    engine = ocr_engines.engine(engine_name)
+    (county.cache / "pdf").mkdir(parents=True, exist_ok=True)
+    (county.cache / "ocr").mkdir(parents=True, exist_ok=True)
+    counts, unrecognised = Counter(), []
+    for pdf in sorted(folder.expanduser().glob("*.pdf")):
+        named = re.findall(r"(?<!\d)(\d{11})(?!\d)", pdf.stem)
+        if len(named) == 1 and named[0] in index and (county.cache / "pdf" / f"{named[0]}.pdf").exists():
+            counts["already_imported"] += 1
+            continue
+        lines = ocr_engines.text_lines(engine.boxes(pdf))
+        stamped, recorded = recorder_stamp(lines)
+        number = named[0] if len(named) == 1 else stamped
+        kind = document_kind(lines)
+        missing = [name for name, value in (("recording number", number), ("recording date", recorded), ("title", kind))
+                   if not value]
+        if missing:
+            unrecognised.append(f"{pdf.name}: no {', '.join(missing)}")
+            continue
+        shutil.copyfile(pdf, county.cache / "pdf" / f"{number}.pdf")
+        (county.cache / "ocr" / f"{number}.txt").write_text("\n".join(lines))
+        index[number] = {"recording_number": number, "recording_date": recorded.isoformat(),
+                         "document_code": "manual_export", "kind": kind}
+        counts[kind] += 1
+    return {**counts, "unrecognised": unrecognised}
+
+
 def write_todo(county: CountyConfig, index: dict[str, dict], path: Path) -> int:
     """The indexed documents without a saved PDF, notices first and newest first."""
     order = {"notice": 0, "cancellation": 1, "trustee_deed": 2}
@@ -171,11 +238,13 @@ def sharper_notice(county: CountyConfig, row: dict, first: dict) -> dict:
         if not pdf.exists():
             return first
         cached.write_text("\n".join(ocr_engines.text_lines(ocr_engines.MacVisionOcr(5600, correct=True).boxes(pdf))))
-    second = parse_notice(cached.read_text().splitlines(), row["recording_number"], date.fromisoformat(row["recording_date"]))
+    second = parse_notice(cached.read_text().splitlines(), row["recording_number"], date.fromisoformat(row["recording_date"]),
+                          county.recorder)
     return second if second["confidence"] > first["confidence"] else first
 
 
 def parse_all(county: CountyConfig, index: dict[str, dict]) -> dict[str, list[dict]]:
+    rules = county.recorder
     parsed = {"notice": [], "cancellation": [], "trustee_deed": [], "other_trustee_deed": [], "unread": []}
     for row in index.values():
         lines = ocr_lines(county, row["recording_number"])
@@ -185,12 +254,12 @@ def parse_all(county: CountyConfig, index: dict[str, dict]) -> dict[str, list[di
         recorded = date.fromisoformat(row["recording_date"])
         base = {"recording_number": row["recording_number"], "recording_date": row["recording_date"]}
         if row["kind"] == "notice":
-            result = sharper_notice(county, row, parse_notice(lines, row["recording_number"], recorded))
+            result = sharper_notice(county, row, parse_notice(lines, row["recording_number"], recorded, rules))
             parsed["notice"].append({**base, **result})
         elif row["kind"] == "cancellation":
-            parsed["cancellation"].append({**base, **parse_cancellation(lines, row["recording_number"])})
+            parsed["cancellation"].append({**base, **parse_cancellation(lines, row["recording_number"], rules)})
         else:
-            deed = {**base, **parse_trustee_deed(lines, row["recording_number"], recorded)}
+            deed = {**base, **parse_trustee_deed(lines, row["recording_number"], recorded, rules=rules)}
             parsed["trustee_deed" if deed["upon_sale"] else "other_trustee_deed"].append(deed)
     return parsed
 
@@ -204,8 +273,14 @@ def place(foreclosure: Foreclosure, parcels: dict[str, dict], layer: ParcelLayer
     if parcel is None and stated:
         parcel = layer.by_address(stated["street"], stated["city"])
     house = lambda street: (re.match(r"\d+", street or "") or [None])[0]
-    if parcel and parcel.get("street") and parcel.get("city") and (not stated or house(stated["street"]) == house(parcel["street"])):
-        return {"street": parcel["street"], "city": parcel["city"], "zip": parcel["zip"]}, "assessor", parcel
+    # Pima's layer has no postal city: the notice's city goes with the assessor's street.
+    city = (parcel or {}).get("city") or (stated or {}).get("city")
+    # The house numbers agree, or the notice's street is OCR debris that still holds the parcel's
+    # house number ("18 THEREOF. Purported Streer Address: 1221 E. PARK ESTATES CIR").
+    agrees = lambda: not stated or house(stated["street"]) == house(parcel["street"]) or \
+        house(parcel["street"]) in re.findall(r"\d+", stated["street"])
+    if parcel and parcel.get("street") and city and agrees():
+        return {"street": parcel["street"], "city": city, "zip": parcel["zip"] or (stated or {}).get("zip")}, "assessor", parcel
     if stated:
         return stated, "notice", parcel
     return None, None, parcel
@@ -306,10 +381,19 @@ def main(argv=None) -> int:
     start = args.start or end - timedelta(days=(int(county.settings["backfill_days"]) if args.backfill else args.days))
     settings = county.scraping_settings()
 
+    manual = county.recorder["kind"] == "manual_export"
+    if manual and (args.fetch or args.todo):
+        raise SystemExit(f"{county.name}: documents are saved by hand (manual_export); use --import-folder")
+
     with PoliteClient(settings) as client:
-        found = RecorderIndex(county, client).recordings(start, end)
+        index = load_index(county)
+        if manual and args.dry_run:
+            saved = sorted(args.import_folder.expanduser().glob("*.pdf")) if args.import_folder else []
+            print(json.dumps({"county": county.name, "indexed": dict(Counter(row["kind"] for row in index.values())),
+                              "pdfs_in_folder": len(saved)}, indent=2))
+            return 0
+        found = [] if manual else RecorderIndex(county, client).recordings(start, end)
         if args.dry_run:
-            index = load_index(county)
             new = [row for row in found if row["recording_number"] not in index]
             cached = sum(1 for row in found if (county.cache / "pdf" / f"{row['recording_number']}.pdf").exists())
             print(json.dumps({"county": county.name, "from": start.isoformat(), "to": end.isoformat(),
@@ -317,17 +401,22 @@ def main(argv=None) -> int:
                               "pdfs_cached": cached, "pdfs_to_fetch": len(found) - cached,
                               "sample": found[:3]}, indent=2))
             return 0
-        index = load_index(county)
         for row in found:
             index[row["recording_number"]] = {**row, **{k: v for k, v in index.get(row["recording_number"], {}).items()
                                                         if k == "unavailable"}}
         save_index(county, index)
-        print(f"{county.name}: {len(found)} recordings {start}..{end} ({dict(Counter(r['kind'] for r in found))}); "
-              f"{len(index)} in the index", flush=True)
+        if not manual:
+            print(f"{county.name}: {len(found)} recordings {start}..{end} ({dict(Counter(r['kind'] for r in found))}); "
+                  f"{len(index)} in the index", flush=True)
 
         engine_name = args.ocr_engine or county.settings["ocr_engine"]
         fetched = Counter()
-        if args.import_folder:
+        if args.import_folder and manual:
+            imported = import_exported(county, index, args.import_folder, engine_name)
+            save_index(county, index)
+            fetched.update({key: value for key, value in imported.items() if key != "unrecognised"})
+            print(f"  imported from {args.import_folder}: {imported}; {len(index)} in the index", flush=True)
+        elif args.import_folder:
             imported = import_folder(county, index, args.import_folder, engine_name)
             fetched.update({key: value for key, value in imported.items() if key != "unmatched"})
             print(f"  imported from {args.import_folder}: {imported}", flush=True)
@@ -351,7 +440,7 @@ def main(argv=None) -> int:
                 lines = ocr_lines(county, foreclosure.deed["recording_number"]) or []
                 foreclosure.deed.update(parse_trustee_deed(lines, foreclosure.deed["recording_number"],
                                                            date.fromisoformat(foreclosure.deed["recording_date"]),
-                                                           foreclosure.notice["beneficiary"]))
+                                                           foreclosure.notice["beneficiary"], county.recorder))
             address, source, parcel = place(foreclosure, parcels, layer)
             if address is None:
                 unplaced.append(foreclosure.notice["recording_number"])

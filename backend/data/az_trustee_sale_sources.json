@@ -1,5 +1,5 @@
 {
-  "_comment": "Arizona trustee-sale sources per county (pipeline.scrape_az_trustee_sales). Add Pima or Pinal with their recorder and parcel-layer entries. See docs/arizona/maricopa-recorder.md.",
+  "_comment": "Arizona trustee-sale sources per county (pipeline.scrape_az_trustee_sales). Recorder kinds: maricopa_publicapi (docs/arizona/maricopa-recorder.md) and manual_export, PDFs the operator saves (docs/arizona/pima-recorder.md). Add Pinal with its recorder and parcel-layer entries.",
   "defaults": {
     "request_delay_seconds": 1.2,
     "window_days": 7,
@@ -39,6 +39,47 @@
           "legal_class": "LC_CUR",
           "deed_number": "DEED_NUMBER",
           "deed_date": "DEED_DATE"
+        }
+      }
+    },
+    "Pima": {
+      "recorder": {
+        "kind": "manual_export",
+        "website": "https://pimacountyaz-web.tylerhost.net/web/",
+        "document_types": {
+          "notice": [
+            "NOTICE SALE",
+            "AMENDED NOTICE SALE"
+          ],
+          "cancellation": [
+            "CANCELLATION NOTICE SALE"
+          ],
+          "trustee_deed": [
+            "TRUSTEES DEED",
+            "AMENDED TRUSTEES DEED"
+          ]
+        },
+        "apn_format": "pima",
+        "sale_location": {
+          "pattern": "110\\s+W(?:est|\\.)?\\s+Congress",
+          "text": "Superior Court Building, Pima County Courthouse, 110 W. Congress St., Tucson, AZ 85701"
+        }
+      },
+      "parcels": {
+        "kind": "arcgis",
+        "layer": "https://gisdata.pima.gov/arcgis1/rest/services/GISOpenData/LandRecords/MapServer/0",
+        "apn_field": "PARCEL",
+        "apn_digits": true,
+        "fields": {
+          "apn": "PARCEL",
+          "street": "ADDRESS_OL",
+          "zip": "ZIP",
+          "latitude": "LAT",
+          "longitude": "LON",
+          "full_cash_value": "FCV",
+          "limited_value": "LIMNET",
+          "tax_year": "TAXYR",
+          "use_code": "PARCEL_USE"
         }
       }
     }

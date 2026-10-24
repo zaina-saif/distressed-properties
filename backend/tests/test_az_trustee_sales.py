@@ -263,3 +263,143 @@ def test_open_foreclosures_without_a_sale_date_are_held_back():
     from pipeline.load_az_trustee_sales import loadable
     assert not loadable(foreclosure_record(sale_date=None))
     assert loadable(foreclosure_record(sale_date=None, lifecycle="cancelled")) and loadable(foreclosure_record())
+
+
+# Pima: fixtures transcribed from screenshots of the recorder's viewer (2026-10-24), trustors redacted.
+PIMA_RULES = {"apn_format": "pima", "sale_location": {
+    "pattern": r"110\s+W(?:est|\.)?\s+Congress",
+    "text": "Superior Court Building, Pima County Courthouse, 110 W. Congress St., Tucson, AZ 85701"}}
+
+
+@pytest.mark.parametrize("name, expected", [
+    ("20262940537", {  # Quality Loan: labelled fields, "Sale Date and Time" on one line
+        "address": {"street": "3733 S AVENIDA DE LAS PALMAS", "city": "Tucson", "zip": "85730"}, "apn": "136-17-5140",
+        "sale_date": "2027-02-10", "sale_time": "10:00 AM", "original_principal": 176739.0,
+        "deed_of_trust": "20182610619", "beneficiary": "NewRez LLC", "ts_number": "AZ-26-1064299-AB"}),
+    ("20262940520", {  # "Sale Date:" and "Sale Time:" on separate lines, APN without dashes
+        "address": {"street": "1921 S TILTING T PLACE", "city": "Tucson", "zip": "85713"}, "apn": "212-17-4380",
+        "sale_date": "2027-01-27", "sale_time": "11:30 AM", "original_principal": 218010.0,
+        "deed_of_trust": "20220600019", "deed_of_trust_recorded": "2022-03-01"}),
+    ("20262940505", {  # sale date in the prose, address "purported to be:" on the next lines
+        "address": {"street": "2301 S Hohokam Dr", "city": "Tucson", "zip": "85735"}, "apn": "211-31-0030",
+        "sale_date": "2027-01-27", "sale_time": "10:00 AM", "deed_of_trust": "20150820431",
+        "beneficiary": "Guild Mortgage Company LLC", "ts_number": "26-17330-GM-AZ"}),
+    ("20262940385", {  # a private trust as beneficiary is not kept; no TS number with digits
+        "address": {"street": "8840 S. Nogales Hwy", "city": "Tucson", "zip": "85756"}, "apn": "140-50-0300",
+        "sale_date": "2027-01-21", "sale_time": "11:30 AM", "beneficiary": None, "ts_number": None,
+        "trustee": "TOLESOAZ Corp. d/b/a Total Lender Solutions"}),
+    ("20262940325", {
+        "address": {"street": "6981 E Calle Tolosa", "city": "Tucson", "zip": "85750"}, "apn": "114-35-1340",
+        "sale_date": "2027-02-02", "original_principal": 366750.0, "beneficiary": "Athene Annuity and Life Company"}),
+])
+def test_parse_pima_notice(name, expected):
+    result = parse_notice(lines(name), name, date(2026, 10, 21), PIMA_RULES)
+    for field, value in expected.items():
+        assert result[field] == value, field
+    assert result["sale_location"] == PIMA_RULES["sale_location"]["text"]
+    assert result["confidence"] >= 0.95
+    assert "TRUSTOR" not in json.dumps(result).upper()
+
+
+@pytest.mark.parametrize("text, labelled, expected", [
+    ("Tax Parcel Number: 136-17-5140", False, "136-17-5140"), ("212174380", True, "212-17-4380"),
+    ("Loan 212174380", False, None), ("APN 123-45-678A", False, "123-45-678A")])
+def test_pima_apn(text, labelled, expected):
+    assert apn(text, "pima", labelled) == expected
+
+
+def test_recorder_stamp_and_document_kind():
+    from pipeline.scrape_az_trustee_sales import document_kind, recorder_stamp
+    assert recorder_stamp(lines("20262940537")) == ("20262940537", date(2026, 10, 21))
+    assert document_kind(lines("20262940537")) == "notice"
+    assert document_kind(["20262950100", "CANCELLATION OF NOTICE OF TRUSTEE'S SALE"]) == "cancellation"
+    assert document_kind(["TRUSTEE'S DEED UPON SALE", "pursuant to the Notice of Trustee's Sale"]) == "trustee_deed"
+    assert document_kind(["DEED OF TRUST"]) is None
+
+
+def test_import_exported_indexes_saved_pdfs(tmp_path, monkeypatch):
+    from pipeline import scrape_az_trustee_sales
+    from pipeline.az_recorder import CountyConfig
+
+    class Config(CountyConfig):
+        cache = tmp_path / "cache"
+
+    pages = {"20262940537": ["20262940537", "10/21/2026 03:52 PM | Page 1 of 3", "Notice of Trustee's Sale"],
+             "download (3)": ["20262950100", "10/22/2026 08:06 AM | Page 1 of 1",
+                              "CANCELLATION OF NOTICE OF TRUSTEE'S SALE"],
+             "scan": ["DEED OF TRUST"]}
+
+    class Engine:
+        def boxes(self, pdf):
+            return [(1, 0.1, 0.9 - index * 0.05, 0.01, text) for index, text in enumerate(pages[pdf.stem])]
+
+    monkeypatch.setattr(scrape_az_trustee_sales.ocr_engines, "engine", lambda name: Engine())
+    saved = tmp_path / "saved"
+    saved.mkdir()
+    for name in pages:
+        (saved / f"{name}.pdf").write_bytes(b"%PDF-1.4")
+    index = {}
+    result = scrape_az_trustee_sales.import_exported(Config("Pima", {}, {}, {}), index, saved, "macos")
+    assert result == {"notice": 1, "cancellation": 1, "unrecognised": ["scan.pdf: no recording number, recording date, title"]}
+    assert index["20262950100"] == {"recording_number": "20262950100", "recording_date": "2026-10-22",
+                                    "document_code": "manual_export", "kind": "cancellation"}
+    assert sorted(path.name for path in (tmp_path / "cache" / "pdf").iterdir()) == ["20262940537.pdf", "20262950100.pdf"]
+    again = scrape_az_trustee_sales.import_exported(Config("Pima", {}, {}, {}), index, saved, "macos")
+    assert again["already_imported"] == 1  # matched by file name; the renamed download is read again
+
+
+def test_pima_parcel_layer_keys_and_values():
+    asked = []
+
+    class Client:
+        def get(self, url, params):
+            asked.append(params["where"])
+
+            class Response:
+                def raise_for_status(self):
+                    pass
+
+                def json(self):
+                    return {"features": [{"attributes": {"PARCEL": "136175140", "ADDRESS_OL": "3733 S AVENIDA DE LAS PALMAS",
+                                                         "ZIP": "85730", "FCV": 227931.0, "TAXYR": "2026"}}]}
+            return Response()
+
+    layer = ParcelLayer({"layer": "x", "apn_digits": True, "fields": {
+        "apn": "PARCEL", "street": "ADDRESS_OL", "zip": "ZIP", "full_cash_value": "FCV", "tax_year": "TAXYR"}}, Client())
+    found = layer.by_apn(["136-17-5140"])
+    assert asked == ["PARCEL IN ('136175140')"]
+    assert found["136-17-5140"]["full_cash_value"] == 227931 and found["136-17-5140"]["city"] is None
+
+
+def test_place_takes_the_notice_city_when_the_parcel_has_none():
+    from pipeline.az_trustee_lifecycle import Foreclosure
+    from pipeline.scrape_az_trustee_sales import place
+    foreclosure = Foreclosure("dot:20182610619", notices=[{
+        "apn": "136-17-5140", "address": {"street": "3733 S Avenida de las Palmas", "city": "Tucson", "zip": "85730"}}])
+    parcel = {"apn": "136-17-5140", "street": "3733 S AVENIDA DE LAS PALMAS", "city": None, "zip": "85730"}
+    address, source, _ = place(foreclosure, {"136-17-5140": parcel}, layer=None)
+    assert source == "assessor" and address == {"street": "3733 S AVENIDA DE LAS PALMAS", "city": "Tucson", "zip": "85730"}
+
+
+@pytest.mark.parametrize("ocr_lines, field, expected", [
+    (["Original Principal Balanoe: | $176,739.00"], "original_principal", 176739.0),
+    (["Original Principal Balance: 5366,750.00"], "original_principal", 366750.0),  # "$" read as "5"
+    (["ORIGINAL PRINCIPAL BALANCE AS SHOWN ON DEED OF TRUST: | $216,015.00 | Copy"], "original_principal", 216015.0),
+    (["Sale Date and Time: | 2/102027 at 10:00 AM"], "sale_date", "2027-02-10"),
+    (["Sale Location: | Superior Court, 110 West Congress, Tucson, AZ 85701",
+      "Purported Strset Address: | 3733 S AVENIDA DE LAS PALMAS, TUCSON, AZ 85730"], "address",
+     {"street": "3733 S AVENIDA DE LAS PALMAS", "city": "Tucson", "zip": "85730"}),
+    (["at the East Entrance, 110 West Congress, Tucson, AZ 85701"], "address", None),  # never the courthouse
+])
+def test_pima_ocr_misreads(ocr_lines, field, expected):
+    assert parse_notice(ocr_lines, "20262940537", date(2026, 10, 21), PIMA_RULES)[field] == expected
+
+
+def test_place_uses_the_parcel_when_the_notice_street_is_debris():
+    from pipeline.az_trustee_lifecycle import Foreclosure
+    from pipeline.scrape_az_trustee_sales import place
+    stated = {"street": "18 THEREOF. Purported Streer Address: 1221 E. PARK ESTATES CIR", "city": "Tucson", "zip": "85706"}
+    parcel = {"apn": "140-18-2510", "street": "1221 E PARK ESTATES CI", "city": None, "zip": "85706"}
+    address, source, _ = place(Foreclosure("dot:1", notices=[{"apn": "140-18-2510", "address": stated}]),
+                               {"140-18-2510": parcel}, layer=None)
+    assert source == "assessor" and address["street"] == "1221 E PARK ESTATES CI"

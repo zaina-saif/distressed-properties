@@ -5,6 +5,10 @@ fields named in the county's config are requested: APN, situs address, position,
 cash and limited values, use code, legal class and the latest deed's recording number.
 Owner and mailing fields are never requested. Legal class 3 is Arizona's owner-occupied
 primary residence class, which gives the owner-occupied flag without any names.
+
+Pima: gisdata.pima.gov GISOpenData/LandRecords/MapServer/0 (Parcel Centroids; open, no robots.txt).
+Its PARCEL is undashed ("136175140"; `apn_digits` in the config) and it has no postal city
+(JURIS_OL is the jurisdiction) or legal class; its MAIL1-MAIL5 owner/mailing fields are never requested.
 """
 import re
 
@@ -14,13 +18,26 @@ BATCH = 100
 
 
 def number(value) -> int | None:
-    digits = re.sub(r"[^\d]", "", str(value or ""))
+    if isinstance(value, (int, float)):
+        return int(value)
+    digits = re.sub(r"[^\d]", "", str(value or "").split(".")[0])
     return int(digits) if digits else None
 
 
 class ParcelLayer:
     def __init__(self, config: dict, client: PoliteClient):
         self.layer, self.fields, self.client = config["layer"], config["fields"], client
+        self.digits = bool(config.get("apn_digits"))
+
+    def key(self, apn: str) -> str:
+        """The layer's form of a dashed APN."""
+        return apn.replace("-", "") if self.digits else apn
+
+    def dashed(self, value: str | None) -> str | None:
+        """A Pima layer APN ("136175140") in the notices' form ("136-17-5140")."""
+        if self.digits and value and re.fullmatch(r"\d{8}[\dA-Z]", value):
+            return f"{value[:3]}-{value[3:5]}-{value[5:]}"
+        return value
 
     def query(self, where: str) -> list[dict]:
         response = self.client.get(f"{self.layer}/query", params={
@@ -35,7 +52,7 @@ class ParcelLayer:
         value = {key: attributes.get(name) for key, name in self.fields.items()}
         street = re.split(r"\s{2,}", (value.get("street") or "").strip())[0].strip()
         legal_class = str(value.get("legal_class") or "").strip() or None
-        return {"apn": value.get("apn"), "street": street or None, "city": (value.get("city") or "").strip().title() or None,
+        return {"apn": self.dashed(value.get("apn")), "street": street or None, "city": (value.get("city") or "").strip().title() or None,
                 "zip": (value.get("zip") or "").strip()[:5] or None, "latitude": value.get("latitude"),
                 "longitude": value.get("longitude"), "full_cash_value": number(value.get("full_cash_value")),
                 "limited_value": number(value.get("limited_value")), "tax_year": value.get("tax_year"),
@@ -47,7 +64,7 @@ class ParcelLayer:
         found = {}
         unique = sorted(set(apns))
         for start in range(0, len(unique), BATCH):
-            quoted = ",".join(f"'{apn}'" for apn in unique[start:start + BATCH] if re.fullmatch(r"[\dA-Z-]+", apn))
+            quoted = ",".join(f"'{self.key(apn)}'" for apn in unique[start:start + BATCH] if re.fullmatch(r"[\dA-Z-]+", apn))
             for parcel in self.query(f"{self.fields['apn']} IN ({quoted})"):
                 found[parcel["apn"]] = parcel
         return found
@@ -61,7 +78,7 @@ class ParcelLayer:
         if not name:
             return None
         where = f"{self.fields['street']} LIKE '{words[0]} %{name}%'"
-        if city:
+        if city and "city" in self.fields:
             where += f" AND UPPER({self.fields['city']}) = '{re.sub(r'[^A-Z ]', '', city.upper())}'"
         found = self.query(where)
         return found[0] if len(found) == 1 else None
